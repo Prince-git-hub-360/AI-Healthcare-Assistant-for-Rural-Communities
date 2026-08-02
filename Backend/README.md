@@ -4,14 +4,124 @@
 [![Framework](https://img.shields.io/badge/django-5.2-green)](https://www.djangoproject.com/)
 [![REST Framework](https://img.shields.io/badge/DRF-3.14-red)](https://www.django-rest-framework.org/)
 [![Database](https://img.shields.io/badge/database-PostgreSQL-blue)](https://www.postgresql.org/)
-[![Architecture](https://img.shields.io/badge/architecture-Enterprise%20Clean%20Architecture-purple)](#)
 
-> **Infosys Virtual Internship Project Submission**  
-> An enterprise-grade, modular healthcare communication backend engineered to simplify complex medical prescriptions, translate regional language guidance, generate voice guidance audio (TTS), and schedule automated daily reminder alarms for rural communities.
+> **Infosys Virtual Internship Project Submission**
+> This backend is built to support rural healthcare communication, prescription management, multilingual guidance, and reminder workflows in a scalable Django architecture.
 
 ---
 
-## 🌟 Architecture Blueprint & Directory Layout
+## Backend Architecture Overview
+
+This backend follows a modular Django application structure to keep each business domain separate and maintainable.
+
+```
+Backend/
+├── apps/
+│   ├── accounts/            # Authentication, JWT, user profiles
+│   ├── patients/            # Patient demographics, profiles, caregivers
+│   ├── medical/             # Medical document uploads, OCR, emergency and education features
+│   ├── medications/         # Prescription parsing, medication records
+│   ├── reminders/           # Medication reminders and caregiver alerting
+│   ├── translations/        # Translation content, voice guidance APIs
+│   ├── healthcare_workers/  # Healthcare provider users and assignments
+├── common/                  # Shared utilities, validators, enums
+├── config/                  # Django app configuration, URLs, settings
+├── media/                   # Uploaded images, documents, audio
+├── scripts/                 # Demo seeding and verification scripts
+├── requirements.txt         # Python dependency list
+└── manage.py                # Django CLI entrypoint
+```
+
+### Core Backend Modules
+
+- `accounts`: JWT login, registration, user profile management
+- `patients`: patient record management, caregiver assignments, recommendation endpoints
+- `medical`: medical document upload, OCR text extraction, emergency guidance, health education endpoints
+- `medications`: medication storage and parsing support
+- `reminders`: medication schedule management, trigger reminders and caregiver alerts
+- `translations`: text translation and voice guidance generation
+- `healthcare_workers`: provider role management and directory
+
+---
+
+## What is Already Implemented
+
+- PostgreSQL connection using `healthcare_assistant_db`
+- Django REST Framework with app-level modular endpoints
+- JWT authentication and profile management
+- Backend-first architecture for future OCR, translation, and voice assistant extensions
+- API contract with the frontend under `/api/v1/`
+
+---
+
+## Local Installation & Setup
+
+### Run the backend
+
+```powershell
+cd Backend
+python -m venv venv
+.\venv\Scripts\activate
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py runserver
+```
+
+### Useful developer commands
+
+```powershell
+python manage.py makemigrations
+python manage.py migrate
+python manage.py check
+python manage.py test
+```
+
+---
+
+## Key Backend Endpoints
+
+### Authentication
+- `POST /api/v1/auth/register/` — register a new user and profile
+- `POST /api/v1/auth/login/` — authenticate and receive JWT access and refresh tokens
+- `GET /api/v1/auth/profile/` — retrieve the authenticated user's profile
+- `PUT /api/v1/auth/profile/` — update profile details
+
+### Core domain APIs
+- `GET /api/v1/patients/` — list patient profiles
+- `GET /api/v1/healthcare-workers/` — list health worker profiles
+- `GET /api/v1/medical-documents/` — list medical uploads
+- `POST /api/v1/medical-documents/` — upload medical documents, prescriptions, or reports
+- `GET /api/v1/medications/` — list medication records
+- `POST /api/v1/medications/` — create new medication records
+- `GET /api/v1/reminders/` — list scheduled reminders
+- `POST /api/v1/reminders/` — create medication reminders
+- `GET /api/v1/translations/` — list translations
+- `POST /api/v1/translations/` — create translation records
+
+### System support APIs
+- `POST /api/v1/sync/offline-batch/` — batch sync offline data
+- `GET /api/v1/sync/health-check/` — system health and backend health status
+
+---
+
+## Developer Notes
+
+- Keep `Backend/.env` private and do not commit it.
+- The database should already be created prior to running migrations.
+- App-level routing is configured with `Backend/apps/*/urls.py` for future modular expansion.
+- The backend is intentionally architected to support later AI, OCR, and translation module integration.
+
+---
+
+## Future Improvement Areas
+
+The current backend is ready to absorb:
+- AI prescription parsing and medical entity extraction
+- OCR/vision-based prescription reading
+- multilingual medical simplification
+- voice guidance (text-to-speech)
+- notification services and caregiver alerts
+- role-based access control for patients, caregivers, and healthcare workers
 
 The project follows **Enterprise Corporate Architecture** standards used by senior Django software architects in top product companies:
 

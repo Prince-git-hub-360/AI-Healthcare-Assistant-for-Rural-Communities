@@ -1,16 +1,70 @@
-# React + Vite
+﻿# Frontend: React + Vite Client for Rural Healthcare Assistant
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+This frontend application is built with React 19 and Vite to provide the user interface for the AI-Powered Healthcare Communication Assistant. It is designed to interact with the Django backend via REST APIs and present a professional, modular client architecture.
 
-Currently, two official plugins are available:
+## Frontend Folder Structure
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```
+Frontend/
+├── public/                  # Static HTML and image assets
+├── src/
+│   ├── api/                 # API service layer for backend communication
+│   ├── components/
+│   │   ├── auth/            # login and registration components
+│   │   ├── layout/          # navigation and shared layout components
+│   │   ├── medical/         # medical documents and upload UI
+│   │   ├── profile/         # profile dashboard and user settings UI
+│   │   └── ui/              # shared UI components such as toast notifications
+│   ├── context/             # auth and global application state
+│   ├── pages/               # page-level view containers
+│   └── styles/              # shared CSS styles
+├── package.json             # frontend dependencies and scripts
+├── package-lock.json        # generated npm lock file
+├── README.md                # frontend documentation
+└── requirements.txt         # frontend dependency notes for reviewers
+```
 
-## React Compiler
+## How to Run the Frontend
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+1. Open a terminal in `Frontend`.
+2. Install dependencies:
 
-## Expanding the Oxlint configuration
+```powershell
+npm install
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+3. Start the development server:
+
+```powershell
+npm run dev
+```
+
+4. Open the provided Vite URL in your browser.
+
+The frontend is configured to communicate with the backend on `/api/v1/`.
+
+## Key Frontend Features
+
+- `src/context/AuthContext.jsx` — manages authentication state, JWT token refresh, profile refresh, and language preference.
+- `src/api/api.js` — centralized API request helper with token handling and refresh retry.
+- `src/components/auth/Login.jsx` — login UI with role selection for patient, caregiver, and healthcare worker.
+- `src/components/auth/Register.jsx` — multi-step registration UI for profile creation.
+- `src/components/profile/ProfileDashboard.jsx` — user profile details, edit form, and JWT refresh helper.
+- `src/components/medical/MedicalDocuments.jsx` — medical document upload, listing, filtering, and audio helper logic.
+- `src/components/layout/Navbar.jsx` — global navigation, API health indicator, language switcher, and logout.
+
+## Notes for Reviewers
+
+- The frontend is built to reflect clean separation of responsibilities and a scalable component architecture.
+- The current implementation supports secure JWT-based communication with the backend.
+- `requirements.txt` is included as a reviewer note; the actual frontend dependency manager is `npm`.
+
+## Future Enhancements
+
+The structure supports future additions such as:
+
+- OCR prescription preview screens
+- AI-based translation and simplification interfaces
+- voice guidance playback controls
+- medication reminders dashboard
+- role-specific dashboards for patients, providers, and caregivers
