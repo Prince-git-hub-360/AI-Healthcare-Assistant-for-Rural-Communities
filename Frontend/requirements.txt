@@ -1,0 +1,11 @@
+# Frontend dependency note
+# This project uses npm + package.json instead of Python requirements.
+# Install dependencies with: npm install
+
+react@^19.2.8
+react-dom@^19.2.8
+vite@^8.2.0
+@vitejs/plugin-react@^6.0.4
+@types/react@^19.2.17
+@types/react-dom@^19.2.3
+oxlint@^1.75.0

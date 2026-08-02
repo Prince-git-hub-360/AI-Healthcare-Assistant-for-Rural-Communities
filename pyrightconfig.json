@@ -1,0 +1,24 @@
+{
+  "venvPath": ".",
+  "venv": "venv",
+  "include": [
+    "Backend"
+  ],
+  "extraPaths": [
+    "Backend",
+    "Backend/apps",
+    "Backend/config",
+    "venv/Lib/site-packages"
+  ],
+  "executionEnvironments": [
+    {
+      "root": "Backend",
+      "extraPaths": [
+        "apps",
+        "config",
+        "../venv/Lib/site-packages",
+        "."
+      ]
+    }
+  ]
+}

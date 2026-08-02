@@ -1,0 +1,33 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Environment variables
+.env
+
+# Local database
+*.sqlite3
+
+# Editor / IDE files
+.vscode/
+.idea/
+
+# Temporary and upload media
+Backend/media/translations/audio/*
+!Backend/media/translations/audio/.gitkeep
+
+# Frontend / Node
+Frontend/node_modules/
+Frontend/dist/
+Frontend/.vite/
+Frontend/*.tsbuildinfo
+
+# OS generated files
+.DS_Store
+Thumbs.db
