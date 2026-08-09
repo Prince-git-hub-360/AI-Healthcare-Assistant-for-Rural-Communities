@@ -139,9 +139,9 @@ class LoginSerializer(serializers.Serializer):
     username = serializers.CharField(required=True)
     password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
 
-    def validate(self, data):
-        username = data.get('username')
-        password = data.get('password')
+    def validate(self, attrs):
+        username = attrs.get('username')
+        password = attrs.get('password')
 
         if username and password:
             user = authenticate(username=username, password=password)
@@ -150,8 +150,8 @@ class LoginSerializer(serializers.Serializer):
         else:
             raise serializers.ValidationError('Username and password are required.')
 
-        data['user'] = user
-        return data
+        attrs['user'] = user
+        return attrs
 
 
 class PasswordResetRequestSerializer(serializers.Serializer):
