@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard — Healthcare Platform</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #f4f6f5; display: flex; justify-content: center; padding: 60px 20px; }
+  .card { background: #fff; padding: 40px; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); width: 100%; max-width: 480px; }
+  h1 { color: #1a7f5a; margin-top: 0; font-size: 24px; }
+  pre { background: #f4f6f5; padding: 14px; border-radius: 6px; overflow-x: auto; font-size: 13px; }
+  button { margin-top: 18px; padding: 10px 16px; background: #b3261e; color: #fff; border: none; border-radius: 6px; cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Welcome</h1>
+  <div id="content">Loading profile...</div>
+  <button onclick="logout()">Log Out</button>
+</div>
+
+<script>
+async function loadProfile() {
+  const token = localStorage.getItem('access_token');
+  if (!token) { window.location.href = '/login-page/'; return; }
+
+  const res = await fetch('/api/accounts/profile/', {
+    headers: { 'Authorization': 'Bearer ' + token },
+  });
+
+  if (res.ok) {
+    const data = await res.json();
+    document.getElementById('content').innerHTML =
+      '<p>Logged in as <strong>' + data.username + '</strong> (' + data.role + ')</p><pre>' +
+      JSON.stringify(data, null, 2) + '</pre>';
+  } else {
+    document.getElementById('content').textContent = 'Session expired. Please log in again.';
+    setTimeout(() => window.location.href = '/login-page/', 1500);
+  }
+}
+
+function logout() {
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('refresh_token');
+  window.location.href = '/login-page/';
+}
+
+loadProfile();
+</script>
+</body>
+</html>

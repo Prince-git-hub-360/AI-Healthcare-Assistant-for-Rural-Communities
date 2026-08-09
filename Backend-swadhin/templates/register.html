@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Register — Healthcare Platform</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #f4f6f5; display: flex; justify-content: center; padding: 60px 20px; }
+  .card { background: #fff; padding: 40px; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); width: 100%; max-width: 420px; }
+  h1 { color: #1a7f5a; margin-top: 0; font-size: 24px; }
+  label { display: block; margin-top: 14px; font-size: 14px; font-weight: bold; color: #333; }
+  input, select { width: 100%; padding: 10px; margin-top: 6px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+  button { margin-top: 22px; width: 100%; padding: 12px; background: #1a7f5a; color: #fff; border: none; border-radius: 6px; font-size: 15px; cursor: pointer; }
+  button:hover { background: #146245; }
+  .msg { margin-top: 16px; font-size: 14px; padding: 10px; border-radius: 6px; display: none; }
+  .msg.error { background: #fdecea; color: #b3261e; display: block; }
+  .msg.success { background: #e6f4ea; color: #1a7f5a; display: block; }
+  .link { margin-top: 18px; font-size: 14px; text-align: center; }
+  a { color: #1a7f5a; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Create your account</h1>
+  <form id="registerForm">
+    <label>Role</label>
+    <select id="role">
+      <option value="patient">Patient</option>
+      <option value="worker">Healthcare Worker</option>
+    </select>
+
+    <label>Username</label>
+    <input type="text" id="username" required>
+
+    <label>Phone Number</label>
+    <input type="text" id="phone_number">
+
+    <label>Password</label>
+    <input type="password" id="password" required>
+
+    <label>Confirm Password</label>
+    <input type="password" id="password2" required>
+
+    <div id="workerFields" style="display:none">
+      <label>License Number</label>
+      <input type="text" id="license_number">
+      <label>Specialization</label>
+      <input type="text" id="specialization">
+    </div>
+
+    <button type="submit">Register</button>
+    <div id="msg" class="msg"></div>
+  </form>
+  <div class="link">Already have an account? <a href="/login-page/">Log in</a></div>
+</div>
+
+<script>
+document.getElementById('role').addEventListener('change', function() {
+  document.getElementById('workerFields').style.display = this.value === 'worker' ? 'block' : 'none';
+});
+
+document.getElementById('registerForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const role = document.getElementById('role').value;
+  const msg = document.getElementById('msg');
+  msg.className = 'msg';
+
+  const payload = {
+    username: document.getElementById('username').value,
+    phone_number: document.getElementById('phone_number').value,
+    password: document.getElementById('password').value,
+    password2: document.getElementById('password2').value,
+  };
+
+  let url = '/api/accounts/register/';
+  if (role === 'worker') {
+    url = '/api/accounts/register/worker/';
+    payload.license_number = document.getElementById('license_number').value;
+    payload.specialization = document.getElementById('specialization').value;
+  }
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+
+    if (res.ok) {
+      msg.className = 'msg success';
+      msg.textContent = 'Account created! Redirecting to login...';
+      msg.style.display = 'block';
+      setTimeout(() => window.location.href = '/login-page/', 1200);
+    } else {
+      msg.className = 'msg error';
+      msg.textContent = JSON.stringify(data);
+      msg.style.display = 'block';
+    }
+  } catch (err) {
+    msg.className = 'msg error';
+    msg.textContent = 'Network error: ' + err.message;
+    msg.style.display = 'block';
+  }
+});
+</script>
+</body>
+</html>

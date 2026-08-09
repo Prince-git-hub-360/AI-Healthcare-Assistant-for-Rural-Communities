@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Healthcare Platform</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f4f9f8; color: #1f2937; }
+        .container { max-width: 960px; margin: 0 auto; padding: 40px 20px; }
+        .card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
+        h1 { color: #0f766e; }
+        ul { padding-left: 20px; }
+        li { margin: 8px 0; }
+        code { background: #e5f3f2; padding: 2px 6px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>Healthcare Platform</h1>
+            <p>This app now provides patient account management and medical document support.</p>
+            <h2>Available API endpoints</h2>
+            <ul>
+                {% for endpoint in endpoints %}
+                <li><strong>{{ endpoint.name }}</strong> — <code>{{ endpoint.method }}</code> {{ endpoint.path }}</li>
+                {% endfor %}
+            </ul>
+            <p>Use the authentication endpoints to register a user and receive a token.</p>
+        </div>
+    </div>
+</body>
+</html>
