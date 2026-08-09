@@ -75,14 +75,19 @@ export const TranslatePage = () => {
           <div className="rounded-[32px] border border-stone-200 bg-white p-8 shadow-xl">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
               <div className="space-y-4">
-                <span className="inline-flex items-center rounded-full bg-teal-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-teal-700">
-                  Voice-first Translator
-                </span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center rounded-full bg-teal-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-teal-700">
+                    Voice-first Translator
+                  </span>
+                  <span className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-extrabold text-amber-900 border border-amber-300">
+                    👩‍⚕️ ASHA FIELD WORKER ASSISTED MODE
+                  </span>
+                </div>
                 <h1 className="text-3xl sm:text-4xl font-extrabold text-stone-900 tracking-tight leading-tight">
                   Translate prescriptions into local script and spoken audio.
                 </h1>
                 <p className="max-w-2xl text-sm leading-7 text-stone-600">
-                  Convert doctor instructions into regional languages and play the audio in Bengali, Kannada, Tamil, Telugu, Marathi, and more for easy patient understanding.
+                  ASHA workers & family members can scan doctor notes and generate instant regional voice audio guidance for illiterate rural patients.
                 </p>
               </div>
 
@@ -114,6 +119,43 @@ export const TranslatePage = () => {
           </div>
 
           <div className="rounded-[32px] border border-stone-200 bg-white p-8 shadow-xl">
+            {/* Quick Sample Chips */}
+            <div className="mb-6 space-y-2">
+              <span className="text-xs font-bold text-stone-500 uppercase tracking-wider block">Quick Try Sample Prescriptions:</span>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setConvertText('Tab. Paracetamol 500mg — 1-0-1 (PC) for 5 days. Tab. Cetirizine 10mg — 0-0-1 (HS) for 3 days.');
+                    setTranslatedResult('');
+                  }}
+                  className="bg-stone-100 hover:bg-teal-50 text-stone-700 hover:text-teal-800 border border-stone-200 text-xs font-bold px-3 py-1.5 rounded-full transition-colors cursor-pointer"
+                >
+                  🌡️ Fever & Cold Rx
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setConvertText('Tab. Metformin 500mg — 1-0-1 (AC) before food. Tab. Glimepiride 1mg — 1-0-0 (AC).');
+                    setTranslatedResult('');
+                  }}
+                  className="bg-stone-100 hover:bg-teal-50 text-stone-700 hover:text-teal-800 border border-stone-200 text-xs font-bold px-3 py-1.5 rounded-full transition-colors cursor-pointer"
+                >
+                  🩺 Diabetes Routine Rx
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setConvertText('Tab. Amlodipine 5mg — 1-0-0 (PC) in morning. Drink low-salt fluids.');
+                    setTranslatedResult('');
+                  }}
+                  className="bg-stone-100 hover:bg-teal-50 text-stone-700 hover:text-teal-800 border border-stone-200 text-xs font-bold px-3 py-1.5 rounded-full transition-colors cursor-pointer"
+                >
+                  ❤️ Blood Pressure Rx
+                </button>
+              </div>
+            </div>
+
             <form onSubmit={handleConvert} className="space-y-6">
               <div className="space-y-3">
                 <label className="text-sm font-semibold text-stone-900">Doctor Prescription / Medical Note</label>

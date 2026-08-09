@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth, LANGUAGES } from '../context/AuthContext';
 import { api } from '../api/api';
 import { UserIcon, ShieldIcon, CheckIcon, LockIcon, RefreshIcon } from '../components/ui/Icons';
+import { AbhaCardWidget } from '../components/medical/AbhaCardWidget';
 
 export const ProfilePage = () => {
   const { user, currentLang, updateLanguage, refreshProfile, showToast } = useAuth();
@@ -27,35 +28,16 @@ export const ProfilePage = () => {
 
   return (
     <div className="max-w-4xl mx-auto px-4 md:px-8 py-8 space-y-8">
-      {/* Profile Header */}
-      <div className="bg-white border border-stone-200 rounded-3xl p-6 md:p-8 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 bg-teal-700 text-white rounded-2xl flex items-center justify-center text-2xl font-bold shadow-md">
-            {user?.first_name ? user.first_name.charAt(0).toUpperCase() : 'U'}
-          </div>
-          <div>
-            <span className="text-xs font-bold text-teal-700 uppercase tracking-wider block mb-0.5">
-              ACCOUNT & GOVERNMENT HEALTH ID
-            </span>
-            <h1 className="text-2xl font-extrabold text-stone-900 tracking-tight">
-              {user?.first_name} {user?.last_name || user?.username}
-            </h1>
-            <p className="text-xs text-stone-600 mt-1">
-              Role: <strong className="text-stone-900 uppercase font-bold">{user?.role}</strong> • Joined: <strong className="text-stone-900">2026</strong>
-            </p>
-          </div>
+      {/* 🇮🇳 REALISTIC DIGITAL ABHA HEALTH CARD PREVIEW */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-extrabold text-teal-800 uppercase tracking-widest bg-teal-50 px-3 py-1 rounded-full border border-teal-200">
+            GOVERNMENT OF INDIA DIGITAL HEALTH ID
+          </span>
+          <span className="text-xs font-bold text-stone-500">NHA ABDM Compliant</span>
         </div>
 
-        {/* ABHA Badge */}
-        <div className="bg-teal-50 border border-teal-200 px-4 py-2 rounded-2xl flex items-center gap-2">
-          <ShieldIcon size={20} color="#0f766e" />
-          <div>
-            <div className="text-[10px] font-bold text-teal-800 uppercase">ABDM ABHA Account</div>
-            <div className="text-xs font-extrabold text-teal-900">
-              {user?.profile?.abha_number || 'VERIFIED HEALTH ID'}
-            </div>
-          </div>
-        </div>
+        <AbhaCardWidget userProfile={user?.profile} />
       </div>
 
       {/* 🇮🇳 ABDM (Ayushman Bharat Digital Mission) ABHA Number Link */}

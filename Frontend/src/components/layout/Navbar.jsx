@@ -34,10 +34,13 @@ export const Navbar = ({ currentView, setCurrentView, openAuthModal }) => {
 
   return (
     <header className={`sticky top-0 z-50 transition-all duration-200 ${
-      scrolled ? 'bg-[#fdfbf7]/95 backdrop-blur-md shadow-md py-3' : 'bg-[#fdfbf7] py-4'
-    } border-b border-stone-200 px-4 md:px-10`}>
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
-        {/* Brand Logo matching emergent.sh screenshot */}
+      scrolled ? 'bg-[#fdfbf7]/95 backdrop-blur-md shadow-md' : 'bg-[#fdfbf7]'
+    } border-b border-stone-200`}>
+      {/* 🇮🇳 Official Govt Tricolor Top Accent Line */}
+      <div className="h-1.5 w-full bg-gradient-to-r from-[#FF9933] via-white to-[#138808]" />
+
+      <div className="max-w-7xl mx-auto flex items-center justify-between py-3 px-4 md:px-10">
+        {/* Brand Logo */}
         <div 
           className="flex items-center gap-3 cursor-pointer group" 
           onClick={() => handleNavClick('hero')}
@@ -45,16 +48,21 @@ export const Navbar = ({ currentView, setCurrentView, openAuthModal }) => {
           role="button"
           aria-label="Swasthya Sanchar AI Home"
         >
-          <div className="w-10 h-10 bg-teal-700 text-white rounded-xl flex items-center justify-center relative shadow-sm group-hover:bg-teal-800 transition-all">
-            <HospitalIcon size={22} color="#ffffff" />
+          <div className="w-10 h-10 bg-[#0f2d4a] text-white rounded-xl flex items-center justify-center relative shadow-sm border border-teal-600/40 group-hover:bg-teal-900 transition-all">
+            <HospitalIcon size={22} color="#5eead4" />
             <span className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-[#fdfbf7] animate-pulse"></span>
           </div>
           <div>
-            <span className="font-heading font-extrabold text-lg text-stone-900 tracking-tight block leading-none">
-              Swasthya Sanchar
-            </span>
+            <div className="flex items-center gap-1.5">
+              <span className="font-heading font-extrabold text-lg text-stone-900 tracking-tight block leading-none">
+                Swasthya Sanchar
+              </span>
+              <span className="bg-amber-100 text-amber-900 text-[9px] font-extrabold px-1.5 py-0.5 rounded border border-amber-300">
+                NHA ABDM
+              </span>
+            </div>
             <span className="text-[10px] font-extrabold text-teal-700 tracking-wider uppercase block mt-1">
-              AI HEALTHCARE
+              AYUSHMAN BHARAT HEALTH ASSISTANT
             </span>
           </div>
         </div>

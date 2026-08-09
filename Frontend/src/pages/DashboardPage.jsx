@@ -1,17 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth, LANGUAGES } from '../context/AuthContext';
 import { api } from '../api/api';
 import {
   DocumentIcon, BrainIcon, TranslateIcon, SpeakerIcon, ShieldIcon, CheckIcon,
-  ClockIcon, PlusIcon, PhoneIcon, PillIcon, AlertIcon, RefreshIcon, UserIcon
+  ClockIcon, PlusIcon, PhoneIcon, PillIcon, AlertIcon, RefreshIcon, UserIcon,
+  SparklesIcon, FireIcon, MicIcon
 } from '../components/ui/Icons';
+import { speakNativeAudio } from '../utils/speech';
 
-export const DashboardPage = ({ setCurrentView }) => {
+export const DashboardPage = ({ setCurrentView, onOpenChat }) => {
   const { user, currentLang, showToast } = useAuth();
   const [reminders, setReminders] = useState([]);
   const [fieldPatients, setFieldPatients] = useState([]);
   const [loadingReminders, setLoadingReminders] = useState(true);
   const [showAddPatientModal, setShowAddPatientModal] = useState(false);
+  const [playingGreeting, setPlayingGreeting] = useState(false);
+
   const [newPatient, setNewPatient] = useState({
     first_name: '',
     last_name: '',
@@ -72,7 +76,6 @@ export const DashboardPage = ({ setCurrentView }) => {
       setReminders(reminders.map(r => r.id === id ? { ...r, is_taken: !currentStatus } : r));
       if (showToast) showToast(!currentStatus ? 'Marked as Taken ✓' : 'Marked as Pending ○', 'success');
     } catch (err) {
-      // Fallback local update
       setReminders(reminders.map(r => r.id === id ? { ...r, is_taken: !currentStatus } : r));
     }
   };
@@ -89,61 +92,279 @@ export const DashboardPage = ({ setCurrentView }) => {
     }
   };
 
+  const playWelcomeAudio = async () => {
+    setPlayingGreeting(true);
+    const greetingText = {
+      hi: `नमस्ते ${user?.first_name || 'मरीज'} जी! स्वास्थ्य संचार में आपका स्वागत है। आज आपकी दवाओं का ध्यान रखें।`,
+      kn: `ನಮಸ್ಕಾರ ${user?.first_name || 'ರೋಗಿ'} ಅವರೇ! ಸ್ವಾಸ್ಥ್ಯ ಸಂಚಾರ್‌ಗೆ ಸ್ವಾಗತ.`,
+      en: `Namaste ${user?.first_name || 'Patient'}! Welcome to Swasthya Sanchar AI Care Portal.`,
+    }[currentLang || 'hi'] || `Namaste! Welcome to Swasthya Sanchar.`;
+
+    await speakNativeAudio(greetingText, currentLang || 'hi');
+    setPlayingGreeting(false);
+  };
+
+  const completedCount = reminders.filter(r => r.is_taken).length;
+  const totalCount = reminders.length;
+  const adherencePercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 space-y-8">
-      {/* 📜 NHA & TELEMEDICINE GOVERNMENT COMPLIANCE BANNER */}
-      <div className="bg-teal-50 border border-teal-200 rounded-2xl p-4 md:p-5 flex items-start gap-4 shadow-xs">
-        <ShieldIcon size={24} color="#0f766e" />
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="font-extrabold text-teal-900 text-sm">
-              Ayushman Bharat Digital Mission (ABDM) Aligned Platform
-            </span>
-            <span className="bg-teal-700 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-              COMPLIANT
-            </span>
+      {/* 📜 NHA & ABDM GOVERNMENT COMPLIANCE BANNER */}
+      <div className="bg-gradient-to-r from-teal-900 to-teal-800 text-white rounded-3xl p-5 md:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-lg border border-teal-700/50">
+        <div className="flex items-start gap-4">
+          <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center shrink-0 border border-white/20">
+            <ShieldIcon size={24} color="#5eead4" />
           </div>
-          <p className="text-xs text-stone-700 leading-relaxed">
-            Swasthya Sanchar AI is a Healthcare Communication & Health Literacy Assistant aligned with Indian National Health Authority (NHA) EHR & Telemedicine Standards. It preserves original doctor prescriptions and does not generate autonomous clinical diagnoses.
-          </p>
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="font-extrabold text-white text-sm sm:text-base tracking-tight">
+                Ayushman Bharat Digital Mission (ABDM) Compliant
+              </span>
+              <span className="bg-emerald-400 text-teal-950 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase">
+                VERIFIED EHR
+              </span>
+            </div>
+            <p className="text-xs text-teal-100/90 leading-relaxed max-w-3xl">
+              Preserves doctor prescriptions, aligns with National Health Authority standards, and provides regional language audio guidance.
+            </p>
+          </div>
         </div>
+
+        <button
+          onClick={() => setCurrentView('profile')}
+          className="bg-white/10 hover:bg-white/20 text-teal-100 text-xs font-bold px-4 py-2.5 rounded-xl border border-white/20 transition-all cursor-pointer whitespace-nowrap"
+        >
+          View ABHA Card →
+        </button>
       </div>
 
-      {/* 👵 PATIENT DASHBOARD VIEW */}
+      {/* 🌾 RURAL ASSISTED CARE & ZERO-ILLITERACY MODEL BANNER */}
+      <div className="bg-amber-50 border border-amber-200 rounded-3xl p-5 md:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
+        <div className="flex items-center gap-3">
+          <div className="w-11 h-11 bg-amber-600 text-white rounded-2xl flex items-center justify-center font-bold text-lg shrink-0 shadow-md">
+            🌾
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-extrabold text-amber-950 text-sm">
+                Zero-Literacy & 2G Feature Phone Assisted Accessibility
+              </span>
+              <span className="bg-amber-200 text-amber-900 text-[10px] font-extrabold px-2 py-0.5 rounded-md">
+                RURAL CARE MODEL
+              </span>
+            </div>
+            <p className="text-xs text-amber-900 leading-relaxed mt-0.5">
+              Illiterate villagers & non-smartphone users are supported via ASHA Worker assisted scanning, 1-tap native voice playback, and automated 2G IVR phone calls.
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={() => setCurrentView('reminders')}
+          className="bg-amber-700 hover:bg-amber-800 text-white text-xs font-extrabold px-4 py-2.5 rounded-xl shadow-xs transition-all cursor-pointer whitespace-nowrap"
+        >
+          Test 2G Phone Alert 📞
+        </button>
+      </div>
+
+      {/* 👵 PATIENT CARE HUB HERO VIEW */}
       {!isWorker && !isCaregiver && (
         <>
-          {/* Welcome Bar */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white border border-stone-200 rounded-3xl p-6 md:p-8 shadow-sm">
-            <div>
-              <span className="text-xs font-bold text-teal-700 uppercase tracking-wider block mb-1">
-                PATIENT CARE HUB
-              </span>
-              <h1 className="text-2xl md:text-3xl font-extrabold text-stone-900 tracking-tight">
-                Namaste, {user?.first_name || user?.username || 'Patient'}! 🙏
-              </h1>
-              <p className="text-xs text-stone-600 mt-1">
-                Preferred Language: <strong className="text-stone-900">{(currentLang || 'hi').toUpperCase()}</strong> • Village/Town: <strong className="text-stone-900">{user?.profile?.village_or_town || 'Mandya'}</strong>
-              </p>
+          {/* Welcome Bar with Audio Greeting & Adherence Gauge */}
+          <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-6 items-stretch">
+            {/* Left Welcome Card */}
+            <div className="bg-white border border-stone-200 rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col justify-between relative overflow-hidden">
+              <div className="space-y-3 z-10">
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-extrabold text-teal-700 uppercase tracking-widest bg-teal-50 px-3 py-1 rounded-full border border-teal-200">
+                    PATIENT CARE HUB
+                  </span>
+                  <div className="flex items-center gap-1 bg-amber-50 border border-amber-200 text-amber-900 px-3 py-1 rounded-full text-xs font-bold">
+                    <FireIcon size={14} color="#d97706" />
+                    <span>5-Day Streak! 🔥</span>
+                  </div>
+                </div>
+
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-900 tracking-tight leading-tight">
+                  Namaste, {user?.first_name || user?.username || 'Patient'}! 🙏
+                </h1>
+
+                {/* ABHA Health ID Quick Badge */}
+                <div className="bg-slate-900 text-white p-3 rounded-2xl border border-teal-700/50 flex items-center justify-between gap-3 shadow-xs">
+                  <div className="flex items-center gap-2">
+                    <div className="text-base">🇮🇳</div>
+                    <div>
+                      <div className="text-[9px] font-extrabold text-teal-300 uppercase tracking-widest">
+                        ABDM ABHA NUMBER
+                      </div>
+                      <div className="text-xs font-extrabold font-mono text-white tracking-wider">
+                        {user?.profile?.abha_number || '14-8923-4512-9012'}
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => setCurrentView('profile')}
+                    className="bg-teal-700 hover:bg-teal-600 text-white text-[11px] font-extrabold px-2.5 py-1.5 rounded-xl cursor-pointer transition-colors"
+                  >
+                    Card →
+                  </button>
+                </div>
+
+                <p className="text-xs text-stone-600 leading-relaxed">
+                  Language: <strong className="text-stone-900 uppercase">{(currentLang || 'hi')}</strong> • Village: <strong className="text-stone-900">{user?.profile?.village_or_town || 'Mandya Rural'}</strong>
+                </p>
+              </div>
+
+              <div className="pt-6 mt-6 border-t border-stone-100 flex flex-wrap items-center gap-3 z-10">
+                <button
+                  onClick={playWelcomeAudio}
+                  disabled={playingGreeting}
+                  className="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs px-4 py-3 rounded-2xl shadow-md transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  <SpeakerIcon size={18} color="#ffffff" />
+                  <span>{playingGreeting ? 'Speaking Greeting...' : '🔊 Listen Audio Greeting'}</span>
+                </button>
+
+                <button
+                  onClick={onOpenChat}
+                  className="bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs px-4 py-3 rounded-2xl shadow-md transition-all flex items-center gap-2 cursor-pointer"
+                >
+                  <SparklesIcon size={18} color="#ffffff" />
+                  <span>Ask AI Assistant</span>
+                </button>
+              </div>
             </div>
 
-            <div className="flex gap-3">
-              <button
-                onClick={() => setCurrentView('medical_vault')}
-                className="bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs px-5 py-3 rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer"
-              >
-                <DocumentIcon size={16} color="#ffffff" /> Upload Prescription
-              </button>
+            {/* Right Adherence Visual Progress Ring Card */}
+            <div className="bg-gradient-to-br from-teal-900 via-teal-800 to-cyan-900 text-white border border-teal-700 rounded-3xl p-6 sm:p-8 shadow-md flex flex-col justify-between">
+              <div>
+                <span className="text-[11px] font-bold text-teal-200 uppercase tracking-widest block mb-1">
+                  TODAY'S HEALTH COMPLIANCE
+                </span>
+                <h2 className="text-lg font-extrabold text-white">Daily Medication Adherence</h2>
+              </div>
 
-              <button
-                onClick={() => setCurrentView('emergency')}
-                className="bg-stone-100 hover:bg-stone-200 border border-stone-300 text-stone-800 font-bold text-xs px-4 py-3 rounded-xl transition-all flex items-center gap-2 cursor-pointer"
-              >
-                <PhoneIcon size={16} color="#b91c1c" /> Emergency Help
-              </button>
+              <div className="my-4 flex items-center justify-around gap-4">
+                {/* Circular Gauge */}
+                <div className="relative w-28 h-28 flex items-center justify-center">
+                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                    <path
+                      className="text-teal-950"
+                      strokeWidth="4"
+                      stroke="currentColor"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                    <path
+                      className="text-emerald-400 transition-all duration-1000 ease-out"
+                      strokeDasharray={`${adherencePercent}, 100`}
+                      strokeWidth="4"
+                      strokeLinecap="round"
+                      stroke="currentColor"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                  </svg>
+                  <div className="absolute flex flex-col items-center justify-center text-center">
+                    <span className="text-2xl font-extrabold text-white">{adherencePercent}%</span>
+                    <span className="text-[9px] text-teal-200 uppercase font-bold">Done</span>
+                  </div>
+                </div>
+
+                <div className="space-y-2 text-xs">
+                  <div className="bg-white/10 p-2.5 rounded-xl border border-white/10">
+                    <span className="text-emerald-300 font-bold block">{completedCount} of {totalCount} Doses</span>
+                    <span className="text-stone-300 text-[10px]">Taken today</span>
+                  </div>
+                  <div className="bg-white/10 p-2.5 rounded-xl border border-white/10">
+                    <span className="text-amber-300 font-bold block">{totalCount - completedCount} Doses</span>
+                    <span className="text-stone-300 text-[10px]">Remaining</span>
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-[11px] text-cyan-100/80">
+                {adherencePercent === 100 ? '🎉 Excellent! All medicines taken for today.' : 'Keep up your schedule for optimal recovery!'}
+              </p>
             </div>
           </div>
 
-          {/* Today's Medication Reminders Card */}
+          {/* 🚀 QUICK ACTION ACCESS GRID */}
+          <div className="space-y-4">
+            <h2 className="text-lg font-extrabold text-stone-900 tracking-tight">
+              Quick Healthcare Actions
+            </h2>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {/* Card 1: Translate */}
+              <div
+                onClick={() => setCurrentView('translate')}
+                className="bg-white hover:bg-teal-50/50 border border-stone-200 hover:border-teal-400 p-5 rounded-3xl shadow-xs transition-all cursor-pointer group flex flex-col justify-between space-y-4"
+              >
+                <div className="w-12 h-12 bg-teal-100 text-teal-800 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <TranslateIcon size={26} color="#0f766e" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-sm text-stone-900 group-hover:text-teal-900">
+                    Translate Rx Note
+                  </h3>
+                  <p className="text-[11px] text-stone-500 mt-1">Convert prescription into local language & audio</p>
+                </div>
+              </div>
+
+              {/* Card 2: Today's Meds */}
+              <div
+                onClick={() => setCurrentView('reminders')}
+                className="bg-white hover:bg-teal-50/50 border border-stone-200 hover:border-teal-400 p-5 rounded-3xl shadow-xs transition-all cursor-pointer group flex flex-col justify-between space-y-4"
+              >
+                <div className="w-12 h-12 bg-amber-100 text-amber-800 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <PillIcon size={26} color="#d97706" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-sm text-stone-900 group-hover:text-amber-900">
+                    Medicine Schedule
+                  </h3>
+                  <p className="text-[11px] text-stone-500 mt-1">Morning, Afternoon & Night medication alerts</p>
+                </div>
+              </div>
+
+              {/* Card 3: Health Vault */}
+              <div
+                onClick={() => setCurrentView('medical_vault')}
+                className="bg-white hover:bg-teal-50/50 border border-stone-200 hover:border-teal-400 p-5 rounded-3xl shadow-xs transition-all cursor-pointer group flex flex-col justify-between space-y-4"
+              >
+                <div className="w-12 h-12 bg-blue-100 text-blue-800 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <DocumentIcon size={26} color="#1d4ed8" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-sm text-stone-900 group-hover:text-blue-900">
+                    Medical Vault
+                  </h3>
+                  <p className="text-[11px] text-stone-500 mt-1">Access stored doctor records & prescriptions</p>
+                </div>
+              </div>
+
+              {/* Card 4: Emergency SOS */}
+              <div
+                onClick={() => setCurrentView('emergency')}
+                className="bg-red-50 hover:bg-red-100/70 border border-red-200 hover:border-red-400 p-5 rounded-3xl shadow-xs transition-all cursor-pointer group flex flex-col justify-between space-y-4"
+              >
+                <div className="w-12 h-12 bg-red-600 text-white rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-md">
+                  <PhoneIcon size={26} color="#ffffff" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-sm text-red-950">
+                    108 Emergency SOS
+                  </h3>
+                  <p className="text-[11px] text-red-800 mt-1">Instant ambulance call & pictorial first-aid</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Today's Medication Schedule Section */}
           <div className="bg-white border border-stone-200 rounded-3xl p-6 md:p-8 shadow-sm">
             <div className="flex justify-between items-center mb-6">
               <div>
@@ -155,9 +376,9 @@ export const DashboardPage = ({ setCurrentView }) => {
 
               <button
                 onClick={() => setCurrentView('reminders')}
-                className="text-xs font-bold text-teal-700 hover:text-teal-800 cursor-pointer"
+                className="text-xs font-extrabold text-teal-700 hover:text-teal-800 cursor-pointer"
               >
-                + Add Medication →
+                Manage Schedule →
               </button>
             </div>
 
@@ -175,16 +396,16 @@ export const DashboardPage = ({ setCurrentView }) => {
                     onClick={() => toggleReminderStatus(r.id, r.is_taken)}
                     className={`flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer ${
                       r.is_taken
-                        ? 'bg-emerald-50/70 border-emerald-300 text-stone-900'
-                        : 'bg-stone-50 border-stone-200 hover:border-teal-700 text-stone-900'
+                        ? 'bg-emerald-50/80 border-emerald-300 text-stone-900 shadow-xs'
+                        : 'bg-stone-50 border-stone-200 hover:border-teal-600 text-stone-900'
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-white rounded-xl border border-stone-200 flex items-center justify-center font-bold text-xs text-teal-800 shadow-xs">
+                      <div className="w-11 h-11 bg-white rounded-2xl border border-stone-200 flex items-center justify-center font-extrabold text-xs text-teal-800 shadow-xs">
                         {r.scheduled_time || '08:00 AM'}
                       </div>
                       <div>
-                        <div className="font-bold text-sm text-stone-900">{r.medication_name || r.title}</div>
+                        <div className="font-extrabold text-sm text-stone-900">{r.medication_name || r.title}</div>
                         <div className="text-xs text-stone-600">{r.instructions || r.dosage_note || 'Take as instructed'}</div>
                       </div>
                     </div>

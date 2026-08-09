@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
-import { PhoneIcon, HospitalIcon, AlertIcon, ShieldIcon, CheckIcon } from '../components/ui/Icons';
+import { useAuth } from '../context/AuthContext';
+import { PhoneIcon, HospitalIcon, AlertIcon, ShieldIcon, CheckIcon, SpeakerIcon } from '../components/ui/Icons';
+import { speakNativeAudio } from '../utils/speech';
 
 export const EmergencyHelpPage = () => {
+  const { currentLang, showToast } = useAuth();
   const [selectedTopic, setSelectedTopic] = useState('snakebite');
+  const [playingTopicAudio, setPlayingTopicAudio] = useState(false);
 
   const firstAidGuides = {
     snakebite: {
@@ -43,6 +47,15 @@ export const EmergencyHelpPage = () => {
     }
   };
 
+  const playFirstAidAudio = async () => {
+    setPlayingTopicAudio(true);
+    const guide = firstAidGuides[selectedTopic];
+    const textToSpeak = `${guide.title}. ${guide.steps.join('. ')}`;
+    if (showToast) showToast(`Reading ${guide.title} aloud in native voice...`, 'info');
+    await speakNativeAudio(textToSpeak, currentLang || 'hi');
+    setPlayingTopicAudio(false);
+  };
+
   return (
     <div className="max-w-6xl mx-auto px-4 md:px-8 py-8 space-y-8">
       {/* 🚨 Emergency Call Header */}
@@ -73,16 +86,27 @@ export const EmergencyHelpPage = () => {
       </div>
 
       {/* 🏥 First-Aid Guidance in Local Language */}
-      <div className="bg-white border border-stone-200 rounded-3xl p-6 md:p-8 shadow-sm">
-        <h2 className="text-xl font-extrabold text-stone-900 tracking-tight mb-4 flex items-center gap-2">
-          <AlertIcon size={24} color="#0f766e" /> Instant First-Aid Guidance
-        </h2>
+      <div className="bg-white border border-stone-200 rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <h2 className="text-xl font-extrabold text-stone-900 tracking-tight flex items-center gap-2">
+            <AlertIcon size={24} color="#0f766e" /> Instant Pictorial First-Aid Guidance
+          </h2>
+
+          <button
+            onClick={playFirstAidAudio}
+            disabled={playingTopicAudio}
+            className="bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-sm transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+          >
+            <SpeakerIcon size={16} color="#ffffff" />
+            <span>{playingTopicAudio ? 'Reading Aloud...' : '🔊 Listen Audio First-Aid'}</span>
+          </button>
+        </div>
 
         {/* Topic Tabs */}
-        <div className="flex flex-wrap gap-2 mb-6 pb-4 border-b border-stone-200">
+        <div className="flex flex-wrap gap-2 pb-2 border-b border-stone-200">
           <button
             onClick={() => setSelectedTopic('snakebite')}
-            className={`px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+            className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
               selectedTopic === 'snakebite' ? 'bg-teal-700 text-white shadow-sm' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
             }`}
           >
@@ -90,7 +114,7 @@ export const EmergencyHelpPage = () => {
           </button>
           <button
             onClick={() => setSelectedTopic('burns')}
-            className={`px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+            className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
               selectedTopic === 'burns' ? 'bg-teal-700 text-white shadow-sm' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
             }`}
           >
@@ -98,7 +122,7 @@ export const EmergencyHelpPage = () => {
           </button>
           <button
             onClick={() => setSelectedTopic('fever')}
-            className={`px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+            className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
               selectedTopic === 'fever' ? 'bg-teal-700 text-white shadow-sm' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
             }`}
           >
@@ -106,7 +130,7 @@ export const EmergencyHelpPage = () => {
           </button>
           <button
             onClick={() => setSelectedTopic('cardiac')}
-            className={`px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+            className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
               selectedTopic === 'cardiac' ? 'bg-teal-700 text-white shadow-sm' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
             }`}
           >
@@ -115,18 +139,18 @@ export const EmergencyHelpPage = () => {
         </div>
 
         {/* Guide Content */}
-        <div className="bg-stone-50 border border-stone-200 p-6 rounded-2xl">
+        <div className="bg-stone-50 border border-stone-200 p-6 rounded-3xl">
           <h3 className="font-extrabold text-stone-900 text-base mb-4">
             {firstAidGuides[selectedTopic].title}
           </h3>
 
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {firstAidGuides[selectedTopic].steps.map((step, idx) => (
-              <div key={idx} className="flex items-start gap-3 bg-white p-3.5 rounded-xl border border-stone-200 text-xs text-stone-800">
-                <div className="w-5 h-5 bg-teal-100 text-teal-800 font-extrabold rounded-full flex items-center justify-center flex-shrink-0 text-[11px]">
+              <div key={idx} className="flex items-start gap-3 bg-white p-4 rounded-2xl border border-stone-200 text-xs text-stone-800 shadow-xs">
+                <div className="w-7 h-7 bg-teal-700 text-white font-extrabold rounded-xl flex items-center justify-center flex-shrink-0 text-xs shadow-xs">
                   {idx + 1}
                 </div>
-                <div className="font-semibold leading-relaxed">{step}</div>
+                <div className="font-semibold leading-relaxed pt-0.5">{step}</div>
               </div>
             ))}
           </div>

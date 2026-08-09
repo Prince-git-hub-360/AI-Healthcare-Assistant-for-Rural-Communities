@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth, LANGUAGES } from '../../context/AuthContext';
 import { HospitalIcon, ShieldIcon, MenuIcon, CloseIcon, TranslateIcon, DocumentIcon, ClockIcon, PhoneIcon, UserIcon } from '../ui/Icons';
 
-export const HeaderAuth = ({ currentView, setCurrentView }) => {
+export const HeaderAuth = ({ currentView, setCurrentView, onOpenChat }) => {
   const { user, logout, currentLang, updateLanguage } = useAuth();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -14,47 +14,85 @@ export const HeaderAuth = ({ currentView, setCurrentView }) => {
   }[user?.role || 'patient'] || '👵 Patient';
 
   const navItems = [
-    { id: 'dashboard', label: 'Dashboard & Care Hub', icon: HospitalIcon },
-    { id: 'translate', label: 'AI Prescription Translator', icon: TranslateIcon },
-    { id: 'medical_vault', label: 'Medical Vault & Records', icon: DocumentIcon },
-    { id: 'reminders', label: 'Medication Reminders', icon: ClockIcon },
-    { id: 'emergency', label: 'Emergency Help (108)', icon: PhoneIcon },
-    { id: 'profile', label: 'Profile & ABHA Health ID', icon: UserIcon },
+    { id: 'dashboard', label: 'Care Hub', icon: HospitalIcon },
+    { id: 'translate', label: 'Translate Rx', icon: TranslateIcon },
+    { id: 'medical_vault', label: 'Health Vault', icon: DocumentIcon },
+    { id: 'reminders', label: 'Reminders', icon: ClockIcon },
+    { id: 'emergency', label: '108 SOS', icon: PhoneIcon },
+    { id: 'profile', label: 'ABHA Profile', icon: UserIcon },
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-[#fdfbf7]/95 backdrop-blur-md border-b border-stone-200 py-3 px-4 md:px-8 shadow-sm">
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
+    <header className="sticky top-0 z-50 bg-[#fdfbf7]/95 backdrop-blur-md border-b border-stone-200 shadow-sm">
+      {/* 🇮🇳 Official Govt Tricolor Top Accent Line */}
+      <div className="h-1.5 w-full bg-gradient-to-r from-[#FF9933] via-white to-[#138808]" />
+
+      <div className="max-w-7xl mx-auto flex items-center justify-between py-2.5 px-4 md:px-8">
         {/* Brand Logo */}
         <div 
           className="flex items-center gap-3 cursor-pointer"
           onClick={() => setCurrentView('dashboard')}
         >
-          <div className="w-9 h-9 bg-teal-700 text-white rounded-xl flex items-center justify-center relative shadow-sm">
-            <HospitalIcon size={20} color="#ffffff" />
+          <div className="w-10 h-10 bg-[#0f2d4a] text-white rounded-xl flex items-center justify-center relative shadow-sm border border-teal-600/40">
+            <HospitalIcon size={20} color="#5eead4" />
             <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-[#fdfbf7] animate-pulse"></span>
           </div>
           <div>
-            <span className="font-heading font-extrabold text-base text-stone-900 tracking-tight block leading-none">
-              Swasthya Sanchar
-            </span>
-            <span className="text-[9px] font-extrabold text-teal-700 tracking-wider uppercase block mt-1">
-              AI HEALTHCARE PORTAL
+            <div className="flex items-center gap-1.5">
+              <span className="font-heading font-extrabold text-base text-stone-900 tracking-tight block leading-none">
+                Swasthya Sanchar
+              </span>
+              <span className="bg-amber-100 text-amber-900 text-[9px] font-extrabold px-1.5 py-0.5 rounded border border-amber-300">
+                NHA ABDM
+              </span>
+            </div>
+            <span className="text-[9px] font-extrabold text-teal-800 tracking-wider uppercase block mt-1">
+              AYUSHMAN BHARAT HEALTH ASSISTANT
             </span>
           </div>
         </div>
 
+        {/* Desktop Quick Nav Links */}
+        <nav className="hidden lg:flex items-center gap-1 bg-stone-100/80 border border-stone-200/80 p-1 rounded-2xl">
+          {navItems.slice(0, 5).map((item) => {
+            const Icon = item.icon;
+            const isActive = currentView === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => setCurrentView(item.id)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer ${
+                  isActive
+                    ? 'bg-teal-700 text-white shadow-xs'
+                    : 'text-stone-700 hover:bg-stone-200/70 hover:text-teal-800'
+                }`}
+              >
+                <Icon size={16} color={isActive ? '#ffffff' : '#0f766e'} />
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+
         {/* Right Action Bar */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* AI Voice & Chat Trigger Button */}
+          <button
+            onClick={onOpenChat}
+            className="bg-orange-600 hover:bg-orange-700 text-white font-extrabold text-xs px-3.5 py-2 rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer animate-pulse"
+          >
+            <span>💬 Ask AI</span>
+          </button>
+
           {/* ABHA Badge */}
-          <div className="hidden sm:flex items-center gap-1.5 bg-teal-50 border border-teal-200 px-2.5 py-1 rounded-full text-[11px] font-bold text-teal-800">
+          <div className="hidden xl:flex items-center gap-1.5 bg-teal-50 border border-teal-200 px-2.5 py-1.5 rounded-xl text-[11px] font-bold text-teal-800">
             <ShieldIcon size={14} color="#0f766e" />
             <span>ABHA: {user?.profile?.abha_number || 'VERIFIED'}</span>
           </div>
 
           {/* Language Selector */}
           <select
-            className="bg-white border border-stone-200 text-stone-800 text-xs font-semibold px-2.5 py-1.5 rounded-lg cursor-pointer outline-none hover:border-teal-700"
+            className="bg-white border border-stone-200 text-stone-800 text-xs font-semibold px-2 py-1.5 rounded-xl cursor-pointer outline-none hover:border-teal-700"
             value={currentLang}
             onChange={(e) => updateLanguage(e.target.value)}
             aria-label="Language Selector"
@@ -66,14 +104,13 @@ export const HeaderAuth = ({ currentView, setCurrentView }) => {
             ))}
           </select>
 
-          {/* Hamburger Side Menu Button (3 Lines ☰) */}
+          {/* Hamburger Side Menu Button */}
           <button
             onClick={() => setDrawerOpen(!drawerOpen)}
             className="bg-stone-100 hover:bg-stone-200 border border-stone-200 p-2 rounded-xl text-stone-800 cursor-pointer flex items-center gap-1 font-bold text-xs shadow-xs"
             aria-label="Open Navigation Menu"
           >
             <MenuIcon size={20} />
-            <span className="hidden sm:inline">Menu</span>
           </button>
         </div>
       </div>

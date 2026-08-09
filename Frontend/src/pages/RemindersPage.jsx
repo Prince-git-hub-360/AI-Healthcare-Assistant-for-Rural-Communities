@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/api';
-import { PillIcon, ClockIcon, PlusIcon, SpeakerIcon, CheckIcon, AlertIcon } from '../components/ui/Icons';
+import { PillIcon, ClockIcon, PlusIcon, SpeakerIcon, CheckIcon, AlertIcon, SunriseIcon, SunIcon, MoonIcon, PhoneIcon } from '../components/ui/Icons';
 import { speakNativeAudio } from '../utils/speech';
+import { IvrCallSimulatorModal } from '../components/medical/IvrCallSimulatorModal';
 
 export const RemindersPage = () => {
   const { currentLang, showToast } = useAuth();
@@ -10,6 +11,8 @@ export const RemindersPage = () => {
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const [playingAudioId, setPlayingAudioId] = useState(null);
+
+  const [ivrModal, setIvrModal] = useState({ open: false, item: null });
 
   const [formData, setFormData] = useState({
     medication_name: '',
@@ -26,11 +29,10 @@ export const RemindersPage = () => {
       if (Array.isArray(data)) setReminders(data);
       else if (data?.results) setReminders(data.results);
     } catch (err) {
-      // Fallback local list
       setReminders([
-        { id: 1, medication_name: 'Paracetamol 500mg', scheduled_time: '08:00 AM', instructions: '1 tablet after breakfast (PC)', is_taken: true },
-        { id: 2, medication_name: 'Amoxicillin 250mg', scheduled_time: '01:00 PM', instructions: '1 capsule after lunch (PC)', is_taken: false },
-        { id: 3, medication_name: 'Vitamin D3', scheduled_time: '08:00 PM', instructions: '1 tablet at bedtime with milk', is_taken: false },
+        { id: 1, medication_name: 'Paracetamol 500mg', scheduled_time: '08:00 AM', instructions: '1 tablet after breakfast (PC)', is_taken: true, timeSlot: 'morning' },
+        { id: 2, medication_name: 'Amoxicillin 250mg', scheduled_time: '01:00 PM', instructions: '1 capsule after lunch (PC)', is_taken: false, timeSlot: 'afternoon' },
+        { id: 3, medication_name: 'Vitamin D3', scheduled_time: '08:00 PM', instructions: '1 tablet at bedtime with milk', is_taken: false, timeSlot: 'night' },
       ]);
     }
     setLoading(false);
@@ -86,6 +88,19 @@ export const RemindersPage = () => {
     setPlayingAudioId(null);
   };
 
+  // Categorize reminders into Morning, Afternoon, Night
+  const morningMeds = reminders.filter(r => {
+    const time = (r.scheduled_time || '').toLowerCase();
+    return time.includes('am') || time.includes('08:') || time.includes('09:') || time.includes('07:');
+  });
+
+  const afternoonMeds = reminders.filter(r => {
+    const time = (r.scheduled_time || '').toLowerCase();
+    return time.includes('12:') || time.includes('01:') || time.includes('02:') || time.includes('03:') || time.includes('pm') && !time.includes('08:') && !time.includes('09:');
+  });
+
+  const nightMeds = reminders.filter(r => !morningMeds.includes(r) && !afternoonMeds.includes(r));
+
   return (
     <div className="max-w-6xl mx-auto px-4 md:px-8 py-8 space-y-8">
       {/* Header */}
@@ -95,10 +110,10 @@ export const RemindersPage = () => {
             MEDICATION COMPLIANCE
           </span>
           <h1 className="text-2xl md:text-3xl font-extrabold text-stone-900 tracking-tight flex items-center gap-2">
-            <PillIcon size={28} color="#0f766e" /> Medication Reminders Schedule
+            <PillIcon size={28} color="#0f766e" /> Medication Schedule & Timeline
           </h1>
           <p className="text-xs text-stone-600 mt-1">
-            Automated alerts in regional languages with spoken voice guidance
+            Visual Day-Part Medication Schedule with 1-Tap Audio Guidance
           </p>
         </div>
 
@@ -194,57 +209,131 @@ export const RemindersPage = () => {
         </form>
       )}
 
-      {/* Reminders List */}
-      <div className="bg-white border border-stone-200 rounded-3xl p-6 md:p-8 shadow-sm space-y-4">
-        <h2 className="text-xl font-extrabold text-stone-900 tracking-tight mb-2">
-          Active Reminders List
-        </h2>
-
-        {loading ? (
-          <div className="py-8 text-center text-xs text-stone-500 animate-pulse">Fetching medication schedule from backend...</div>
-        ) : reminders.length === 0 ? (
-          <div className="py-8 text-center text-xs text-stone-500">No active medication reminders configured.</div>
-        ) : (
-          <div className="space-y-3">
-            {reminders.map((r) => (
-              <div
-                key={r.id}
-                className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-2xl border border-stone-200 bg-stone-50 hover:border-teal-700 transition-all gap-4"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white rounded-xl border border-stone-200 flex items-center justify-center font-bold text-xs text-teal-800 shadow-xs">
-                    <ClockIcon size={18} color="#0f766e" />
-                  </div>
-                  <div>
-                    <div className="font-bold text-sm text-stone-900">{r.medication_name || r.title}</div>
-                    <div className="text-xs text-stone-600">{r.instructions || r.dosage_note}</div>
-                    <div className="text-[11px] font-semibold text-teal-700 mt-0.5">Time: {r.scheduled_time || '08:00 AM'}</div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
-                  <button
-                    onClick={() => playVoiceAudio(r)}
-                    className="bg-white hover:bg-stone-100 border border-stone-300 text-stone-800 font-bold text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
-                  >
-                    <SpeakerIcon size={14} color="#0f766e" />
-                    {playingAudioId === r.id ? 'Playing Voice...' : 'Listen 🔊'}
-                  </button>
-
-                  <button
-                    onClick={() => handleToggleTaken(r.id, r.is_taken)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-extrabold cursor-pointer transition-all ${
-                      r.is_taken ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800 hover:bg-amber-200'
-                    }`}
-                  >
-                    {r.is_taken ? '✓ Taken' : '○ Mark Taken'}
-                  </button>
-                </div>
-              </div>
-            ))}
+      {/* Visual Day-Part Categorized Cards */}
+      <div className="space-y-6">
+        {/* Morning Slot */}
+        <div className="bg-amber-50/60 border border-amber-200 rounded-3xl p-6 shadow-xs">
+          <div className="flex items-center gap-2 mb-4">
+            <SunriseIcon size={24} color="#d97706" />
+            <h2 className="text-lg font-extrabold text-amber-950">🌅 Morning Medications (Breakfast)</h2>
           </div>
-        )}
+          {morningMeds.length === 0 ? (
+            <p className="text-xs text-amber-800 font-medium">No morning medications scheduled.</p>
+          ) : (
+            <div className="space-y-3">
+              {morningMeds.map((r) => (
+                <div key={r.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-2xl border border-amber-200 bg-white shadow-xs gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center font-bold text-xs text-amber-900">
+                      💊
+                    </div>
+                    <div>
+                      <div className="font-extrabold text-sm text-stone-900">{r.medication_name || r.title}</div>
+                      <div className="text-xs text-stone-600">{r.instructions || r.dosage_note}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => setIvrModal({ open: true, item: r })} className="bg-slate-900 hover:bg-slate-800 text-teal-300 font-extrabold text-xs px-3 py-1.5 rounded-lg border border-slate-700 cursor-pointer flex items-center gap-1">
+                      <PhoneIcon size={12} color="#5eead4" /> 2G Call 📞
+                    </button>
+                    <button onClick={() => playVoiceAudio(r)} className="bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-bold px-3 py-1.5 rounded-lg">
+                      Listen 🔊
+                    </button>
+                    <button onClick={() => handleToggleTaken(r.id, r.is_taken)} className={`px-3 py-1.5 rounded-full text-xs font-extrabold ${r.is_taken ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-200 text-amber-900'}`}>
+                      {r.is_taken ? '✓ Taken' : '○ Mark Taken'}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Afternoon Slot */}
+        <div className="bg-blue-50/60 border border-blue-200 rounded-3xl p-6 shadow-xs">
+          <div className="flex items-center gap-2 mb-4">
+            <SunIcon size={24} color="#1d4ed8" />
+            <h2 className="text-lg font-extrabold text-blue-950">☀️ Afternoon Medications (Lunch)</h2>
+          </div>
+          {afternoonMeds.length === 0 ? (
+            <p className="text-xs text-blue-800 font-medium">No afternoon medications scheduled.</p>
+          ) : (
+            <div className="space-y-3">
+              {afternoonMeds.map((r) => (
+                <div key={r.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-2xl border border-blue-200 bg-white shadow-xs gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center font-bold text-xs text-blue-900">
+                      🟢
+                    </div>
+                    <div>
+                      <div className="font-extrabold text-sm text-stone-900">{r.medication_name || r.title}</div>
+                      <div className="text-xs text-stone-600">{r.instructions || r.dosage_note}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => setIvrModal({ open: true, item: r })} className="bg-slate-900 hover:bg-slate-800 text-teal-300 font-extrabold text-xs px-3 py-1.5 rounded-lg border border-slate-700 cursor-pointer flex items-center gap-1">
+                      <PhoneIcon size={12} color="#5eead4" /> 2G Call 📞
+                    </button>
+                    <button onClick={() => playVoiceAudio(r)} className="bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-bold px-3 py-1.5 rounded-lg">
+                      Listen 🔊
+                    </button>
+                    <button onClick={() => handleToggleTaken(r.id, r.is_taken)} className={`px-3 py-1.5 rounded-full text-xs font-extrabold ${r.is_taken ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-200 text-blue-900'}`}>
+                      {r.is_taken ? '✓ Taken' : '○ Mark Taken'}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Night Slot */}
+        <div className="bg-indigo-50/60 border border-indigo-200 rounded-3xl p-6 shadow-xs">
+          <div className="flex items-center gap-2 mb-4">
+            <MoonIcon size={24} color="#4338ca" />
+            <h2 className="text-lg font-extrabold text-indigo-950">🌙 Night & Bedtime Medications</h2>
+          </div>
+          {nightMeds.length === 0 ? (
+            <p className="text-xs text-indigo-800 font-medium">No night medications scheduled.</p>
+          ) : (
+            <div className="space-y-3">
+              {nightMeds.map((r) => (
+                <div key={r.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-2xl border border-indigo-200 bg-white shadow-xs gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center font-bold text-xs text-indigo-900">
+                      🔵
+                    </div>
+                    <div>
+                      <div className="font-extrabold text-sm text-stone-900">{r.medication_name || r.title}</div>
+                      <div className="text-xs text-stone-600">{r.instructions || r.dosage_note}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => setIvrModal({ open: true, item: r })} className="bg-slate-900 hover:bg-slate-800 text-teal-300 font-extrabold text-xs px-3 py-1.5 rounded-lg border border-slate-700 cursor-pointer flex items-center gap-1">
+                      <PhoneIcon size={12} color="#5eead4" /> 2G Call 📞
+                    </button>
+                    <button onClick={() => playVoiceAudio(r)} className="bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-bold px-3 py-1.5 rounded-lg">
+                      Listen 🔊
+                    </button>
+                    <button onClick={() => handleToggleTaken(r.id, r.is_taken)} className={`px-3 py-1.5 rounded-full text-xs font-extrabold ${r.is_taken ? 'bg-emerald-100 text-emerald-800' : 'bg-indigo-200 text-indigo-900'}`}>
+                      {r.is_taken ? '✓ Taken' : '○ Mark Taken'}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Simulated Outbound IVR 2G Phone Call Modal */}
+      <IvrCallSimulatorModal
+        isOpen={ivrModal.open}
+        onClose={() => setIvrModal({ open: false, item: null })}
+        reminderItem={ivrModal.item}
+      />
     </div>
   );
 };
+
+
