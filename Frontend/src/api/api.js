@@ -194,4 +194,70 @@ export const api = {
       body: JSON.stringify({ text, target_language }),
     });
   },
+
+  // Medication Reminders
+  async getReminders() {
+    return request('/reminders/');
+  },
+
+  async createReminder(reminderData) {
+    return request('/reminders/', {
+      method: 'POST',
+      body: JSON.stringify(reminderData),
+    });
+  },
+
+  async toggleReminder(reminderId, is_taken) {
+    return request(`/reminders/${reminderId}/`, {
+      method: 'PATCH',
+      body: JSON.stringify({ is_taken }),
+    });
+  },
+
+  async deleteReminder(reminderId) {
+    return request(`/reminders/${reminderId}/`, {
+      method: 'DELETE',
+    });
+  },
+
+  // Healthcare Workers & Field Patients
+  async getHealthcareWorkerPatients() {
+    return request('/healthcare-workers/');
+  },
+
+  async registerFieldPatient(patientData) {
+    return request('/healthcare-workers/', {
+      method: 'POST',
+      body: JSON.stringify(patientData),
+    });
+  },
+
+  // Emergency Assistance & Health Education
+  async getEmergencyContacts() {
+    return request('/emergency/contacts/');
+  },
+
+  async getFirstAidGuidance() {
+    return request('/emergency/first-aid/');
+  },
+
+  async getNearbyFacilities() {
+    return request('/emergency/nearby-facilities/');
+  },
+
+  // ABDM / ABHA Health Account & DPDP Privacy
+  async updateAbhaId(abha_number) {
+    return request('/auth/profile/', {
+      method: 'PATCH',
+      body: JSON.stringify({ abha_number }),
+    });
+  },
+
+  // Voice Guidance & Text-To-Speech
+  async textToSpeech(text, target_language = 'hi') {
+    return request('/voice/text-to-speech/', {
+      method: 'POST',
+      body: JSON.stringify({ text, target_language }),
+    });
+  },
 };

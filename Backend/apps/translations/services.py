@@ -16,6 +16,8 @@ import math
 import struct
 from pathlib import Path
 from typing import Dict, Any
+
+from gtts import gTTS
 from django.conf import settings
 
 
@@ -162,38 +164,54 @@ class MedicalTranslationService:
 class VoiceGuidanceService:
     """Text-To-Speech (TTS) Voice Guidance Audio Generator."""
 
+    SUPPORTED_TTS_LANGUAGES = {
+        'hi', 'bn', 'kn', 'ta', 'te', 'mr', 'gu', 'ml', 'pa', 'ur'
+    }
+
     @classmethod
     def generate_audio_guidance(cls, text: str, lang_code: str = 'hi', file_prefix: str = 'voice_guidance') -> str:
-        """Synthesizes voice guidance audio file (.wav) for rural patients
+        """Synthesizes voice guidance audio file for rural patients
         and saves it in media/translations/audio/.
         Returns relative media URL path.
         """
         output_dir = Path(settings.MEDIA_ROOT) / 'translations' / 'audio'
         os.makedirs(output_dir, exist_ok=True)
 
-        filename = f"{file_prefix}_{lang_code}_{hash(text) & 0xfffffff}.wav"
+        tts_lang = lang_code if lang_code in cls.SUPPORTED_TTS_LANGUAGES else 'hi'
+        filename = f"{file_prefix}_{tts_lang}_{hash(text) & 0xfffffff}.mp3"
         file_path = output_dir / filename
 
-        # Generate clear synthesized voice tone PCM audio stream (8000 Hz sample rate)
+        try:
+            tts = gTTS(text=text, lang=tts_lang, slow=False)
+            tts.save(str(file_path))
+        except Exception:
+            file_path = cls._generate_tone_audio(file_path.with_suffix('.wav'), lang_code)
+
+        relative_media_path = f"{settings.MEDIA_URL}translations/audio/{file_path.name}"
+        return relative_media_path
+
+    @classmethod
+    def _generate_tone_audio(cls, file_path: Path, lang_code: str) -> Path:
         sample_rate = 8000
-        duration = 2.5  # 2.5 seconds spoken alert
+        duration = 2.5
         total_samples = int(sample_rate * duration)
 
-        frequency = 440.0  # Soft medical chime tone
-        if lang_code == 'hi': frequency = 523.25  # C5 tone for Hindi
-        elif lang_code == 'te': frequency = 587.33  # D5 tone for Telugu
-        elif lang_code == 'ta': frequency = 659.25  # E5 tone for Tamil
+        frequency = 440.0
+        if lang_code == 'hi':
+            frequency = 523.25
+        elif lang_code == 'te':
+            frequency = 587.33
+        elif lang_code == 'ta':
+            frequency = 659.25
 
         with wave.open(str(file_path), 'wb') as wav_file:
-            wav_file.setnchannels(1)  # Mono
-            wav_file.setsampwidth(2)  # 16-bit
+            wav_file.setnchannels(1)
+            wav_file.setsampwidth(2)
             wav_file.setframerate(sample_rate)
 
             for i in range(total_samples):
-                # Envelope decay to make voice chime smooth
                 envelope = math.exp(-i / (sample_rate * 0.8))
                 val = int(16000 * envelope * math.sin(2 * math.pi * frequency * (i / sample_rate)))
                 wav_file.writeframes(struct.pack('<h', val))
 
-        relative_media_path = f"{settings.MEDIA_URL}translations/audio/{filename}"
-        return relative_media_path
+        return file_path

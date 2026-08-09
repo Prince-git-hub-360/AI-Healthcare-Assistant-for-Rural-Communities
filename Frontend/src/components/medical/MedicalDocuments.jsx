@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth, LANGUAGES } from '../../context/AuthContext';
 import { api } from '../../api/api';
+import { speakNativeAudio } from '../../utils/speech';
 
 export const MedicalDocuments = () => {
   const { user, showToast } = useAuth();
@@ -106,27 +107,23 @@ export const MedicalDocuments = () => {
   };
 
   // Text To Speech audio summary helper
-  const handleSpeakText = (text, langCode = selectedAudioLang) => {
+  const handleSpeakText = async (text, langCode = selectedAudioLang) => {
     if (!text || !text.trim()) {
       showToast('No extracted text available to read aloud.', 'error');
       return;
     }
-    if (!('speechSynthesis' in window)) {
-      showToast('Text-to-speech is not supported in your browser.', 'error');
-      return;
-    }
     if (speaking) {
-      window.speechSynthesis.cancel();
+      window.speechSynthesis?.cancel();
       setSpeaking(false);
       return;
     }
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = getLanguageTag(langCode);
-    utterance.rate = 0.9; // Smooth natural pace for rural residents
-    utterance.onend = () => setSpeaking(false);
-    utterance.onerror = () => setSpeaking(false);
+
     setSpeaking(true);
-    window.speechSynthesis.speak(utterance);
+    const success = await speakNativeAudio(text, langCode);
+    if (!success) {
+      showToast('Unable to play voice audio for this language in your browser.', 'error');
+    }
+    setSpeaking(false);
   };
 
   // Filtered documents calculation

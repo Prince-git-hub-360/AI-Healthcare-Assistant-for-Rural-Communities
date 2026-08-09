@@ -63,10 +63,13 @@ export const AuthProvider = ({ children }) => {
       if (token) {
         try {
           const profileData = await api.getProfile();
-          setUser(profileData);
-          if (profileData?.profile?.preferred_language) {
-            setCurrentLang(profileData.profile.preferred_language);
-            localStorage.setItem('app_lang', profileData.profile.preferred_language);
+          if (profileData) {
+            profileData.role = profileData.profile?.role || profileData.role || 'patient';
+            setUser(profileData);
+            if (profileData?.profile?.preferred_language) {
+              setCurrentLang(profileData.profile.preferred_language);
+              localStorage.setItem('app_lang', profileData.profile.preferred_language);
+            }
           }
         } catch (err) {
           // Attempt refresh if token expired
@@ -77,10 +80,13 @@ export const AuthProvider = ({ children }) => {
               localStorage.setItem('access_token', res.access);
               setToken(res.access);
               const profileData = await api.getProfile();
-              setUser(profileData);
-              if (profileData?.profile?.preferred_language) {
-                setCurrentLang(profileData.profile.preferred_language);
-                localStorage.setItem('app_lang', profileData.profile.preferred_language);
+              if (profileData) {
+                profileData.role = profileData.profile?.role || profileData.role || 'patient';
+                setUser(profileData);
+                if (profileData?.profile?.preferred_language) {
+                  setCurrentLang(profileData.profile.preferred_language);
+                  localStorage.setItem('app_lang', profileData.profile.preferred_language);
+                }
               }
             } catch {
               localStorage.removeItem('access_token');
@@ -108,10 +114,13 @@ export const AuthProvider = ({ children }) => {
   const refreshProfile = async () => {
     try {
       const profileData = await api.getProfile();
-      setUser(profileData);
-      if (profileData?.profile?.preferred_language) {
-        setCurrentLang(profileData.profile.preferred_language);
-        localStorage.setItem('app_lang', profileData.profile.preferred_language);
+      if (profileData) {
+        profileData.role = profileData.profile?.role || profileData.role || 'patient';
+        setUser(profileData);
+        if (profileData?.profile?.preferred_language) {
+          setCurrentLang(profileData.profile.preferred_language);
+          localStorage.setItem('app_lang', profileData.profile.preferred_language);
+        }
       }
       return profileData;
     } catch (err) {
@@ -129,6 +138,9 @@ export const AuthProvider = ({ children }) => {
       let userData = res.user?.profile ? res.user : await refreshProfile();
       if (!userData) {
         userData = res.user;
+      }
+      if (userData) {
+        userData.role = userData.profile?.role || userData.role || 'patient';
       }
       setUser(userData);
       if (userData?.profile?.preferred_language) {

@@ -86,7 +86,39 @@ class OpticalCharacterRecognitionService:
                 'ocr_engine': 'existing_text',
             }
 
-        # Attempt to use pytesseract + pdf2image
+        # 1. Primary Engine: Gemini 1.5 Flash Vision API
+        try:
+            from .gemini_ocr_service import GeminiVisionOCRService
+            gemini_res = GeminiVisionOCRService.extract_prescription_data(file_path, target_language='hi')
+            if gemini_res.get('status') == 'success' and gemini_res.get('extracted_text'):
+                extracted = gemini_res.get('extracted_text')
+                confidence = gemini_res.get('confidence', 0.95)
+                engine = 'gemini-1.5-flash-vision'
+
+                # Also save simplified summary if available
+                if gemini_res.get('simplified_text'):
+                    document_instance.simplified_text = gemini_res.get('simplified_text')
+
+                document_instance.text_content = extracted
+                try:
+                    document_instance.save()
+                except Exception:
+                    pass
+
+                return {
+                    'status': 'success',
+                    'document_id': document_instance.id,
+                    'file_name': file_name,
+                    'extracted_text': extracted,
+                    'simplified_text': gemini_res.get('simplified_text', ''),
+                    'medications': gemini_res.get('medications', []),
+                    'confidence': confidence,
+                    'ocr_engine': engine,
+                }
+        except Exception:
+            pass
+
+        # 2. Secondary Fallback Engine: pytesseract + pdf2image
         try:
             from PIL import Image
             import pytesseract
@@ -104,12 +136,10 @@ class OpticalCharacterRecognitionService:
             if has_pytesseract:
                 engine = 'pytesseract'
                 if suffix in ['.pdf']:
-                    # pdf2image requires poppler installed and possibly poppler_path in env
-                    poppler_path = os.getenv('POPPLER_PATH')  # allow user to set if on Windows
+                    poppler_path = os.getenv('POPPLER_PATH')
                     try:
                         images = convert_from_path(file_path, first_page=1, last_page=1, poppler_path=poppler_path) if poppler_path else convert_from_path(file_path, first_page=1, last_page=1)
                     except Exception as e:
-                        # poppler missing or conversion failed; fallback to stub
                         raise RuntimeError(f'pdf conversion failed: {e}')
                     if images:
                         img = images[0]
@@ -117,7 +147,6 @@ class OpticalCharacterRecognitionService:
                         extracted = text
                         confidence = conf
                 else:
-                    # Image file path
                     try:
                         img = Image.open(file_path)
                         text, conf = cls._extract_text_from_image(img)
@@ -126,19 +155,15 @@ class OpticalCharacterRecognitionService:
                     except Exception as e:
                         raise RuntimeError(f'image OCR failed: {e}')
 
-            # If OCR path failed or not available, fallback to heuristic/stub
             if not extracted:
-                # Heuristic fallback — preserve previous stub behaviour
                 extracted = "Tab Paracetamol 500mg 1-0-1 PC for 5 days. Tab Cetirizine 10mg 0-0-1 HS for 3 days."
                 confidence = 0.5
                 engine = engine if engine != 'stub' else 'heuristic_stub'
 
-            # Persist extracted text on document instance
             document_instance.text_content = extracted
             try:
                 document_instance.save(update_fields=['text_content'])
             except Exception:
-                # best-effort save; ignore DB errors here
                 pass
 
             return {
