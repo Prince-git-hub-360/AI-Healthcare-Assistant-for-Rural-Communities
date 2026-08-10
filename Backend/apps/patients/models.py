@@ -56,6 +56,7 @@ class Patient(models.Model):
 
     Note: Keep clinical fields as text now; later these can be normalized into related tables if needed.
     """
+    objects = models.Manager()
 
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='patient')
 

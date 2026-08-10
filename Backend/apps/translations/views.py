@@ -102,3 +102,45 @@ class TranslationViewSet(viewsets.ModelViewSet):
             'translated_text': translation_result['translated_text'],
             'audio_url': request.build_absolute_uri(audio_url) if audio_url else None,
         }, status=status.HTTP_200_OK)
+
+
+@extend_schema(tags=['07. Voice Guidance & Speech Processing'])
+class TranslateTextAPIView(viewsets.ViewSet):
+    """API endpoint for translating and simplifying prescription text into any regional language."""
+    permission_classes = [permissions.AllowAny]
+
+    def create(self, request, *args, **kwargs):
+        raw_text = request.data.get('text') or request.data.get('original_text') or ''
+        target_language = request.data.get('target_language') or request.data.get('language') or 'hi'
+
+        if not raw_text.strip():
+            return Response({'status': 'error', 'error': 'No text provided to translate'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            from medical.groq_ocr_service import GroqVisionOCRService
+            groq_res = GroqVisionOCRService.process_text_with_groq(raw_text, target_language=target_language)
+            if groq_res.get('status') == 'success' and (groq_res.get('simplified_text') or groq_res.get('extracted_text')):
+                translated = groq_res.get('simplified_text') or groq_res.get('extracted_text')
+                return Response({
+                    'status': 'success',
+                    'target_language': target_language,
+                    'original_text': raw_text,
+                    'translated_text': translated,
+                    'simplified_text': translated,
+                    'medications': groq_res.get('medications', []),
+                    'engine': groq_res.get('ocr_engine', 'groq-llama-3.3-70b-versatile'),
+                }, status=status.HTTP_200_OK)
+        except Exception:
+            pass
+
+        # Fallback to MedicalTranslationService if Groq fails
+        trans_res = MedicalTranslationService.translate_guidance(raw_text, target_language)
+        return Response({
+            'status': 'success',
+            'target_language': target_language,
+            'original_text': raw_text,
+            'translated_text': trans_res.get('translated_text', raw_text),
+            'simplified_text': trans_res.get('translated_text', raw_text),
+            'engine': 'medical-translation-fallback',
+        }, status=status.HTTP_200_OK)
+

@@ -6,6 +6,7 @@ from django.db import models
 class RoleChoices(models.TextChoices):
     PATIENT = 'patient', 'Patient'
     HEALTHCARE_WORKER = 'healthcare_worker', 'Healthcare Worker'
+    DOCTOR = 'doctor', 'Doctor'
     CAREGIVER = 'caregiver', 'Caregiver'
     ADMIN = 'admin', 'Admin'
 
@@ -59,10 +60,23 @@ class UserProfile(models.Model):
     address = models.TextField(blank=True)
     emergency_contact_name = models.CharField(max_length=100, blank=True)
     emergency_contact_phone = models.CharField(max_length=20, blank=True)
-    organization = models.CharField(max_length=255, blank=True)
-    is_phone_verified = models.BooleanField(default=False)
+    profile_photo = models.TextField(blank=True)
+    voice_guidance = models.BooleanField(default=True)
+    voice_speed = models.CharField(max_length=20, default='normal')
+    text_size = models.CharField(max_length=20, default='standard')
+    high_contrast = models.BooleanField(default=False)
+    emergency_contact_relationship = models.CharField(max_length=50, blank=True)
+    caregiver_name = models.CharField(max_length=100, blank=True)
+    caregiver_mobile = models.CharField(max_length=20, blank=True)
+    medication_reminders = models.BooleanField(default=True)
+    missed_medication_alerts = models.BooleanField(default=True)
+    caregiver_notifications = models.BooleanField(default=True)
+    healthcare_followup_reminders = models.BooleanField(default=True)
+    important_healthcare_updates = models.BooleanField(default=True)
+    is_phone_verified = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+
 
     @property
     def calculated_age(self):

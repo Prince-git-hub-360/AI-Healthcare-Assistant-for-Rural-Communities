@@ -128,9 +128,10 @@ class PrescriptionParserService:
         """Full automated pipeline: Takes a MedicalDocument, parses medicines,
         creates Medication records, Translation guidance, and Reminder alarms.
         """
-        raw_text = document.text_content
-        if not raw_text and document.title:
-            raw_text = f"{document.title} - Tab Paracetamol 500mg 1-0-1 PC for 5 days. Tab Cetirizine 10mg 0-0-1 HS for 3 days."
+        raw_text = document.text_content or ''
+        if not raw_text:
+            return {'medications': [], 'reminders': []}
+
 
         parsed_meds_data = cls.parse_text(raw_text)
         created_medications = []

@@ -17,6 +17,7 @@ class MedicalDocument(models.Model):
     Why change: Linking to Patient (domain model) instead of directly to User keeps domain relationships clear
     and allows storing patient-specific metadata separately from authentication.
     """
+    objects = models.Manager()
     patient = models.ForeignKey(
         'patients.Patient',
         on_delete=models.CASCADE,

@@ -11,6 +11,11 @@ import re
 from pathlib import Path
 from typing import Dict, Any
 
+try:
+    from PIL import Image
+except ImportError:
+    Image = None
+
 
 class OpticalCharacterRecognitionService:
     """OCR Image Processing & Text Extraction Engine.
@@ -51,7 +56,7 @@ class OpticalCharacterRecognitionService:
                 raise
 
     @classmethod
-    def extract_text_from_document(cls, document_instance) -> Dict[str, Any]:
+    def extract_text_from_document(cls, document_instance, target_language: str = 'hi') -> Dict[str, Any]:
         """Extracts text from the uploaded document file.
 
         Returns a dict with status, document_id, extracted_text, confidence, and engine info.
@@ -75,29 +80,46 @@ class OpticalCharacterRecognitionService:
         file_name = os.path.basename(file_path).lower()
         existing_text = (document_instance.text_content or '').strip()
 
-        # If text already present, return it
-        if existing_text:
-            return {
-                'status': 'ok',
-                'document_id': document_instance.id,
-                'file_name': file_name,
-                'extracted_text': existing_text,
-                'confidence': None,
-                'ocr_engine': 'existing_text',
-            }
+        # Determine target language from document or user profile if not provided
+        if not target_language and getattr(document_instance, 'language', None):
+            target_language = document_instance.language
+        if not target_language and getattr(document_instance, 'patient', None):
+            try:
+                target_language = document_instance.patient.user.profile.preferred_language or 'hi'
+            except Exception:
+                target_language = 'hi'
+        target_language = target_language or 'hi'
 
-        # 1. Primary Engine: Gemini 1.5 Flash Vision API
+
+        # 1. Primary Engine: Gemini 2.5 Flash Vision API + Groq Llama 3.3 70B Enhancer
         try:
             from .gemini_ocr_service import GeminiVisionOCRService
-            gemini_res = GeminiVisionOCRService.extract_prescription_data(file_path, target_language='hi')
+            from .groq_ocr_service import GroqVisionOCRService
+
+            gemini_res = GeminiVisionOCRService.extract_prescription_data(file_path, target_language=target_language)
             if gemini_res.get('status') == 'success' and gemini_res.get('extracted_text'):
                 extracted = gemini_res.get('extracted_text')
                 confidence = gemini_res.get('confidence', 0.95)
-                engine = 'gemini-1.5-flash-vision'
+                engine = gemini_res.get('ocr_engine', 'gemini-2.5-flash-vision')
 
-                # Also save simplified summary if available
-                if gemini_res.get('simplified_text'):
-                    document_instance.simplified_text = gemini_res.get('simplified_text')
+                simplified_text = gemini_res.get('simplified_text', '')
+                medications = gemini_res.get('medications', [])
+
+                # Enhance with Groq Llama 3.3 70B for superior regional language patient guidance & structured JSON
+                try:
+                    groq_enhancement = GroqVisionOCRService.process_text_with_groq(extracted, target_language=target_language)
+                    if groq_enhancement.get('status') == 'success':
+                        if groq_enhancement.get('simplified_text'):
+                            simplified_text = groq_enhancement.get('simplified_text')
+                        if groq_enhancement.get('medications'):
+                            medications = groq_enhancement.get('medications')
+                        engine = f"{engine} + {groq_enhancement.get('ocr_engine')}"
+                except Exception:
+                    pass
+
+                if simplified_text:
+                    document_instance.simplified_text = simplified_text
+                    document_instance.translated_text = simplified_text
 
                 document_instance.text_content = extracted
                 try:
@@ -110,15 +132,50 @@ class OpticalCharacterRecognitionService:
                     'document_id': document_instance.id,
                     'file_name': file_name,
                     'extracted_text': extracted,
-                    'simplified_text': gemini_res.get('simplified_text', ''),
-                    'medications': gemini_res.get('medications', []),
+                    'simplified_text': simplified_text,
+                    'translated_text': simplified_text,
+                    'medications': medications,
                     'confidence': confidence,
                     'ocr_engine': engine,
                 }
         except Exception:
             pass
 
-        # 2. Secondary Fallback Engine: pytesseract + pdf2image
+
+        # 2. Secondary Engine: Groq AI Vision API
+        try:
+            from .groq_ocr_service import GroqVisionOCRService
+            groq_res = GroqVisionOCRService.extract_prescription_data(file_path, target_language=target_language)
+            if groq_res.get('status') == 'success' and groq_res.get('extracted_text'):
+                extracted = groq_res.get('extracted_text')
+                confidence = groq_res.get('confidence', 0.95)
+                engine = groq_res.get('ocr_engine', 'groq-vision-ai')
+
+                if groq_res.get('simplified_text'):
+                    document_instance.simplified_text = groq_res.get('simplified_text')
+                    document_instance.translated_text = groq_res.get('simplified_text')
+
+                document_instance.text_content = extracted
+                try:
+                    document_instance.save()
+                except Exception:
+                    pass
+
+                return {
+                    'status': 'success',
+                    'document_id': document_instance.id,
+                    'file_name': file_name,
+                    'extracted_text': extracted,
+                    'simplified_text': groq_res.get('simplified_text', ''),
+                    'translated_text': groq_res.get('simplified_text', ''),
+                    'medications': groq_res.get('medications', []),
+                    'confidence': confidence,
+                    'ocr_engine': engine,
+                }
+        except Exception:
+            pass
+
+        # 3. Fallback Engine: pytesseract + pdf2image
         try:
             from PIL import Image
             import pytesseract
@@ -129,12 +186,11 @@ class OpticalCharacterRecognitionService:
 
         extracted = None
         confidence = None
-        engine = 'stub'
+        engine = 'pytesseract'
 
         try:
             suffix = Path(file_path).suffix.lower()
             if has_pytesseract:
-                engine = 'pytesseract'
                 if suffix in ['.pdf']:
                     poppler_path = os.getenv('POPPLER_PATH')
                     try:
@@ -155,40 +211,37 @@ class OpticalCharacterRecognitionService:
                     except Exception as e:
                         raise RuntimeError(f'image OCR failed: {e}')
 
-            if not extracted:
-                extracted = "Tab Paracetamol 500mg 1-0-1 PC for 5 days. Tab Cetirizine 10mg 0-0-1 HS for 3 days."
-                confidence = 0.5
-                engine = engine if engine != 'stub' else 'heuristic_stub'
+            if extracted:
+                document_instance.text_content = extracted
+                try:
+                    document_instance.save(update_fields=['text_content'])
+                except Exception:
+                    pass
 
-            document_instance.text_content = extracted
-            try:
-                document_instance.save(update_fields=['text_content'])
-            except Exception:
-                pass
+                return {
+                    'status': 'success',
+                    'document_id': document_instance.id,
+                    'file_name': file_name,
+                    'extracted_text': extracted,
+                    'simplified_text': '',
+                    'translated_text': extracted,
+                    'confidence': confidence or 0.8,
+                    'ocr_engine': engine,
+                }
 
-            return {
-                'status': 'success',
-                'document_id': document_instance.id,
-                'file_name': file_name,
-                'extracted_text': extracted,
-                'confidence': confidence,
-                'ocr_engine': engine,
-            }
+        except Exception:
+            pass
 
-        except Exception as exc:
-            # If any step fails, return the deterministic stub and informative reason
-            extracted = "Tab Paracetamol 500mg 1-0-1 PC for 5 days. Tab Cetirizine 10mg 0-0-1 HS for 3 days."
-            document_instance.text_content = extracted
-            try:
-                document_instance.save(update_fields=['text_content'])
-            except Exception:
-                pass
-            return {
-                'status': 'fallback',
-                'document_id': document_instance.id,
-                'file_name': file_name,
-                'extracted_text': extracted,
-                'confidence': 0.0,
-                'ocr_engine': 'fallback_stub',
-                'error': str(exc),
-            }
+        # If all OCR methods fail, return clear error message rather than fake prescription data
+        return {
+            'status': 'error',
+            'document_id': document_instance.id,
+            'file_name': file_name,
+            'extracted_text': document_instance.text_content or 'Unable to extract text from this document.',
+            'simplified_text': document_instance.simplified_text or '',
+            'translated_text': document_instance.translated_text or '',
+            'confidence': 0.0,
+            'ocr_engine': 'none',
+            'error': 'OCR engines failed to parse file text',
+        }
+

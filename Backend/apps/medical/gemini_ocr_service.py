@@ -67,6 +67,14 @@ class GeminiVisionOCRService:
                 f"Return strictly JSON with key names: 'raw_text', 'simplified_summary', 'medications' (array of objects), 'confidence_score' (0.0 to 1.0)."
             )
 
+            candidate_endpoints = [
+                "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+                "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+                "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent",
+                "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent",
+                "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent",
+            ]
+
             request_body = {
                 "contents": [{
                     "parts": [
@@ -81,46 +89,65 @@ class GeminiVisionOCRService:
                 }],
                 "generationConfig": {
                     "temperature": 0.1,
-                    "response_mime_type": "application/json"
                 }
             }
 
-            url = f"{cls.ENDPOINT}?key={api_key}"
-            req = urllib.request.Request(
-                url,
-                data=json.dumps(request_body).encode('utf-8'),
-                headers={'Content-Type': 'application/json'}
-            )
+            res_data = None
+            used_endpoint = None
 
-            with urllib.request.urlopen(req, timeout=30) as response:
-                res_data = json.loads(response.read().decode('utf-8'))
+            for ep in candidate_endpoints:
+                try:
+                    url = f"{ep}?key={api_key}"
+                    req = urllib.request.Request(
+                        url,
+                        data=json.dumps(request_body).encode('utf-8'),
+                        headers={'Content-Type': 'application/json'}
+                    )
+                    with urllib.request.urlopen(req, timeout=30) as response:
+                        res_data = json.loads(response.read().decode('utf-8'))
+                        used_endpoint = ep
+                        break
+                except Exception:
+                    continue
+
+            if not res_data:
+                raise ValueError('All Gemini API endpoints failed')
 
             # Extract Gemini JSON text output
             candidates = res_data.get('candidates', [])
             if not candidates:
                 raise ValueError('No response candidates returned by Gemini API')
 
-            part_text = candidates[0].get('content', {}).get('parts', [{}])[0].get('text', '')
+            part_text = candidates[0].get('content', {}).get('parts', [{}])[0].get('text', '').strip()
+
+            # Clean markdown code fences if present
+            if part_text.startswith("```"):
+                lines = part_text.splitlines()
+                if lines[0].startswith("```"):
+                    lines = lines[1:]
+                if lines and lines[-1].startswith("```"):
+                    lines = lines[:-1]
+                part_text = "\n".join(lines).strip()
+
             parsed_json = json.loads(part_text)
 
             return {
                 'status': 'success',
-                'extracted_text': parsed_json.get('raw_text', ''),
+                'extracted_text': parsed_json.get('raw_text', '') or part_text,
                 'simplified_text': parsed_json.get('simplified_summary', ''),
                 'medications': parsed_json.get('medications', []),
                 'confidence': float(parsed_json.get('confidence_score', 0.95)),
-                'ocr_engine': 'gemini-1.5-flash-vision',
+                'ocr_engine': f'gemini-{used_endpoint.split("/")[-1].split(":")[0]}',
             }
 
         except Exception as exc:
             return {
-                'status': 'fallback',
+                'status': 'error',
                 'error': str(exc),
-                'extracted_text': 'Tab Paracetamol 500mg 1-0-1 PC for 5 days. Tab Cetirizine 10mg 0-0-1 HS for 3 days.',
-                'simplified_text': 'Take Paracetamol 500mg tablet after breakfast and after dinner for 5 days.',
-                'medications': [
-                    {'medicine_name': 'Paracetamol', 'strength': '500mg', 'frequency': '1-0-1', 'meal_rule': 'After Food', 'duration_days': 5}
-                ],
-                'confidence': 0.8,
-                'ocr_engine': 'gemini_fallback_stub',
+                'extracted_text': '',
+                'simplified_text': '',
+                'medications': [],
+                'confidence': 0.0,
+                'ocr_engine': 'gemini_failed',
             }
+
