@@ -107,6 +107,13 @@ export const ClockIcon = ({ size = 24, color = 'currentColor', className = '' })
   </svg>
 );
 
+export const HistoryIcon = ({ size = 24, color = 'currentColor', className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <path d="M12 8V12L15 15" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
 export const PhoneIcon = ({ size = 24, color = 'currentColor', className = '' }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
     <path d="M22 16.92V19.92C22.0011 20.1986 21.9441 20.4743 21.8325 20.7294C21.7209 20.9845 21.5573 21.2137 21.3521 21.4019C21.1468 21.5901 20.9046 21.7332 20.6407 21.8222C20.3769 21.9113 20.0974 21.9444 19.82 21.92C16.7428 21.5857 13.787 20.5342 11.19 18.85C8.77382 17.3148 6.72533 15.2663 5.19 12.85C3.49997 10.2412 2.44824 7.27104 2.12 4.18001C2.09556 3.90263 2.12852 3.62313 2.21738 3.35917C2.30625 3.0952 2.44907 2.85285 2.63695 2.64746C2.82484 2.44208 3.05374 2.27823 3.30864 2.16641C3.56354 2.0546 3.83907 1.99738 4.118 2.00001H7.118C7.5953 1.99524 8.05711 2.1671 8.41376 2.48234C8.77041 2.79758 8.99557 3.23414 9.046 3.71001C9.13967 4.65485 9.37039 5.58434 9.734 6.48001C9.86877 6.8093 9.90795 7.17066 9.84712 7.52187C9.78628 7.87308 9.62796 8.19946 9.39 8.46001L8.12 9.73001C9.54415 12.231 11.609 14.2959 14.11 15.72L15.38 14.45C15.6406 14.212 15.967 14.0537 16.3182 13.9929C16.6694 13.932 17.0307 13.9712 17.36 14.106C18.2557 14.4696 19.1852 14.7003 20.13 14.794C20.6108 14.845 21.0514 15.0743 21.3671 15.4357C21.6828 15.7971 21.8519 16.2644 21.84 16.74L22 16.92Z" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -122,6 +129,13 @@ export const ArrowRightIcon = ({ size = 20, color = 'currentColor', className = 
 export const PlusIcon = ({ size = 20, color = 'currentColor', className = '' }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
     <path d="M12 5V19M5 12H19" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+  </svg>
+);
+
+export const CloudUploadIcon = ({ size = 24, color = 'currentColor', className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <path d="M16 16L12 12M12 12L8 16M12 12V21" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 );
 

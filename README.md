@@ -14,6 +14,7 @@ This repo is currently configured as a working full-stack project with:
 
 - a connected Django backend using PostgreSQL
 - a React frontend using Vite
+- dynamic 5-Day Treatment Calendar & Patient Medication Planner
 - shared API contract between frontend and backend
 - clean modular folder structure for both backend and frontend
 - local Git repository initialized and pushed to GitHub

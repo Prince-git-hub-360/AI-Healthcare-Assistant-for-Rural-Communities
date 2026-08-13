@@ -23,8 +23,24 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('access_token') || null);
   const [loading, setLoading] = useState(true);
   const [currentLang, setCurrentLang] = useState(localStorage.getItem('app_lang') || 'hi');
+  const [theme, setTheme] = useState(localStorage.getItem('swasthya_theme') || 'light');
   const [toast, setToast] = useState(null);
   const [backendHealthy, setBackendHealthy] = useState(false);
+
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('swasthya_theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    const nextTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(nextTheme);
+    showToast(`Theme changed to ${nextTheme === 'dark' ? 'Dark' : 'Light'} Mode`, 'info');
+  };
 
   const showToast = (message, type = 'info') => {
     setToast({ message, type });
@@ -206,6 +222,8 @@ export const AuthProvider = ({ children }) => {
         token,
         loading,
         currentLang,
+        theme,
+        toggleTheme,
         toast,
         backendHealthy,
         login,

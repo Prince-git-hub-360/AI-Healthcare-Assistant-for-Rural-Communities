@@ -42,6 +42,9 @@ class MedicationViewSet(viewsets.ModelViewSet):
             if role == 'patient':
                 qs = qs.filter(patient__user=user)
 
+        # Exclude extracted medications whose parent prescription document was deleted
+        qs = qs.exclude(source='extracted', document__isnull=True)
+
         active = self.request.query_params.get('active')
         if active and active.lower() in ['1', 'true', 'yes']:
             today = timezone.localdate()
