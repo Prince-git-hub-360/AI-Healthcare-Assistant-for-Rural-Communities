@@ -57,21 +57,21 @@ export const EmergencyPage = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 md:px-8 py-8 space-y-8">
+    <div className="max-w-[1240px] mx-auto px-4 md:px-6 py-6 space-y-6 font-sans text-stone-900 dark:text-slate-100 transition-colors">
       {/* Emergency Call Header */}
-      <div className="bg-red-50 border-2 border-red-300 rounded-3xl p-6 md:p-8 shadow-md flex flex-col md:flex-row items-center justify-between gap-6">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 bg-red-600 text-white rounded-2xl flex items-center justify-center shadow-lg">
-            <PhoneIcon size={32} color="#ffffff" />
+      <div className="bg-red-50 dark:bg-[#161F30] border border-red-200/80 dark:border-red-900/80 rounded-2xl p-5 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-colors">
+        <div className="flex items-center gap-3.5">
+          <div className="w-10 h-10 bg-red-600 text-white rounded-xl flex items-center justify-center font-bold text-lg shrink-0 shadow-xs">
+            <PhoneIcon size={22} color="#ffffff" />
           </div>
-          <div>
-            <span className="bg-red-600 text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+          <div className="space-y-0.5">
+            <span className="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider">
               24/7 EMERGENCY ASSISTANCE
             </span>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-red-950 tracking-tight mt-1">
+            <h1 className="text-xl sm:text-2xl font-bold text-red-950 dark:text-red-100 tracking-tight">
               National Health Emergency Hotline
             </h1>
-            <p className="text-xs text-red-800 font-semibold mt-0.5">
+            <p className="text-xs text-red-900/80 dark:text-red-300 font-medium">
               Instant connection to 108 Rural Ambulance & Primary Health Response
             </p>
           </div>
@@ -79,59 +79,69 @@ export const EmergencyPage = () => {
 
         <a
           href="tel:108"
-          className="w-full md:w-auto bg-red-600 hover:bg-red-700 text-white font-extrabold text-base px-8 py-4 rounded-2xl shadow-xl transition-all text-center flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full md:w-auto bg-red-600 hover:bg-red-700 text-white font-semibold text-xs px-5 py-2.5 rounded-lg shadow-xs transition-colors text-center flex items-center justify-center gap-2 cursor-pointer shrink-0"
         >
-          <PhoneIcon size={20} color="#ffffff" /> Call 108 Emergency Now
+          <PhoneIcon size={16} color="#ffffff" />
+          <span>Call 108 Emergency Now</span>
         </a>
       </div>
 
       {/* First-Aid Guidance in Local Language */}
-      <div className="bg-white border border-stone-200 rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h2 className="text-xl font-extrabold text-stone-900 tracking-tight flex items-center gap-2">
-            <AlertIcon size={24} color="#0f766e" /> Instant Pictorial First-Aid Guidance
+      <div className="bg-white dark:bg-[#161F30] border border-stone-200/80 dark:border-slate-800/80 rounded-2xl p-5 shadow-xs space-y-4 transition-colors">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-stone-100 dark:border-slate-800 pb-3">
+          <h2 className="text-base font-bold text-stone-900 dark:text-white flex items-center gap-2">
+            <AlertIcon size={20} className="text-[#0B4F42] dark:text-teal-400" />
+            <span>Instant First-Aid Guidance</span>
           </h2>
 
           <button
             onClick={playFirstAidAudio}
             disabled={playingTopicAudio}
-            className="bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-sm transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+            className="border border-stone-300 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-800 text-stone-800 dark:text-slate-200 text-xs font-medium px-3.5 py-1.5 rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
           >
-            <SpeakerIcon size={16} color="#ffffff" />
-            <span>{playingTopicAudio ? 'Reading Aloud...' : '🔊 Listen Audio First-Aid'}</span>
+            <SpeakerIcon size={14} />
+            <span>{playingTopicAudio ? 'Reading Aloud...' : 'Listen Audio First-Aid'}</span>
           </button>
         </div>
 
         {/* Topic Tabs */}
-        <div className="flex flex-wrap gap-2 pb-2 border-b border-stone-200">
+        <div className="flex flex-wrap gap-2 pb-1">
           <button
             onClick={() => setSelectedTopic('snakebite')}
-            className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
-              selectedTopic === 'snakebite' ? 'bg-teal-700 text-white shadow-sm' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+              selectedTopic === 'snakebite'
+                ? 'bg-[#0B4F42] dark:bg-teal-600 text-white shadow-xs'
+                : 'bg-stone-50 dark:bg-slate-800 text-stone-700 dark:text-slate-300 hover:bg-stone-100 dark:hover:bg-slate-700'
             }`}
           >
             🐍 Snakebite
           </button>
           <button
             onClick={() => setSelectedTopic('burns')}
-            className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
-              selectedTopic === 'burns' ? 'bg-teal-700 text-white shadow-sm' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+              selectedTopic === 'burns'
+                ? 'bg-[#0B4F42] dark:bg-teal-600 text-white shadow-xs'
+                : 'bg-stone-50 dark:bg-slate-800 text-stone-700 dark:text-slate-300 hover:bg-stone-100 dark:hover:bg-slate-700'
             }`}
           >
             🔥 Burns
           </button>
           <button
             onClick={() => setSelectedTopic('fever')}
-            className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
-              selectedTopic === 'fever' ? 'bg-teal-700 text-white shadow-sm' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+              selectedTopic === 'fever'
+                ? 'bg-[#0B4F42] dark:bg-teal-600 text-white shadow-xs'
+                : 'bg-stone-50 dark:bg-slate-800 text-stone-700 dark:text-slate-300 hover:bg-stone-100 dark:hover:bg-slate-700'
             }`}
           >
             🤒 High Fever
           </button>
           <button
             onClick={() => setSelectedTopic('cardiac')}
-            className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
-              selectedTopic === 'cardiac' ? 'bg-teal-700 text-white shadow-sm' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+              selectedTopic === 'cardiac'
+                ? 'bg-[#0B4F42] dark:bg-teal-600 text-white shadow-xs'
+                : 'bg-stone-50 dark:bg-slate-800 text-stone-700 dark:text-slate-300 hover:bg-stone-100 dark:hover:bg-slate-700'
             }`}
           >
             🫀 Chest Pain
@@ -139,18 +149,18 @@ export const EmergencyPage = () => {
         </div>
 
         {/* Guide Content */}
-        <div className="bg-stone-50 border border-stone-200 p-6 rounded-3xl">
-          <h3 className="font-extrabold text-stone-900 text-base mb-4">
+        <div className="bg-stone-50/80 dark:bg-slate-800/60 border border-stone-200/80 dark:border-slate-700/60 p-4 rounded-xl space-y-3">
+          <h3 className="font-bold text-stone-900 dark:text-white text-sm">
             {firstAidGuides[selectedTopic].title}
           </h3>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {firstAidGuides[selectedTopic].steps.map((step, idx) => (
-              <div key={idx} className="flex items-start gap-3 bg-white p-4 rounded-2xl border border-stone-200 text-xs text-stone-800 shadow-xs">
-                <div className="w-7 h-7 bg-teal-700 text-white font-extrabold rounded-xl flex items-center justify-center flex-shrink-0 text-xs shadow-xs">
+              <div key={idx} className="flex items-start gap-2.5 bg-white dark:bg-slate-900 p-3 rounded-lg border border-stone-200/80 dark:border-slate-800 text-xs text-stone-800 dark:text-slate-200 shadow-xs">
+                <div className="w-5 h-5 bg-[#0B4F42] dark:bg-teal-600 text-white font-bold rounded-md flex items-center justify-center shrink-0 text-[11px]">
                   {idx + 1}
                 </div>
-                <div className="font-semibold leading-relaxed pt-0.5">{step}</div>
+                <div className="font-normal leading-relaxed pt-0.5">{step}</div>
               </div>
             ))}
           </div>
@@ -158,27 +168,32 @@ export const EmergencyPage = () => {
       </div>
 
       {/* Nearby Primary Health Centres Directory */}
-      <div className="bg-white border border-stone-200 rounded-3xl p-6 md:p-8 shadow-sm space-y-4">
-        <h2 className="text-xl font-extrabold text-stone-900 tracking-tight flex items-center gap-2">
-          <HospitalIcon size={24} color="#0f766e" /> Nearby Rural Primary Health Facilities
+      <div className="bg-white dark:bg-[#161F30] border border-stone-200/80 dark:border-slate-800/80 rounded-2xl p-5 shadow-xs space-y-3.5 transition-colors">
+        <h2 className="text-base font-bold text-stone-900 dark:text-white flex items-center gap-2 border-b border-stone-100 dark:border-slate-800 pb-3">
+          <HospitalIcon size={20} className="text-[#0B4F42] dark:text-teal-400" />
+          <span>Nearby Primary Health Facilities</span>
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-stone-50 border border-stone-200 p-4 rounded-2xl">
-            <h4 className="font-bold text-stone-900 text-sm">Mandya Primary Health Centre #4</h4>
-            <p className="text-xs text-stone-600 mt-1">Main Road, Mandya District • 2.4 km away</p>
-            <div className="text-xs font-semibold text-teal-800 mt-2">Available: 24/7 Casualty, ASV Antivenom, Maternity Ward</div>
-            <a href="tel:08232220101" className="inline-block mt-3 bg-teal-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg">
-              📞 Call Health Centre
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="bg-stone-50/80 dark:bg-slate-800/60 border border-stone-200/80 dark:border-slate-700/60 p-3.5 rounded-xl space-y-2">
+            <div>
+              <h4 className="font-bold text-stone-900 dark:text-white text-xs">Mandya Primary Health Centre #4</h4>
+              <p className="text-[11px] text-stone-500 dark:text-slate-400 mt-0.5">Main Road, Mandya District • 2.4 km away</p>
+            </div>
+            <div className="text-[11px] font-medium text-emerald-800 dark:text-emerald-300">Available: 24/7 Casualty, ASV Antivenom, Maternity Ward</div>
+            <a href="tel:08232220101" className="inline-flex items-center gap-1.5 bg-[#0B4F42] hover:bg-[#07362d] dark:bg-teal-600 dark:hover:bg-teal-500 text-white font-medium text-xs px-3 py-1.5 rounded-lg transition-colors">
+              <span>📞 Call Health Centre</span>
             </a>
           </div>
 
-          <div className="bg-stone-50 border border-stone-200 p-4 rounded-2xl">
-            <h4 className="font-bold text-stone-900 text-sm">Hassan General Referral Hospital</h4>
-            <p className="text-xs text-stone-600 mt-1">B.M. Road, Hassan • 8.1 km away</p>
-            <div className="text-xs font-semibold text-teal-800 mt-2">Available: ICU Support, Emergency Surgery, Oxygen Bank</div>
-            <a href="tel:08172230202" className="inline-block mt-3 bg-teal-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg">
-              📞 Call Referral Hospital
+          <div className="bg-stone-50/80 dark:bg-slate-800/60 border border-stone-200/80 dark:border-slate-700/60 p-3.5 rounded-xl space-y-2">
+            <div>
+              <h4 className="font-bold text-stone-900 dark:text-white text-xs">Hassan General Referral Hospital</h4>
+              <p className="text-[11px] text-stone-500 dark:text-slate-400 mt-0.5">B.M. Road, Hassan • 8.1 km away</p>
+            </div>
+            <div className="text-[11px] font-medium text-emerald-800 dark:text-emerald-300">Available: ICU Support, Emergency Surgery, Oxygen Bank</div>
+            <a href="tel:08172230202" className="inline-flex items-center gap-1.5 bg-[#0B4F42] hover:bg-[#07362d] dark:bg-teal-600 dark:hover:bg-teal-500 text-white font-medium text-xs px-3 py-1.5 rounded-lg transition-colors">
+              <span>📞 Call Referral Hospital</span>
             </a>
           </div>
         </div>

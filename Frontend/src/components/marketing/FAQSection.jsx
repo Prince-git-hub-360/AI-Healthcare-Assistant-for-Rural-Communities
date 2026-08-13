@@ -28,39 +28,39 @@ export const FAQSection = () => {
   ];
 
   return (
-    <section id="faq" className="scroll-mt-24 max-w-7xl mx-auto px-4 md:px-8 lg:px-12 py-16 space-y-12 bg-white rounded-3xl border border-stone-200 shadow-xs my-8">
-      <div className="text-center max-w-3xl mx-auto space-y-3">
-        <span className="text-xs font-extrabold text-[#0F766E] uppercase tracking-widest bg-teal-50 border border-teal-200 px-3.5 py-1 rounded-full">
+    <section id="faq" className="scroll-mt-24 max-w-7xl mx-auto px-6 sm:px-10 lg:px-12 py-20 md:py-24 space-y-12 md:space-y-16 bg-white dark:bg-[#161F30] rounded-3xl border border-stone-200/80 dark:border-slate-800 shadow-sm my-12 font-sans transition-colors">
+      <div className="text-center max-w-3xl mx-auto space-y-4">
+        <span className="text-xs sm:text-sm font-extrabold text-[#0F766E] dark:text-teal-300 uppercase tracking-widest bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 px-4 py-1.5 rounded-full inline-block">
           FREQUENTLY ASKED QUESTIONS
         </span>
-        <h2 className="text-3xl md:text-4xl font-extrabold text-stone-900 tracking-tight">
+        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-stone-900 dark:text-white tracking-tight leading-tight">
           Everything you need to know about Swasthya Sanchar AI.
         </h2>
-        <p className="text-sm md:text-base text-stone-600">
+        <p className="text-base sm:text-lg text-stone-600 dark:text-slate-300 leading-relaxed">
           Clear answers to common questions about our healthcare communication platform.
         </p>
       </div>
 
-      <div className="max-w-3xl mx-auto space-y-3">
+      <div className="max-w-3xl mx-auto space-y-4">
         {faqs.map((faq, idx) => {
           const isOpen = openIdx === idx;
           return (
             <div
               key={idx}
-              className="bg-[#FDFBF7] border border-stone-200 rounded-2xl overflow-hidden transition-all"
+              className="bg-[#FDFBF7] dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-3xl overflow-hidden transition-all shadow-xs hover:border-[#0F766E] dark:hover:border-teal-500"
             >
               <button
                 onClick={() => setOpenIdx(isOpen ? null : idx)}
-                className="w-full flex items-center justify-between p-5 text-left font-extrabold text-sm text-stone-900 cursor-pointer"
+                className="w-full flex items-center justify-between p-6 text-left font-bold text-base sm:text-lg text-stone-900 dark:text-white cursor-pointer gap-4"
               >
                 <span>{faq.q}</span>
                 <span className={`transform transition-transform ${isOpen ? 'rotate-180' : ''}`}>
-                  <ChevronDownIcon size={18} color="#0F766E" />
+                  <ChevronDownIcon size={20} className="text-[#0B4F42] dark:text-teal-400" />
                 </span>
               </button>
 
               {isOpen && (
-                <div className="px-5 pb-5 text-xs text-stone-600 leading-relaxed border-t border-stone-200/60 pt-3">
+                <div className="px-6 pb-6 text-sm sm:text-base text-stone-600 dark:text-slate-300 leading-relaxed border-t border-stone-200/60 dark:border-slate-800 pt-4">
                   {faq.a}
                 </div>
               )}

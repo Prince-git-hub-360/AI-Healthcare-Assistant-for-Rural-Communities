@@ -161,7 +161,7 @@ const AuthenticatedApp = ({ currentPath, navigate, onOpenChat, chatModalOpen, se
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#fdfbf7] text-stone-900 antialiased relative font-sans">
+    <div className="min-h-screen flex flex-col bg-[#FAFAFA] dark:bg-[#0B0F17] text-stone-900 dark:text-slate-100 antialiased relative font-sans transition-colors duration-200">
       <AppNavbar currentPath={currentPath} onNavigate={navigate} onOpenChat={onOpenChat} />
 
       <main className="flex-1">
@@ -171,13 +171,13 @@ const AuthenticatedApp = ({ currentPath, navigate, onOpenChat, chatModalOpen, se
       {/* Floating AI Health Assistant Companion Button */}
       <button
         onClick={onOpenChat}
-        className="fixed bottom-6 right-6 z-40 bg-teal-800 hover:bg-teal-900 text-white p-4 rounded-full shadow-2xl transition-all transform hover:scale-105 flex items-center gap-2 cursor-pointer border-2 border-teal-500/30"
+        className="fixed bottom-6 right-6 z-40 bg-[#0B4F42] hover:bg-[#07362d] dark:bg-teal-600 dark:hover:bg-teal-500 text-white py-2.5 px-4 rounded-full shadow-xl transition-all transform hover:scale-105 flex items-center gap-2 cursor-pointer border border-teal-500/30"
         title="Ask Swasthya Mitr AI Voice & Chat"
       >
-        <div className="w-6 h-6 bg-teal-600 rounded-full flex items-center justify-center animate-pulse">
-          <SparklesIcon size={14} color="#ffffff" />
+        <div className="w-5 h-5 bg-teal-600 dark:bg-teal-700 rounded-full flex items-center justify-center animate-pulse">
+          <SparklesIcon size={12} color="#ffffff" />
         </div>
-        <span className="font-extrabold text-xs tracking-wide hidden sm:inline">Ask AI Assistant</span>
+        <span className="font-semibold text-xs tracking-wide hidden sm:inline">Ask AI Assistant</span>
       </button>
 
       {/* AI Voice Assistant Modal */}

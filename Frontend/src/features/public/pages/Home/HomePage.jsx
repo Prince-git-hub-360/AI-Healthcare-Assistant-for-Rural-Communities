@@ -23,7 +23,7 @@ import { PublicFooter } from '../../../../components/marketing/PublicFooter';
 
 export const HomePage = ({ onNavigate }) => {
   return (
-    <div className="min-h-screen flex flex-col bg-[#FDFBF7] text-stone-900 font-sans antialiased">
+    <div className="min-h-screen flex flex-col bg-[#FAFAFA] dark:bg-[#0B0F17] text-stone-900 dark:text-slate-100 font-sans antialiased transition-colors duration-200">
       {/* 2. Hero Section */}
       <HeroSection onNavigate={onNavigate} />
 

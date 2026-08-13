@@ -103,3 +103,19 @@ class MedicalDocumentViewSet(viewsets.ModelViewSet):
 
         headers = self.get_success_headers(res_data)
         return Response(res_data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def perform_destroy(self, instance):
+        """Cascade delete all linked medication reminders when a prescription is deleted."""
+        try:
+            from medications.models import Medication
+            Medication.objects.filter(document=instance).delete()
+        except Exception:
+            pass
+
+        try:
+            from reminders.models import Reminder
+            Reminder.objects.filter(document=instance).delete()
+        except Exception:
+            pass
+
+        instance.delete()

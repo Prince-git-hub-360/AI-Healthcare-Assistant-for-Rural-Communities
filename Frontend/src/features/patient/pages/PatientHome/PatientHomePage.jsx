@@ -2,9 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth, LANGUAGES } from '../../../../shared/context/AuthContext';
 import { api } from '../../../../services/api';
 import {
-  DocumentIcon, BrainIcon, TranslateIcon, SpeakerIcon, ShieldIcon, CheckIcon,
-  ClockIcon, PlusIcon, PhoneIcon, PillIcon, AlertIcon, RefreshIcon, UserIcon,
-  SparklesIcon, FireIcon, MicIcon, HeartIcon, ActivityIcon, VideoIcon
+  DocumentIcon, TranslateIcon, SpeakerIcon, ClockIcon, PhoneIcon, PillIcon,
+  UserIcon, SparklesIcon, ActivityIcon, ChevronDownIcon
 } from '../../../../shared/icons/Icons';
 import { speakNativeAudio } from '../../../../shared/utils/speech';
 
@@ -76,9 +75,9 @@ export const PatientHomePage = ({ setCurrentView, onOpenChat }) => {
   const playWelcomeAudio = async () => {
     setPlayingGreeting(true);
     const greetingText = {
-      hi: `नमस्ते ${user?.first_name || 'मरीज'} जी! स्वास्थ्य संचार में आपका स्वागत है। आज आपकी दवाओं का ध्यान रखें।`,
+      hi: `नमस्ते ${user?.first_name || 'मरीज'} जी! स्वास्थ संचार में आपका स्वागत है।`,
       kn: `ನಮಸ್ಕಾರ ${user?.first_name || 'ರೋಗಿ'} ಅವರೇ! ಸ್ವಾಸ್ಥ್ಯ ಸಂಚಾರ್‌ಗೆ ಸ್ವಾಗತ.`,
-      en: `Namaste ${user?.first_name || 'Patient'}! Welcome to Swasthya Sanchar AI Care Portal.`,
+      en: `Good morning ${user?.first_name || 'Patient'}! Here is your health summary for today.`,
     }[currentLang || 'hi'] || `Namaste! Welcome to Swasthya Sanchar.`;
 
     await speakNativeAudio(greetingText, currentLang || 'hi');
@@ -88,421 +87,312 @@ export const PatientHomePage = ({ setCurrentView, onOpenChat }) => {
   const completedCount = reminders.filter(r => r.is_taken).length;
   const totalCount = reminders.length;
   const adherencePercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
-  const currentLangObj = LANGUAGES.find(l => l.code === (currentLang || 'hi')) || LANGUAGES[0];
+  const nextDose = reminders.find(r => !r.is_taken) || reminders[0];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 space-y-8">
-      {/* RURAL ASSISTED CARE MODEL ACCESSIBILITY BAR */}
-      <div className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-teal-500/10 border border-amber-300/40 rounded-3xl p-5 md:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm backdrop-blur-md">
-        <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 bg-amber-600 text-white rounded-2xl flex items-center justify-center font-extrabold text-xl shrink-0 shadow-md ring-4 ring-amber-100">
-            🌾
-          </div>
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-extrabold text-amber-950 text-sm">
-                Zero-Literacy & 2G Feature Phone Assisted Care
-              </span>
-              <span className="bg-amber-200 text-amber-950 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-amber-300">
-                RURAL CARE MODEL
-              </span>
-            </div>
-            <p className="text-xs text-stone-600 leading-relaxed mt-1">
-              Supports illiterate villagers & non-smartphone users via door-to-door ASHA scanning, 1-tap voice audio playback, and automated 2G IVR phone calls.
+    <div className="bg-[#FAFAFA] dark:bg-[#0B0F17] min-h-screen font-sans text-stone-900 dark:text-slate-100 pb-12 transition-colors duration-200">
+      <div className="max-w-[1240px] mx-auto px-4 md:px-6 py-6 space-y-6">
+        
+        {/* 1. COMPACT WELCOME HEADER */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-200/80 dark:border-slate-800/80 pb-5">
+          <div className="space-y-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-stone-900 dark:text-white tracking-tight">
+              Good morning, {user?.first_name || user?.username || 'Prince'} 👋
+            </h1>
+            <p className="text-xs sm:text-sm text-stone-500 dark:text-slate-400 font-normal">
+              Here's your health summary for today.
             </p>
           </div>
-        </div>
 
-        <button
-          onClick={() => setCurrentView('reminders')}
-          className="bg-amber-700 hover:bg-amber-800 text-white text-xs font-extrabold px-5 py-3 rounded-2xl shadow-md transition-all cursor-pointer whitespace-nowrap active:scale-95 flex items-center gap-2"
-        >
-          <span>Test 2G Voice Alert</span>
-          <PhoneIcon size={14} color="#ffffff" />
-        </button>
-      </div>
-
-      {/* PATIENT CARE HUB COMMAND CENTER */}
-      <div className="space-y-8">
-        <div className="bg-gradient-to-r from-slate-950 via-teal-950 to-slate-900 border border-teal-800/60 rounded-3xl p-6 md:p-8 text-white shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
-
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
-            <div className="space-y-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="bg-teal-500/20 text-teal-300 text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-widest border border-teal-400/30 flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  LIVE HEALTH MONITORING
-                </span>
-                <span className="bg-white/10 text-cyan-200 text-[10px] font-extrabold px-3 py-1 rounded-full border border-white/10">
-                  ABHA ID: 14-8923-4512-9012
-                </span>
-                <span className="bg-amber-400/20 text-amber-200 text-[10px] font-extrabold px-3 py-1 rounded-full border border-amber-400/30">
-                  📍 Mandya Sector #4
-                </span>
+          <div className="bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200/80 dark:border-emerald-800/80 rounded-xl px-3.5 py-2 flex items-center gap-2.5 shrink-0 self-start sm:self-auto transition-colors">
+            <span className="w-2 h-2 rounded-full bg-emerald-600 dark:bg-emerald-400 animate-pulse" />
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
+                Today's health
               </div>
-
-              <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight leading-tight">
-                Welcome back, {user?.first_name || user?.username || 'Patient'}! 🙏
-              </h1>
-
-              <p className="text-xs md:text-sm text-cyan-100/80 max-w-2xl leading-relaxed">
-                Your personalized rural healthcare assistant. Active language: <strong className="text-emerald-300 font-bold uppercase">{currentLangObj.native} ({currentLangObj.name})</strong>. All health vitals monitored by Mandya Primary Health Sub-Center.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-              <button
-                onClick={playWelcomeAudio}
-                disabled={playingGreeting}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs px-5 py-3.5 rounded-2xl shadow-lg transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 active:scale-95"
-              >
-                <SpeakerIcon size={18} color="#ffffff" />
-                <span>{playingGreeting ? 'Speaking Greeting...' : '🔊 Voice Summary'}</span>
-              </button>
-
-              <button
-                onClick={onOpenChat}
-                className="bg-teal-500/20 hover:bg-teal-500/30 text-teal-200 border border-teal-400/40 font-extrabold text-xs px-5 py-3.5 rounded-2xl transition-all flex items-center gap-2 cursor-pointer active:scale-95 backdrop-blur-md"
-              >
-                <SparklesIcon size={18} color="#2dd4bf" />
-                <span>Ask AI Assistant</span>
-              </button>
+              <div className="text-xs font-semibold text-emerald-950 dark:text-emerald-200">
+                {totalCount - completedCount > 0
+                  ? `${totalCount - completedCount} action${totalCount - completedCount > 1 ? 's' : ''} remaining`
+                  : '✓ All care completed'}
+              </div>
             </div>
           </div>
         </div>
 
-        {/* CLINICAL OVERVIEW ROW */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="bg-white border border-stone-200 rounded-3xl p-6 shadow-md flex flex-col justify-between space-y-4 relative overflow-hidden">
-            <div className="flex items-center justify-between">
-              <div>
-                <span className="text-[10px] font-extrabold text-teal-700 uppercase tracking-widest block">DAILY ADHERENCE</span>
-                <h3 className="text-base font-extrabold text-stone-900">Medication Score</h3>
+        {/* 2. PRIMARY TWO-COLUMN DASHBOARD GRID */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          
+          {/* LEFT COLUMN (~65% Width): Today's Priority, Daily Progress, Health Snapshot */}
+          <div className="lg:col-span-8 space-y-6">
+            
+            {/* TODAY'S PRIORITY / NEXT ACTION CARD */}
+            <div className="bg-white dark:bg-[#161F30] border border-stone-200/80 dark:border-slate-800/80 rounded-2xl p-5 shadow-xs space-y-4 transition-colors">
+              <div className="flex items-center justify-between border-b border-stone-100 dark:border-slate-800/80 pb-3">
+                <div className="space-y-0.5">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-[#0B4F42] dark:text-teal-400">
+                    TODAY'S PRIORITY
+                  </span>
+                  <h2 className="text-base font-semibold text-stone-900 dark:text-white flex items-center gap-2">
+                    <PillIcon size={18} className="text-[#0B4F42] dark:text-teal-400" />
+                    <span>Next Medication Dose</span>
+                  </h2>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setCurrentView?.('reminders')}
+                  className="text-xs font-medium text-[#0B4F42] dark:text-teal-400 hover:underline cursor-pointer"
+                >
+                  View today's medication schedule →
+                </button>
               </div>
-              <div className="flex items-center gap-1 bg-amber-50 border border-amber-200 text-amber-900 px-3 py-1 rounded-full text-xs font-extrabold">
-                <FireIcon size={14} color="#d97706" />
-                <span>5-Day Streak! 🔥</span>
+
+              {nextDose ? (
+                <div className="bg-teal-50/50 dark:bg-slate-800/80 border border-teal-100 dark:border-slate-700/80 rounded-xl p-4 space-y-3 transition-colors">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-stone-700 dark:text-slate-300 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-700 px-2.5 py-0.5 rounded-md">
+                      ⏰ {nextDose.scheduled_time}
+                    </span>
+                    <span className="text-emerald-700 dark:text-emerald-400 font-medium">
+                      {nextDose.is_taken ? '✓ Completed' : '○ Pending'}
+                    </span>
+                  </div>
+
+                  <div className="space-y-0.5">
+                    <h3 className="text-base font-bold text-stone-900 dark:text-white">
+                      {nextDose.medication_name}
+                    </h3>
+                    <p className="text-xs text-stone-600 dark:text-slate-300">
+                      {nextDose.instructions}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2.5 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => toggleReminderStatus(nextDose.id, nextDose.is_taken)}
+                      className="bg-[#0B4F42] hover:bg-[#07362d] dark:bg-teal-600 dark:hover:bg-teal-500 text-white text-xs font-medium px-4 py-2 rounded-lg shadow-xs transition-colors cursor-pointer"
+                    >
+                      {nextDose.is_taken ? '✓ Marked Taken' : 'Mark as Taken'}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={playWelcomeAudio}
+                      className="bg-white dark:bg-slate-800 hover:bg-stone-50 dark:hover:bg-slate-700 border border-stone-300 dark:border-slate-700 text-stone-700 dark:text-slate-200 text-xs font-medium px-3.5 py-2 rounded-lg transition-colors cursor-pointer flex items-center gap-1.5"
+                    >
+                      <SpeakerIcon size={14} />
+                      <span>Listen</span>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-xl p-4 text-xs text-stone-500 dark:text-slate-400 text-center">
+                  No medicines scheduled for today.
+                </div>
+              )}
+
+              {/* DAILY PROGRESS SECTION */}
+              <div className="bg-stone-50/70 dark:bg-slate-800/60 border border-stone-200/80 dark:border-slate-700/60 rounded-xl p-4 space-y-3 transition-colors">
+                <div className="flex items-center justify-between text-xs font-semibold text-stone-800 dark:text-slate-200">
+                  <span>Today's Progress</span>
+                  <span className="text-[#0B4F42] dark:text-teal-400">{completedCount} of {totalCount} completed ({adherencePercent}%)</span>
+                </div>
+
+                <div className="w-full bg-stone-200 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden">
+                  <div
+                    className="bg-[#0B4F42] dark:bg-teal-400 h-1.5 rounded-full transition-all duration-500"
+                    style={{ width: `${adherencePercent}%` }}
+                  />
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 text-center text-xs pt-0.5">
+                  <div className="bg-white dark:bg-slate-800/90 border border-stone-200/80 dark:border-slate-700/80 rounded-lg p-2">
+                    <div className="text-[10px] text-stone-500 dark:text-slate-400 font-medium">Morning</div>
+                    <div className="font-semibold text-stone-900 dark:text-white">
+                      {reminders.filter(r => /08:00 AM|AM|Morning/i.test(r.scheduled_time)).filter(r => r.is_taken).length} / {reminders.filter(r => /08:00 AM|AM|Morning/i.test(r.scheduled_time)).length || 1}
+                    </div>
+                  </div>
+                  <div className="bg-white dark:bg-slate-800/90 border border-stone-200/80 dark:border-slate-700/80 rounded-lg p-2">
+                    <div className="text-[10px] text-stone-500 dark:text-slate-400 font-medium">Afternoon</div>
+                    <div className="font-semibold text-stone-900 dark:text-white">
+                      {reminders.filter(r => /01:30 PM|Afternoon/i.test(r.scheduled_time)).filter(r => r.is_taken).length} / {reminders.filter(r => /01:30 PM|Afternoon/i.test(r.scheduled_time)).length || 1}
+                    </div>
+                  </div>
+                  <div className="bg-white dark:bg-slate-800/90 border border-stone-200/80 dark:border-slate-700/80 rounded-lg p-2">
+                    <div className="text-[10px] text-stone-500 dark:text-slate-400 font-medium">Night</div>
+                    <div className="font-semibold text-stone-900 dark:text-white">
+                      {reminders.filter(r => /08:00 PM|PM|Night/i.test(r.scheduled_time)).filter(r => r.is_taken).length} / {reminders.filter(r => /08:00 PM|PM|Night/i.test(r.scheduled_time)).length || 1}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="flex items-center justify-around py-2">
-              <div className="relative w-28 h-28 flex items-center justify-center">
-                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                  <path
-                    className="text-stone-100"
-                    strokeWidth="3.5"
-                    stroke="currentColor"
-                    fill="none"
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                  />
-                  <path
-                    className="text-emerald-500 transition-all duration-1000 ease-out"
-                    strokeDasharray={`${adherencePercent}, 100`}
-                    strokeWidth="3.5"
-                    strokeLinecap="round"
-                    stroke="currentColor"
-                    fill="none"
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                  />
-                </svg>
-                <div className="absolute flex flex-col items-center justify-center text-center">
-                  <span className="text-2xl font-extrabold text-stone-900">{adherencePercent}%</span>
-                  <span className="text-[9px] text-stone-500 uppercase font-extrabold">COMPLETED</span>
+            {/* HEALTH SNAPSHOT (COMPACT 2x2 VITALS GRID) */}
+            <div className="bg-white dark:bg-[#161F30] border border-stone-200/80 dark:border-slate-800/80 rounded-2xl p-5 shadow-xs space-y-4 transition-colors">
+              <div className="flex items-center justify-between border-b border-stone-100 dark:border-slate-800/80 pb-3">
+                <div>
+                  <h2 className="text-base font-semibold text-stone-900 dark:text-white flex items-center gap-2">
+                    <ActivityIcon size={18} className="text-[#0B4F42] dark:text-teal-400" />
+                    <span>Health Snapshot</span>
+                  </h2>
+                  <p className="text-[11px] text-stone-500 dark:text-slate-400 font-normal mt-0.5">Recent readings • Updated 2 hours ago</p>
                 </div>
+                <span className="text-xs text-emerald-800 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200/80 dark:border-emerald-800/80 px-2.5 py-0.5 rounded-md">
+                  ● Normal
+                </span>
               </div>
 
-              <div className="space-y-2 text-xs">
-                <div className="bg-emerald-50 border border-emerald-200 p-2.5 rounded-2xl">
-                  <span className="text-emerald-950 font-extrabold block">{completedCount} of {totalCount} Doses</span>
-                  <span className="text-emerald-700 text-[10px] font-bold">Taken today ✓</span>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-stone-50/80 dark:bg-slate-800/60 border border-stone-200/80 dark:border-slate-700/60 rounded-xl p-3 space-y-1">
+                  <div className="text-xs text-stone-500 dark:text-slate-400 font-medium">Blood Pressure</div>
+                  <div className="text-base font-bold text-stone-900 dark:text-white">120/80 <span className="text-xs font-normal text-stone-500 dark:text-slate-400">mmHg</span></div>
+                  <div className="text-[11px] font-medium text-emerald-700 dark:text-emerald-400">● Normal</div>
                 </div>
-                <div className="bg-stone-50 border border-stone-200 p-2.5 rounded-2xl">
-                  <span className="text-stone-900 font-extrabold block">{totalCount - completedCount} Doses</span>
-                  <span className="text-stone-500 text-[10px] font-bold">Pending today ○</span>
+
+                <div className="bg-stone-50/80 dark:bg-slate-800/60 border border-stone-200/80 dark:border-slate-700/60 rounded-xl p-3 space-y-1">
+                  <div className="text-xs text-stone-500 dark:text-slate-400 font-medium">Blood Sugar</div>
+                  <div className="text-base font-bold text-stone-900 dark:text-white">110 <span className="text-xs font-normal text-stone-500 dark:text-slate-400">mg/dL</span></div>
+                  <div className="text-[11px] font-medium text-emerald-700 dark:text-emerald-400">● Normal</div>
+                </div>
+
+                <div className="bg-stone-50/80 dark:bg-slate-800/60 border border-stone-200/80 dark:border-slate-700/60 rounded-xl p-3 space-y-1">
+                  <div className="text-xs text-stone-500 dark:text-slate-400 font-medium">Oxygen (SpO₂)</div>
+                  <div className="text-base font-bold text-stone-900 dark:text-white">98% <span className="text-xs font-normal text-stone-500 dark:text-slate-400">72 bpm</span></div>
+                  <div className="text-[11px] font-medium text-emerald-700 dark:text-emerald-400">● Normal</div>
+                </div>
+
+                <div className="bg-stone-50/80 dark:bg-slate-800/60 border border-stone-200/80 dark:border-slate-700/60 rounded-xl p-3 space-y-1">
+                  <div className="text-xs text-stone-500 dark:text-slate-400 font-medium">Body Temp</div>
+                  <div className="text-base font-bold text-stone-900 dark:text-white">98.4 °F</div>
+                  <div className="text-[11px] font-medium text-emerald-700 dark:text-emerald-400">● Normal</div>
                 </div>
               </div>
             </div>
-
-            <p className="text-xs text-stone-500 border-t border-stone-100 pt-3">
-              {adherencePercent === 100 ? '🎉 Excellent! All prescribed doses taken.' : 'Remember to complete afternoon and night doses on time.'}
-            </p>
           </div>
 
-          <div className="bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600 text-white rounded-3xl p-6 shadow-md flex flex-col justify-between space-y-4 border border-amber-400">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-extrabold uppercase tracking-widest bg-white/20 px-3 py-1 rounded-full text-amber-100">
-                UPCOMING DOSE ALERT
-              </span>
-              <span className="text-xs font-extrabold bg-amber-950/40 px-2.5 py-0.5 rounded-md text-white">
-                ☀️ Afternoon (1:30 PM)
-              </span>
-            </div>
+          {/* RIGHT COLUMN (~35% Width): Care Team, Quick Services, 108 SOS */}
+          <div className="lg:col-span-4 space-y-6">
+            
+            {/* YOUR CARE TEAM CARD */}
+            <div className="bg-white dark:bg-[#161F30] border border-stone-200/80 dark:border-slate-800/80 rounded-2xl p-5 shadow-xs space-y-3.5 transition-colors">
+              <h2 className="text-base font-semibold text-stone-900 dark:text-white flex items-center gap-2 border-b border-stone-100 dark:border-slate-800/80 pb-3">
+                <UserIcon size={18} className="text-[#0B4F42] dark:text-teal-400" />
+                <span>Your Care Team</span>
+              </h2>
 
-            <div className="space-y-1.5">
-              <h3 className="text-xl font-extrabold text-white leading-snug">
-                Tab. Paracetamol 500mg
-              </h3>
-              <p className="text-xs text-amber-100/95 leading-relaxed">
-                Take 1 tablet after lunch with warm drinking water for fever & body ache relief.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2 pt-2">
-              <button
-                onClick={() => showToast?.('Marked Paracetamol 500mg as taken! Adherence updated.', 'success')}
-                className="flex-1 bg-white hover:bg-amber-50 text-amber-950 font-extrabold text-xs py-3 rounded-2xl shadow-sm transition-all cursor-pointer text-center active:scale-95"
-              >
-                ✓ Mark Taken
-              </button>
-              <button
-                onClick={playWelcomeAudio}
-                className="bg-amber-950/40 hover:bg-amber-950/60 text-white font-extrabold text-xs px-4 py-3 rounded-2xl transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap active:scale-95"
-              >
-                <SpeakerIcon size={16} color="#ffffff" />
-                <span>🔊 Voice</span>
-              </button>
-            </div>
-          </div>
-
-          <div className="bg-slate-900 text-white rounded-3xl p-6 shadow-md flex flex-col justify-between space-y-4 border border-slate-800">
-            <div className="space-y-3">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-teal-700 text-white rounded-2xl flex items-center justify-center font-extrabold text-xl shadow-md">
+                <div className="w-9 h-9 bg-teal-50 dark:bg-teal-950/60 text-[#0B4F42] dark:text-teal-300 border border-teal-100 dark:border-teal-800/60 rounded-lg flex items-center justify-center font-bold text-base shrink-0">
                   👩‍⚕️
                 </div>
-                <div>
-                  <div className="text-[9px] font-extrabold text-teal-400 uppercase tracking-widest">
-                    ASSIGNED CARE COORDINATOR
-                  </div>
-                  <div className="text-base font-extrabold text-white">Dr. Lena Rao & Sunita Sister</div>
-                  <div className="text-xs text-slate-300">Mandya Primary Health Sub-Center #4</div>
+                <div className="min-w-0">
+                  <div className="text-xs font-semibold text-stone-900 dark:text-white truncate">Sunita Sister</div>
+                  <div className="text-[11px] text-stone-500 dark:text-slate-400 truncate">ASHA Worker • Mandya PHC</div>
                 </div>
               </div>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                Door-to-door village health coordinator & PHC Internal Medicine Doctor available for direct consultation.
-              </p>
-            </div>
 
-            <div className="flex items-center gap-2 pt-2">
               <button
-                onClick={() => showToast?.('Calling ASHA Sister Sunita (+91 98765 43210)...', 'info')}
-                className="flex-1 bg-teal-700 hover:bg-teal-600 text-white font-extrabold text-xs py-3 rounded-2xl cursor-pointer transition-colors text-center shadow-sm active:scale-95"
+                type="button"
+                onClick={() => showToast?.('Calling ASHA Sister Sunita...', 'info')}
+                className="w-full bg-[#0B4F42] hover:bg-[#07362d] dark:bg-teal-600 dark:hover:bg-teal-500 text-white text-xs font-medium py-2 px-3 rounded-lg transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5"
               >
-                📞 Call ASHA
-              </button>
-              <button
-                onClick={() => showToast?.('Connecting Tele-Consultation with Dr. Lena Rao...', 'info')}
-                className="flex-1 bg-slate-800 hover:bg-slate-700 text-teal-300 font-extrabold text-xs py-3 rounded-2xl cursor-pointer transition-colors text-center border border-slate-700 active:scale-95"
-              >
-                🎥 Tele-Consult
+                <PhoneIcon size={14} color="#ffffff" />
+                <span>Call ASHA</span>
               </button>
             </div>
-          </div>
-        </div>
 
-        {/* MONITORED VITALS & CLINICAL METRICS BAR */}
-        <div className="bg-white border border-stone-200 rounded-3xl p-6 shadow-md space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <span className="text-[10px] font-extrabold text-teal-700 uppercase tracking-widest block">CLINICAL VITAL SIGNS</span>
-              <h2 className="text-xl font-extrabold text-stone-900 tracking-tight">Monitored Health Indicators</h2>
-            </div>
-            <button
-              onClick={() => showToast?.('Vitals logged: BP 120/80, Sugar 110 mg/dL, SpO2 98%', 'success')}
-              className="bg-teal-50 hover:bg-teal-100 text-teal-900 border border-teal-200 font-extrabold text-xs px-4 py-2.5 rounded-2xl cursor-pointer transition-all active:scale-95 self-start sm:self-auto"
-            >
-              ➕ Log Today's Vitals
-            </button>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-emerald-50/70 border border-emerald-200 p-4 rounded-2xl space-y-1">
-              <div className="text-xs font-extrabold text-emerald-950">Blood Pressure</div>
-              <div className="text-2xl font-extrabold text-emerald-700">120/80</div>
-              <div className="text-[10px] font-bold text-emerald-800">mmHg • Normal 🟢</div>
-            </div>
-
-            <div className="bg-blue-50/70 border border-blue-200 p-4 rounded-2xl space-y-1">
-              <div className="text-xs font-extrabold text-blue-950">Blood Sugar</div>
-              <div className="text-2xl font-extrabold text-blue-700">110</div>
-              <div className="text-[10px] font-bold text-blue-800">mg/dL • Fasting 🟢</div>
-            </div>
-
-            <div className="bg-amber-50/70 border border-amber-200 p-4 rounded-2xl space-y-1">
-              <div className="text-xs font-extrabold text-amber-950">Oxygen (SpO2)</div>
-              <div className="text-2xl font-extrabold text-amber-700">98%</div>
-              <div className="text-[10px] font-bold text-amber-800">Pulse 72 bpm • Normal 🟢</div>
-            </div>
-
-            <div className="bg-cyan-50/70 border border-cyan-200 p-4 rounded-2xl space-y-1">
-              <div className="text-xs font-extrabold text-cyan-950">Body Temp</div>
-              <div className="text-2xl font-extrabold text-cyan-700">98.4 °F</div>
-              <div className="text-[10px] font-bold text-cyan-800">Normal Range 🟢</div>
-            </div>
-          </div>
-        </div>
-
-        {/* 6-CARD MEDICAL SERVICES SUITE */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-extrabold text-stone-900 tracking-tight">
-            Essential Healthcare Services
-          </h2>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-            <div
-              onClick={() => setCurrentView('translate')}
-              className="bg-white hover:bg-teal-50/40 border border-stone-200 hover:border-teal-400 p-5 rounded-3xl shadow-xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between space-y-4"
-            >
-              <div className="w-12 h-12 bg-teal-100 text-teal-800 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-xs">
-                <TranslateIcon size={26} color="#0f766e" />
-              </div>
-              <div>
-                <h3 className="font-extrabold text-sm text-stone-900 group-hover:text-teal-900">
-                  Translate Rx Note
-                </h3>
-                <p className="text-[11px] text-teal-700 font-bold mt-1">AI Vision OCR + Voice 🔊</p>
-              </div>
-            </div>
-
-            <div
-              onClick={() => setCurrentView('reminders')}
-              className="bg-white hover:bg-amber-50/40 border border-stone-200 hover:border-amber-400 p-5 rounded-3xl shadow-xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between space-y-4"
-            >
-              <div className="w-12 h-12 bg-amber-100 text-amber-800 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-xs">
-                <PillIcon size={26} color="#d97706" />
-              </div>
-              <div>
-                <h3 className="font-extrabold text-sm text-stone-900 group-hover:text-amber-900">
-                  Medicine Schedule
-                </h3>
-                <p className="text-[11px] text-stone-500 mt-1">Morning, Lunch & Bedtime</p>
-              </div>
-            </div>
-
-            <div
-              onClick={() => setCurrentView('medical_vault')}
-              className="bg-white hover:bg-blue-50/40 border border-stone-200 hover:border-blue-400 p-5 rounded-3xl shadow-xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between space-y-4"
-            >
-              <div className="w-12 h-12 bg-blue-100 text-blue-800 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-xs">
-                <DocumentIcon size={26} color="#1d4ed8" />
-              </div>
-              <div>
-                <h3 className="font-extrabold text-sm text-stone-900 group-hover:text-blue-900">
-                  Medical Vault
-                </h3>
-                <p className="text-[11px] text-stone-500 mt-1">Stored Rx & Delete 🗑️</p>
-              </div>
-            </div>
-
-            <div
-              onClick={() => setCurrentView('emergency')}
-              className="bg-red-50 hover:bg-red-100/80 border border-red-200 hover:border-red-400 p-5 rounded-3xl shadow-xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between space-y-4"
-            >
-              <div className="w-12 h-12 bg-red-600 text-white rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-md">
-                <PhoneIcon size={26} color="#ffffff" />
-              </div>
-              <div>
-                <h3 className="font-extrabold text-sm text-red-950">
-                  108 Emergency SOS
-                </h3>
-                <p className="text-[11px] text-red-800 mt-1">Ambulance & First-Aid</p>
-              </div>
-            </div>
-
-            <div
-              onClick={() => setCurrentView('reminders')}
-              className="bg-white hover:bg-amber-50/40 border border-stone-200 hover:border-amber-400 p-5 rounded-3xl shadow-xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between space-y-4"
-            >
-              <div className="w-12 h-12 bg-amber-100 text-amber-900 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-xs">
-                <span className="text-xl">📞</span>
-              </div>
-              <div>
-                <h3 className="font-extrabold text-sm text-stone-900 group-hover:text-amber-900">
-                  2G Feature Phone
-                </h3>
-                <p className="text-[11px] text-stone-500 mt-1">Basic phone voice call</p>
-              </div>
-            </div>
-
-            <div
-              onClick={onOpenChat}
-              className="bg-white hover:bg-teal-50/40 border border-stone-200 hover:border-teal-400 p-5 rounded-3xl shadow-xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between space-y-4"
-            >
-              <div className="w-12 h-12 bg-teal-700 text-white rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-md">
-                <SparklesIcon size={26} color="#ffffff" />
-              </div>
-              <div>
-                <h3 className="font-extrabold text-sm text-stone-900 group-hover:text-teal-900">
-                  Swasthya Mitr AI
-                </h3>
-                <p className="text-[11px] text-stone-500 mt-1">Multimodal Voice AI</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Schedule Timeline */}
-        <div className="bg-white border border-stone-200 rounded-3xl p-6 md:p-8 shadow-md space-y-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-stone-100 pb-4">
-            <div>
-              <h2 className="text-xl font-extrabold text-stone-900 tracking-tight flex items-center gap-2">
-                <PillIcon size={22} color="#0f766e" /> Today's Medication Schedule Timeline
+            {/* HEALTHCARE SERVICES GRID */}
+            <div className="bg-white dark:bg-[#161F30] border border-stone-200/80 dark:border-slate-800/80 rounded-2xl p-5 shadow-xs space-y-3.5 transition-colors">
+              <h2 className="text-base font-semibold text-stone-900 dark:text-white border-b border-stone-100 dark:border-slate-800/80 pb-3">
+                Healthcare Services
               </h2>
-              <p className="text-xs text-stone-500">Organized into Morning, Afternoon, and Night dosage slots</p>
+
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCurrentView?.('translate')}
+                  className="p-2.5 bg-stone-50 dark:bg-slate-800/80 hover:bg-teal-50/50 dark:hover:bg-slate-700/80 border border-stone-200/80 dark:border-slate-700/80 hover:border-[#0B4F42] dark:hover:border-teal-400 rounded-xl text-left transition-all cursor-pointer space-y-1"
+                >
+                  <div className="text-[#0B4F42] dark:text-teal-400"><TranslateIcon size={16} /></div>
+                  <div className="text-xs font-semibold text-stone-900 dark:text-white">Translate Rx</div>
+                  <div className="text-[10px] text-stone-500 dark:text-slate-400 leading-tight">Prescriptions</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setCurrentView?.('medical_vault')}
+                  className="p-2.5 bg-stone-50 dark:bg-slate-800/80 hover:bg-teal-50/50 dark:hover:bg-slate-700/80 border border-stone-200/80 dark:border-slate-700/80 hover:border-[#0B4F42] dark:hover:border-teal-400 rounded-xl text-left transition-all cursor-pointer space-y-1"
+                >
+                  <div className="text-[#0B4F42] dark:text-teal-400"><DocumentIcon size={16} /></div>
+                  <div className="text-xs font-semibold text-stone-900 dark:text-white">Health Vault</div>
+                  <div className="text-[10px] text-stone-500 dark:text-slate-400 leading-tight">Medical files</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setCurrentView?.('reminders')}
+                  className="p-2.5 bg-stone-50 dark:bg-slate-800/80 hover:bg-teal-50/50 dark:hover:bg-slate-700/80 border border-stone-200/80 dark:border-slate-700/80 hover:border-[#0B4F42] dark:hover:border-teal-400 rounded-xl text-left transition-all cursor-pointer space-y-1"
+                >
+                  <div className="text-[#0B4F42] dark:text-teal-400"><ClockIcon size={16} /></div>
+                  <div className="text-xs font-semibold text-stone-900 dark:text-white">Reminders</div>
+                  <div className="text-[10px] text-stone-500 dark:text-slate-400 leading-tight">Medications</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={onOpenChat}
+                  className="p-2.5 bg-stone-50 dark:bg-slate-800/80 hover:bg-teal-50/50 dark:hover:bg-slate-700/80 border border-stone-200/80 dark:border-slate-700/80 hover:border-[#0B4F42] dark:hover:border-teal-400 rounded-xl text-left transition-all cursor-pointer space-y-1"
+                >
+                  <div className="text-[#0B4F42] dark:text-teal-400"><SparklesIcon size={16} /></div>
+                  <div className="text-xs font-semibold text-stone-900 dark:text-white">Ask AI</div>
+                  <div className="text-[10px] text-stone-500 dark:text-slate-400 leading-tight">Assistance</div>
+                </button>
+              </div>
             </div>
 
-            <button
-              onClick={() => setCurrentView('reminders')}
-              className="text-xs font-extrabold text-teal-700 hover:text-teal-800 cursor-pointer"
-            >
-              Manage Reminders →
-            </button>
+            {/* 108 EMERGENCY SOS CARD */}
+            <div className="bg-red-50/60 dark:bg-red-950/30 border border-red-200/80 dark:border-red-900/50 rounded-2xl p-4 space-y-2 text-red-950 dark:text-red-200 transition-colors">
+              <div className="flex items-center justify-between text-xs font-semibold">
+                <span>108 Emergency</span>
+                <span className="text-[10px] bg-red-100 dark:bg-red-900/80 text-red-800 dark:text-red-200 px-2 py-0.5 rounded-md font-bold">SOS</span>
+              </div>
+              <p className="text-xs text-red-900/80 dark:text-red-300 leading-snug">
+                Need urgent medical help or ambulance?
+              </p>
+              <button
+                type="button"
+                onClick={() => setCurrentView?.('emergency')}
+                className="w-full bg-red-600 hover:bg-red-700 text-white text-xs font-medium py-2 px-3 rounded-lg transition-colors cursor-pointer text-center"
+              >
+                Call 108
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        {/* 3. RURAL CARE SUPPORT STRIP */}
+        <div className="bg-white dark:bg-[#161F30] border border-stone-200/80 dark:border-slate-800/80 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs transition-colors">
+          <div className="space-y-0.5">
+            <div className="text-xs font-semibold text-stone-900 dark:text-white flex items-center gap-1.5">
+              <span>🌾 Rural Care Support</span>
+              <span className="text-[10px] bg-amber-100 dark:bg-amber-950 text-amber-900 dark:text-amber-200 px-2 py-0.5 rounded-md font-medium border border-amber-200 dark:border-amber-800/80">2G IVR Voice</span>
+            </div>
+            <p className="text-xs text-stone-500 dark:text-slate-400">
+              Need help without a smartphone? Voice assistance and 2G phone support are available.
+            </p>
           </div>
 
-          {loadingReminders ? (
-            <div className="py-8 text-center text-xs text-stone-500 animate-pulse">Loading daily medication schedule...</div>
-          ) : reminders.length === 0 ? (
-            <div className="bg-stone-50 border border-stone-200 rounded-2xl p-6 text-center text-xs text-stone-600">
-              No active medication reminders scheduled for today.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {reminders.map((r) => (
-                <div
-                  key={r.id}
-                  onClick={() => toggleReminderStatus(r.id, r.is_taken)}
-                  className={`p-5 rounded-3xl border transition-all cursor-pointer space-y-3 flex flex-col justify-between ${
-                    r.is_taken
-                      ? 'bg-emerald-50/80 border-emerald-300 shadow-xs'
-                      : 'bg-stone-50/80 border-stone-200 hover:border-teal-600 shadow-xs'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="bg-white border border-stone-200 px-3 py-1 rounded-xl font-extrabold text-xs text-teal-800 shadow-xs">
-                      ⏰ {r.scheduled_time}
-                    </span>
-                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold ${
-                      r.is_taken ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-900'
-                    }`}>
-                      {r.is_taken ? '✓ Taken' : '○ Pending'}
-                    </span>
-                  </div>
-
-                  <div className="space-y-1">
-                    <div className="font-extrabold text-base text-stone-900">{r.medication_name || r.title}</div>
-                    <p className="text-xs text-stone-600 leading-relaxed">{r.instructions || r.dosage_note || 'Take 1 tablet with water'}</p>
-                  </div>
-
-                  <div className="pt-2 border-t border-stone-200/60 flex items-center justify-between text-xs font-bold text-teal-800">
-                    <span>Tap to mark {r.is_taken ? 'pending' : 'taken'}</span>
-                    <span>→</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          <button
+            type="button"
+            onClick={() => setCurrentView?.('reminders')}
+            className="border border-stone-300 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-800 text-stone-700 dark:text-slate-200 text-xs font-medium px-3.5 py-2 rounded-lg transition-colors cursor-pointer whitespace-nowrap"
+          >
+            Test 2G Voice Alert
+          </button>
         </div>
+
       </div>
     </div>
   );

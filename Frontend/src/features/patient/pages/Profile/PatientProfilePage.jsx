@@ -184,55 +184,52 @@ export const PatientProfilePage = () => {
     : 'Patient';
 
   return (
-    <div className="bg-[#fdfbf7] min-h-screen text-stone-900 font-sans pb-16">
-      <div className="max-w-6xl mx-auto px-4 md:px-8 py-8 space-y-8">
-        {/* HEADER */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-stone-200 pb-6">
-          <div className="space-y-1">
-            <nav className="text-xs text-stone-500 font-semibold flex items-center gap-2">
-              <span>Dashboard</span>
-              <span>/</span>
-              <span className="text-teal-800 font-bold">Profile</span>
-            </nav>
-            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-stone-900">
-              My Profile
-            </h1>
-            <p className="text-xs md:text-sm text-stone-600">
-              Manage your personal information, preferences and accessibility settings.
-            </p>
-          </div>
+    <div className="max-w-[1240px] mx-auto px-4 md:px-6 py-6 space-y-6 font-sans text-stone-900 dark:text-slate-100 transition-colors">
+      {/* HEADER */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-[#161F30] border border-stone-200/80 dark:border-slate-800/80 rounded-2xl p-5 shadow-xs transition-colors">
+        <div className="space-y-0.5">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-[#0B4F42] dark:text-teal-400">
+            PATIENT ACCOUNT
+          </span>
+          <h1 className="text-2xl sm:text-3xl font-bold text-stone-900 dark:text-white tracking-tight">
+            My Profile & Settings
+          </h1>
+          <p className="text-xs text-stone-500 dark:text-slate-400 font-normal">
+            Manage your personal information, preferences and accessibility options.
+          </p>
+        </div>
 
-          <div className="flex items-center gap-3">
-            {!isEditing ? (
+        <div className="flex items-center gap-2 shrink-0">
+          {!isEditing ? (
+            <button
+              type="button"
+              onClick={() => setIsEditing(true)}
+              className="bg-[#0B4F42] hover:bg-[#07362d] dark:bg-teal-600 dark:hover:bg-teal-500 text-white font-medium text-xs py-2 px-3.5 rounded-lg shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <span>✏️ Edit Profile</span>
+            </button>
+          ) : (
+            <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => setIsEditing(true)}
-                className="bg-teal-800 hover:bg-teal-900 text-white font-extrabold text-xs px-6 py-3 rounded-2xl shadow-sm transition-all cursor-pointer flex items-center gap-2"
+                onClick={handleCancel}
+                disabled={saving}
+                className="border border-stone-300 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-800 text-stone-700 dark:text-slate-300 font-medium text-xs py-2 px-3 rounded-lg transition-colors cursor-pointer"
               >
-                ✏️ Edit Profile
+                Cancel
               </button>
-            ) : (
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={handleCancel}
-                  disabled={saving}
-                  className="bg-stone-200 hover:bg-stone-300 text-stone-800 font-extrabold text-xs px-5 py-3 rounded-2xl transition-all cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="bg-teal-800 hover:bg-teal-900 text-white font-extrabold text-xs px-6 py-3 rounded-2xl shadow-md transition-all cursor-pointer flex items-center gap-2 disabled:opacity-50"
-                >
-                  {saving ? 'Saving Changes...' : 'Save Changes'}
-                </button>
-              </div>
-            )}
-          </div>
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={saving}
+                className="bg-[#0B4F42] hover:bg-[#07362d] dark:bg-teal-600 dark:hover:bg-teal-500 text-white font-medium text-xs py-2 px-3.5 rounded-lg shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+              >
+                {saving ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          )}
         </div>
+      </div>
 
         {/* PROFILE SUMMARY CARD */}
         <div className="bg-white border border-stone-200 rounded-3xl p-6 md:p-8 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -614,7 +611,6 @@ export const PatientProfilePage = () => {
           </div>
         </div>
       </div>
-    </div>
   );
 };
 

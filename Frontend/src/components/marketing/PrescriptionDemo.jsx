@@ -42,53 +42,53 @@ export const PrescriptionDemo = () => {
   };
 
   return (
-    <section id="prescription-demo" className="scroll-mt-24 max-w-7xl mx-auto px-4 md:px-8 lg:px-12 py-16 space-y-8">
-      <div className="text-center max-w-3xl mx-auto space-y-3">
-        <span className="text-xs font-extrabold text-[#0F766E] uppercase tracking-widest bg-teal-50 border border-teal-200 px-3.5 py-1 rounded-full">
+    <section id="prescription-demo" className="scroll-mt-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-24 space-y-10 font-sans transition-colors">
+      <div className="text-center max-w-3xl mx-auto space-y-4">
+        <span className="text-xs sm:text-sm font-extrabold text-[#0F766E] dark:text-teal-300 uppercase tracking-widest bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 px-4 py-1.5 rounded-full inline-block">
           INTERACTIVE DEMONSTRATION
         </span>
-        <h2 className="text-3xl md:text-4xl font-extrabold text-stone-900 tracking-tight">
+        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-stone-900 dark:text-white tracking-tight leading-tight">
           See the difference between reading a prescription and understanding it.
         </h2>
-        <p className="text-sm md:text-base text-stone-600">
+        <p className="text-base sm:text-lg text-stone-600 dark:text-slate-300 leading-relaxed">
           Test how Swasthya Sanchar AI converts unreadable prescription shorthand into clear regional audio explanations.
         </p>
       </div>
 
-      <div className="bg-white border border-stone-200 rounded-3xl p-6 md:p-10 shadow-xl grid grid-cols-1 lg:grid-cols-2 gap-8 relative overflow-hidden">
+      <div className="bg-white dark:bg-[#161F30] border border-stone-200 dark:border-slate-800 rounded-3xl p-6 sm:p-10 shadow-xl grid grid-cols-1 lg:grid-cols-2 gap-8 relative overflow-hidden transition-colors">
         {/* LEFT: Original Doctor Note */}
-        <div className="bg-stone-50 border border-stone-300 rounded-2xl p-6 space-y-4">
-          <div className="flex items-center justify-between border-b border-stone-200 pb-3">
-            <span className="text-xs font-extrabold text-stone-500 uppercase tracking-wider">
+        <div className="bg-stone-50 dark:bg-slate-900 border border-stone-300 dark:border-slate-800 rounded-2xl p-6 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-stone-200 dark:border-slate-800 pb-3">
+            <span className="text-xs font-extrabold text-stone-600 dark:text-slate-400 uppercase tracking-wider">
               ORIGINAL DOCTOR NOTE
             </span>
-            <span className="bg-amber-100 text-amber-900 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-amber-300">
+            <span className="bg-amber-100 dark:bg-amber-950/80 text-amber-900 dark:text-amber-200 text-xs font-extrabold px-3 py-1 rounded-full border border-amber-300 dark:border-amber-800">
               SAMPLE / DEMONSTRATION DATA
             </span>
           </div>
 
-          <div className="font-mono text-sm text-stone-800 space-y-3 bg-white p-4 rounded-xl border border-stone-200 shadow-xs">
-            <div className="font-bold text-stone-900">Rx:</div>
+          <div className="font-mono text-base sm:text-lg text-stone-800 dark:text-slate-200 space-y-3 bg-white dark:bg-slate-800/80 p-5 rounded-xl border border-stone-200 dark:border-slate-700 shadow-xs">
+            <div className="font-bold text-stone-900 dark:text-white">Rx:</div>
             <div>1. Tab. Paracetamol 500mg — 1-0-1 × 5 days (PC)</div>
             <div>2. Syrup Cough & Cold — 2 tsp TDS</div>
-            <div className="text-xs text-stone-500 italic border-t border-stone-100 pt-2">
+            <div className="text-sm text-stone-500 dark:text-slate-400 italic border-t border-stone-100 dark:border-slate-700 pt-3">
               Note: Drink warm water. Rest for 3 days.
             </div>
           </div>
         </div>
 
         {/* RIGHT: Swasthya Sanchar Explanation */}
-        <div className="bg-[#F0FDF4] border border-[#bbf7d0] rounded-2xl p-6 space-y-5">
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#bbf7d0] pb-3">
-            <span className="text-xs font-extrabold text-[#0F766E] uppercase tracking-wider">
+        <div className="bg-[#F0FDF4] dark:bg-teal-950/40 border border-[#bbf7d0] dark:border-teal-800/80 rounded-2xl p-6 space-y-5">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#bbf7d0] dark:border-teal-800/80 pb-3">
+            <span className="text-xs font-extrabold text-[#0F766E] dark:text-teal-300 uppercase tracking-wider">
               SWASTHYA SANCHAR EXPLANATION
             </span>
 
-            {/* Language Selector */}
+            {/* Demo Language Selector */}
             <select
               value={demoLang}
               onChange={(e) => setDemoLang(e.target.value)}
-              className="bg-white border border-[#bbf7d0] text-stone-900 text-xs font-bold px-3 py-1.5 rounded-xl cursor-pointer outline-none"
+              className="bg-white dark:bg-slate-800 border border-[#bbf7d0] dark:border-slate-700 text-stone-900 dark:text-white text-xs sm:text-sm font-bold px-3.5 py-1.5 rounded-xl cursor-pointer outline-none shadow-xs"
             >
               <option value="hi">🇮🇳 Hindi (हिंदी)</option>
               <option value="kn">🇮🇳 Kannada (ಕನ್ನಡ)</option>
@@ -98,17 +98,17 @@ export const PrescriptionDemo = () => {
             </select>
           </div>
 
-          <div className="space-y-3">
-            <div className="bg-white p-4 rounded-xl border border-[#bbf7d0] shadow-xs space-y-1">
-              <div className="font-extrabold text-sm text-stone-900">💊 Paracetamol 500 mg</div>
-              <p className="text-xs text-stone-700 leading-relaxed font-semibold">
+          <div className="space-y-4">
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-[#bbf7d0] dark:border-slate-800 shadow-xs space-y-1.5">
+              <div className="font-extrabold text-base sm:text-lg text-stone-900 dark:text-white">💊 Paracetamol 500 mg</div>
+              <p className="text-sm sm:text-base text-stone-700 dark:text-slate-200 leading-relaxed font-semibold">
                 {sampleTranslations[demoLang].med1}
               </p>
             </div>
 
-            <div className="bg-white p-4 rounded-xl border border-[#bbf7d0] shadow-xs space-y-1">
-              <div className="font-extrabold text-sm text-stone-900">🥄 Cough Syrup</div>
-              <p className="text-xs text-stone-700 leading-relaxed font-semibold">
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-[#bbf7d0] dark:border-slate-800 shadow-xs space-y-1.5">
+              <div className="font-extrabold text-base sm:text-lg text-stone-900 dark:text-white">🥄 Cough Syrup</div>
+              <p className="text-sm sm:text-base text-stone-700 dark:text-slate-200 leading-relaxed font-semibold">
                 {sampleTranslations[demoLang].med2}
               </p>
             </div>
@@ -117,9 +117,9 @@ export const PrescriptionDemo = () => {
           <div className="pt-2 flex items-center justify-between gap-4">
             <button
               onClick={handleVoiceToggle}
-              className="bg-[#EA580C] hover:bg-[#cc4f0b] text-white font-bold text-xs px-5 py-3 rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer"
+              className="bg-[#0B4F42] hover:bg-[#07362d] dark:bg-teal-600 dark:hover:bg-teal-500 text-white font-bold text-sm sm:text-base px-6 py-3.5 rounded-xl shadow-md transition-all flex items-center gap-2.5 cursor-pointer"
             >
-              <SpeakerIcon size={16} color="#fff" />
+              <SpeakerIcon size={18} color="#fff" />
               <span>{isPlayingVoice ? 'Speaking Audio...' : '🔊 Listen to Audio Guidance'}</span>
             </button>
           </div>
@@ -127,10 +127,10 @@ export const PrescriptionDemo = () => {
       </div>
 
       {/* Safety Notice */}
-      <div className="bg-stone-50 border border-stone-200 rounded-2xl p-4 flex items-start gap-3 text-xs text-stone-600">
-        <AlertIcon size={18} color="#0F766E" />
-        <div>
-          <strong className="text-stone-900 font-bold">Safety Notice:</strong> AI-generated explanations are intended to support understanding. Always follow the prescribing healthcare professional's instructions.
+      <div className="bg-stone-50 dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-2xl p-5 flex items-start gap-3.5 text-sm text-stone-600 dark:text-slate-300">
+        <AlertIcon size={20} className="text-[#0B4F42] dark:text-teal-400 shrink-0 mt-0.5" />
+        <div className="leading-relaxed">
+          <strong className="text-stone-900 dark:text-white font-bold">Safety Notice:</strong> AI-generated explanations are intended to support understanding. Always follow the prescribing healthcare professional's instructions.
         </div>
       </div>
     </section>

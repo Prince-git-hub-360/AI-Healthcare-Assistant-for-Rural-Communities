@@ -1,5 +1,4 @@
 import React from 'react';
-import { UserIcon } from '../../shared/icons/Icons';
 
 export const AshaSection = () => {
   const workflow = [
@@ -14,96 +13,96 @@ export const AshaSection = () => {
   ];
 
   return (
-    <section id="asha-workers" className="scroll-mt-24 max-w-7xl mx-auto px-4 md:px-8 lg:px-12 py-16 space-y-12 bg-white rounded-3xl border border-stone-200 shadow-xs my-8">
-      <div className="text-center max-w-3xl mx-auto space-y-3">
-        <span className="text-xs font-extrabold text-[#0F766E] uppercase tracking-widest bg-teal-50 border border-teal-200 px-3.5 py-1 rounded-full">
+    <section id="asha-workers" className="scroll-mt-24 max-w-7xl mx-auto px-6 sm:px-10 lg:px-12 py-20 md:py-24 space-y-12 md:space-y-16 bg-white dark:bg-[#161F30] rounded-3xl border border-stone-200/80 dark:border-slate-800 shadow-sm my-12 font-sans transition-colors">
+      <div className="text-center max-w-3xl mx-auto space-y-4">
+        <span className="text-xs sm:text-sm font-extrabold text-[#0F766E] dark:text-teal-300 uppercase tracking-widest bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 px-4 py-1.5 rounded-full inline-block">
           FRONTLINE HEALTHCARE WORKER PLATFORM
         </span>
-        <h2 className="text-3xl md:text-4xl font-extrabold text-stone-900 tracking-tight">
+        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-stone-900 dark:text-white tracking-tight leading-tight">
           Built for the people who already serve the community.
         </h2>
-        <p className="text-sm md:text-base text-stone-600 leading-relaxed">
+        <p className="text-base sm:text-lg text-stone-600 dark:text-slate-300 leading-relaxed">
           ASHA workers act as an assisted-access bridge for villagers who struggle to use smartphones or interpret medical documents independently.
         </p>
       </div>
 
       {/* ASHA Workflow Pipeline */}
-      <div className="bg-[#FDFBF7] border border-stone-200 p-6 rounded-2xl">
-        <div className="text-[10px] font-extrabold text-stone-400 uppercase tracking-widest text-center mb-4">
+      <div className="bg-[#FDFBF7] dark:bg-slate-900 border border-stone-200 dark:border-slate-800 p-8 rounded-3xl space-y-4 transition-colors">
+        <div className="text-xs font-extrabold text-stone-500 dark:text-slate-400 uppercase tracking-widest text-center">
           DOOR-TO-DOOR ASHA FIELD CARE WORKFLOW
         </div>
 
-        <div className="flex flex-wrap items-center justify-center gap-2 text-center text-xs font-bold text-stone-800">
+        <div className="flex flex-wrap items-center justify-center gap-2.5 text-center text-sm font-bold text-stone-800 dark:text-slate-200">
           {workflow.map((step, idx) => (
             <React.Fragment key={idx}>
-              <div className="bg-white border border-stone-300 px-3 py-1.5 rounded-xl shadow-xs">
+              <div className="bg-white dark:bg-slate-800 border border-stone-300 dark:border-slate-700 text-stone-900 dark:text-white px-4 py-2 rounded-xl shadow-xs">
                 {step}
               </div>
-              {idx < workflow.length - 1 && <span className="text-[#0F766E] font-extrabold">→</span>}
+              {idx < workflow.length - 1 && <span className="text-[#0F766E] dark:text-teal-400 font-extrabold text-base">→</span>}
             </React.Fragment>
           ))}
         </div>
       </div>
 
       {/* ASHA Dashboard Mockup */}
-      <div className="bg-stone-950 text-white rounded-3xl p-6 md:p-8 shadow-xl border border-stone-800 space-y-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-stone-800 pb-4">
+      <div className="bg-stone-950 text-white rounded-3xl p-8 sm:p-10 shadow-xl border border-stone-800 space-y-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-stone-800 pb-5">
           <div>
-            <span className="text-[10px] font-extrabold text-teal-400 uppercase tracking-widest">ASHA FIELD PORTAL</span>
-            <h3 className="text-xl font-extrabold text-white">Gram Panchayat Operations Hub</h3>
+            <span className="text-xs font-extrabold text-teal-400 uppercase tracking-widest block">ASHA FIELD PORTAL</span>
+            <h3 className="text-2xl font-extrabold text-white">Gram Panchayat Operations Hub</h3>
           </div>
-          <span className="bg-amber-400 text-stone-950 text-[10px] font-extrabold px-3 py-1 rounded-full uppercase">
+          <span className="bg-amber-400 text-stone-950 text-xs font-extrabold px-3.5 py-1 rounded-full uppercase">
             DEMO DATA
           </span>
         </div>
 
         {/* Metric Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-stone-900 border border-stone-800 p-4 rounded-2xl">
-            <div className="text-[10px] font-extrabold text-stone-400 uppercase">Active Patients</div>
-            <div className="text-3xl font-extrabold text-teal-400 mt-1">42</div>
-            <div className="text-xs text-stone-400 mt-0.5">Mandya Gram Panchayat</div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div className="bg-stone-900 border border-stone-800 p-6 rounded-2xl space-y-1">
+            <div className="text-xs font-extrabold text-stone-400 uppercase">Active Patients</div>
+            <div className="text-4xl font-extrabold text-teal-400">42</div>
+            <div className="text-sm text-stone-400 pt-1">Mandya Gram Panchayat</div>
           </div>
 
-          <div className="bg-stone-900 border border-stone-800 p-4 rounded-2xl">
-            <div className="text-[10px] font-extrabold text-stone-400 uppercase">Pending Visits</div>
-            <div className="text-3xl font-extrabold text-amber-400 mt-1">6</div>
-            <div className="text-xs text-stone-400 mt-0.5">Scheduled Home Follow-ups</div>
+          <div className="bg-stone-900 border border-stone-800 p-6 rounded-2xl space-y-1">
+            <div className="text-xs font-extrabold text-stone-400 uppercase">Pending Visits</div>
+            <div className="text-4xl font-extrabold text-amber-400">6</div>
+            <div className="text-sm text-stone-400 pt-1">Scheduled Home Follow-ups</div>
           </div>
 
-          <div className="bg-stone-900 border border-stone-800 p-4 rounded-2xl">
-            <div className="text-[10px] font-extrabold text-stone-400 uppercase">Voice Adherence</div>
-            <div className="text-3xl font-extrabold text-emerald-400 mt-1">94.8%</div>
-            <div className="text-xs text-stone-400 mt-0.5">Completed Audio Sessions</div>
+          <div className="bg-stone-900 border border-stone-800 p-6 rounded-2xl space-y-1">
+            <div className="text-xs font-extrabold text-stone-400 uppercase">Voice Adherence</div>
+            <div className="text-4xl font-extrabold text-emerald-400">94.8%</div>
+            <div className="text-sm text-stone-400 pt-1">Completed Audio Sessions</div>
           </div>
         </div>
 
         {/* Sample Patient Table */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-stone-300">
+          <table className="w-full text-left text-sm text-stone-300">
             <thead>
-              <tr className="border-b border-stone-800 text-stone-500 font-extrabold uppercase">
-                <th className="pb-3 px-3">Sample Patient</th>
-                <th className="pb-3 px-3">Village</th>
-                <th className="pb-3 px-3">Language</th>
-                <th className="pb-3 px-3">Active Medicine</th>
-                <th className="pb-3 px-3">Adherence</th>
+              <tr className="border-b border-stone-800 text-stone-400 font-extrabold uppercase">
+                <th className="pb-4 px-4">Sample Patient</th>
+                <th className="pb-4 px-4">Village</th>
+                <th className="pb-4 px-4">Language</th>
+                <th className="pb-4 px-4">Active Medicine</th>
+                <th className="pb-4 px-4">Adherence</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-800 font-medium">
               <tr>
-                <td className="py-3 px-3 font-bold text-white">Sample Patient A</td>
-                <td className="py-3 px-3">Mandya Sector 2</td>
-                <td className="py-3 px-3 text-teal-400">Hindi</td>
-                <td className="py-3 px-3">Paracetamol 500mg</td>
-                <td className="py-3 px-3 text-emerald-400 font-bold">🟢 95% High</td>
+                <td className="py-4 px-4 font-bold text-white">Sample Patient A</td>
+                <td className="py-4 px-4">Mandya Sector 2</td>
+                <td className="py-4 px-4 text-teal-400 font-bold">Hindi</td>
+                <td className="py-4 px-4">Paracetamol 500mg</td>
+                <td className="py-4 px-4 text-emerald-400 font-bold">🟢 95% High</td>
               </tr>
               <tr>
-                <td className="py-3 px-3 font-bold text-white">Sample Patient B</td>
-                <td className="py-3 px-3">Hassan Rural</td>
-                <td className="py-3 px-3 text-teal-400">Kannada</td>
-                <td className="py-3 px-3">Amoxicillin 250mg</td>
-                <td className="py-3 px-3 text-amber-400 font-bold">🟡 70% Due</td>
+                <td className="py-4 px-4 font-bold text-white">Sample Patient B</td>
+                <td className="py-4 px-4">Hassan Rural</td>
+                <td className="py-4 px-4 text-teal-400 font-bold">Kannada</td>
+                <td className="py-4 px-4">Amoxicillin 250mg</td>
+                <td className="py-4 px-4 text-amber-400 font-bold">🟡 70% Due</td>
               </tr>
             </tbody>
           </table>

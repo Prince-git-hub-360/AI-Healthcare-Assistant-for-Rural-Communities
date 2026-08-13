@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../../shared/context/AuthContext';
 import { api } from '../../../../services/api';
-import { DocumentIcon, ShieldIcon, PlusIcon } from '../../../../shared/icons/Icons';
+import { DocumentIcon, ShieldIcon, PlusIcon, ArrowRightIcon } from '../../../../shared/icons/Icons';
+import { PrescriptionDetailModal } from '../../components/PrescriptionDetailModal';
 
 export const HealthVaultPage = () => {
   const { currentLang, showToast } = useAuth();
@@ -12,6 +13,7 @@ export const HealthVaultPage = () => {
   const [title, setTitle] = useState('');
   const [documentType, setDocumentType] = useState('prescription');
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [selectedDetailDoc, setSelectedDetailDoc] = useState(null);
 
   const fetchDocs = async () => {
     setLoading(true);
@@ -60,69 +62,80 @@ export const HealthVaultPage = () => {
   };
 
   const handleDelete = async (docId) => {
-    if (!window.confirm('Are you sure you want to delete this prescription record?')) return;
     try {
       await api.deleteMedicalDocument(docId);
-      setDocuments((prev) => prev.filter((d) => d.id !== docId));
-      if (showToast) showToast('Prescription record deleted successfully!', 'success');
     } catch (err) {
-      setDocuments((prev) => prev.filter((d) => d.id !== docId));
-      if (showToast) showToast('Prescription removed from vault.', 'info');
+      console.warn('Backend delete document warning:', err);
     }
+
+    // Cascade delete linked reminders from LocalStorage
+    try {
+      const savedReminders = JSON.parse(localStorage.getItem('swasthya_medication_reminders') || '[]');
+      const filteredReminders = savedReminders.filter((r) => r.prescription_id !== docId && r.doc_id !== docId);
+      localStorage.setItem('swasthya_medication_reminders', JSON.stringify(filteredReminders));
+      window.dispatchEvent(new Event('swasthya_reminders_updated'));
+    } catch (e) {
+      console.warn('Cascade delete error:', e);
+    }
+
+    setDocuments((prev) => prev.filter((d) => (d.id || d.document_id) !== docId));
+    if (showToast) showToast('Prescription record & associated reminders deleted.', 'info');
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 md:px-8 py-8 space-y-8">
+    <div className="max-w-[1240px] mx-auto px-4 md:px-6 py-6 space-y-6 font-sans text-stone-900 dark:text-slate-100 transition-colors">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white border border-stone-200 rounded-3xl p-6 md:p-8 shadow-sm">
-        <div>
-          <span className="text-xs font-bold text-teal-700 uppercase tracking-wider block mb-1">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-[#161F30] border border-stone-200/80 dark:border-slate-800/80 rounded-2xl p-5 shadow-xs transition-colors">
+        <div className="space-y-0.5">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-[#0B4F42] dark:text-teal-400">
             DIGITAL HEALTH VAULT
           </span>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-stone-900 tracking-tight flex items-center gap-2">
-            <DocumentIcon size={28} color="#0f766e" /> Stored Patient Records
+          <h1 className="text-2xl sm:text-3xl font-bold text-stone-900 dark:text-white tracking-tight flex items-center gap-2">
+            <DocumentIcon size={24} className="text-[#0B4F42] dark:text-teal-400" />
+            <span>Stored Patient Records</span>
           </h1>
-          <p className="text-xs text-stone-600 mt-1">
-            Access your uploaded doctor prescriptions and discharge summaries. Delete records anytime.
+          <p className="text-xs text-stone-500 dark:text-slate-400 font-normal">
+            Access your uploaded doctor prescriptions and discharge summaries.
           </p>
         </div>
 
         <button
           onClick={() => setShowUploadModal(true)}
-          className="bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs px-5 py-3 rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer"
+          className="bg-[#0B4F42] hover:bg-[#07362d] dark:bg-teal-600 dark:hover:bg-teal-500 text-white font-medium text-xs py-2 px-3.5 rounded-lg shadow-xs transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
         >
-          <PlusIcon size={16} /> Upload Prescription Document
+          <PlusIcon size={16} />
+          <span>Upload Document</span>
         </button>
       </div>
 
       {/* Upload Modal */}
       {showUploadModal && (
-        <div className="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-white border border-stone-200 rounded-3xl p-6 max-w-md w-full relative shadow-2xl space-y-4">
-            <div className="flex justify-between items-center pb-2 border-b border-stone-100">
-              <h3 className="text-lg font-extrabold text-stone-900">Upload Prescription Document</h3>
-              <button onClick={() => setShowUploadModal(false)} className="text-stone-500 hover:text-stone-800 font-bold">
+        <div className="fixed inset-0 z-50 bg-stone-950/60 dark:bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-2xl p-6 max-w-md w-full relative shadow-2xl space-y-4 font-sans text-stone-900 dark:text-slate-100">
+            <div className="flex justify-between items-center pb-2 border-b border-stone-100 dark:border-slate-800">
+              <h3 className="text-base font-bold text-stone-900 dark:text-white">Upload Prescription Document</h3>
+              <button onClick={() => setShowUploadModal(false)} className="text-stone-400 hover:text-stone-700 dark:hover:text-slate-200 text-sm font-bold cursor-pointer">
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleUpload} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-stone-800 mb-1">Document Title *</label>
+            <form onSubmit={handleUpload} className="space-y-3.5">
+              <div className="space-y-1">
+                <label className="block text-xs font-semibold text-stone-700 dark:text-slate-300">Document Title *</label>
                 <input
                   type="text"
                   placeholder="e.g. Dr. Verma Prescription Note"
-                  className="w-full bg-white border border-stone-300 text-stone-900 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-teal-700"
+                  className="w-full bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-stone-900 dark:text-slate-100 text-xs rounded-lg px-3 py-2 outline-none focus:border-[#0B4F42]"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   required
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-stone-800 mb-1">Category</label>
+              <div className="space-y-1">
+                <label className="block text-xs font-semibold text-stone-700 dark:text-slate-300">Category</label>
                 <select
-                  className="w-full bg-white border border-stone-300 text-stone-900 text-xs rounded-xl px-3 py-2.5 outline-none focus:border-teal-700 cursor-pointer"
+                  className="w-full bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-stone-900 dark:text-slate-100 text-xs rounded-lg px-3 py-2 outline-none focus:border-[#0B4F42] cursor-pointer"
                   value={documentType}
                   onChange={(e) => setDocumentType(e.target.value)}
                 >
@@ -132,12 +145,12 @@ export const HealthVaultPage = () => {
                 </select>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-stone-800 mb-1">Select File (Image / PDF) *</label>
+              <div className="space-y-1">
+                <label className="block text-xs font-semibold text-stone-700 dark:text-slate-300">Select File (Image / PDF) *</label>
                 <input
                   type="file"
                   accept="image/*,.pdf"
-                  className="w-full text-xs text-stone-600 bg-stone-50 border border-stone-300 rounded-xl p-2 cursor-pointer"
+                  className="w-full text-xs text-stone-600 dark:text-slate-300 bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-lg p-2 cursor-pointer"
                   onChange={(e) => setFile(e.target.files[0])}
                   required
                 />
@@ -146,9 +159,9 @@ export const HealthVaultPage = () => {
               <button
                 type="submit"
                 disabled={uploading}
-                className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs py-3.5 rounded-xl shadow-md transition-all cursor-pointer disabled:opacity-50"
+                className="w-full bg-[#0B4F42] hover:bg-[#07362d] dark:bg-teal-600 dark:hover:bg-teal-500 text-white font-medium text-xs py-2.5 rounded-lg shadow-xs transition-colors cursor-pointer disabled:opacity-50"
               >
-                {uploading ? 'Uploading & Processing...' : 'Upload & Save to Vault →'}
+                {uploading ? 'Uploading...' : 'Save to Vault'}
               </button>
             </form>
           </div>
@@ -156,49 +169,69 @@ export const HealthVaultPage = () => {
       )}
 
       {/* Stored Health Records List */}
-      <div className="bg-white border border-stone-200 rounded-3xl p-6 md:p-8 shadow-sm space-y-4">
-        <h2 className="text-xl font-extrabold text-stone-900 tracking-tight">
+      <div className="bg-white dark:bg-[#161F30] border border-stone-200/80 dark:border-slate-800/80 rounded-2xl p-5 shadow-xs space-y-4 transition-colors">
+        <h2 className="text-base font-bold text-stone-900 dark:text-white border-b border-stone-100 dark:border-slate-800 pb-3">
           Prescription History ({documents.length})
         </h2>
 
         {loading ? (
-          <div className="py-8 text-center text-xs text-stone-500 animate-pulse">Loading medical vault documents...</div>
+          <div className="py-8 text-center text-xs text-stone-500 dark:text-slate-400 animate-pulse">Loading medical vault documents...</div>
         ) : documents.length === 0 ? (
-          <div className="py-8 text-center text-xs text-stone-500">No medical records stored in vault yet.</div>
+          <div className="py-8 text-center text-xs text-stone-500 dark:text-slate-400">No medical records stored in vault yet.</div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {documents.map((doc) => (
               <div
                 key={doc.id}
-                className="bg-stone-50 border border-stone-200 rounded-2xl p-5 hover:border-teal-700 transition-all space-y-3"
+                className="bg-stone-50/80 dark:bg-slate-800/60 border border-stone-200/80 dark:border-slate-700/60 rounded-xl p-4 transition-colors space-y-2.5"
               >
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="font-bold text-sm text-stone-900">{doc.title}</h3>
-                    <div className="text-[11px] text-stone-500 mt-0.5">
-                      Uploaded: {doc.created_at ? new Date(doc.created_at).toLocaleDateString() : 'Recently'} • Type: <span className="uppercase font-semibold">{doc.document_type}</span>
+                    <h3 className="font-semibold text-xs text-stone-900 dark:text-white">{doc.title}</h3>
+                    <div className="text-[11px] text-stone-500 dark:text-slate-400 mt-0.5">
+                      Uploaded: {doc.created_at ? new Date(doc.created_at).toLocaleDateString() : 'Recently'} • Type: <span className="uppercase font-medium">{doc.document_type}</span>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <button
+                      onClick={() => setSelectedDetailDoc(doc)}
+                      className="border border-teal-300 dark:border-teal-700 bg-teal-50 dark:bg-teal-950/60 text-[#0B4F42] dark:text-teal-300 text-xs font-bold px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1"
+                    >
+                      <span>View Details</span>
+                      <ArrowRightIcon size={12} />
+                    </button>
+                    <button
                       onClick={() => handleDelete(doc.id)}
-                      className="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-xs font-bold px-3 py-1.5 rounded-xl transition-colors cursor-pointer flex items-center gap-1"
+                      className="border border-stone-300 dark:border-slate-700 hover:bg-red-50 hover:border-red-200 dark:hover:bg-red-950/40 text-stone-700 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 text-xs font-medium px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer"
                       title="Delete Prescription"
                     >
-                      🗑️ Delete
+                      Delete
                     </button>
                   </div>
                 </div>
 
-                <div className="bg-white border border-stone-200 p-4 rounded-xl text-xs text-stone-800 leading-relaxed font-medium">
-                  ✨ <strong>Simplified Native Advice:</strong> {doc.translated_text || doc.simplified_summary || doc.text_content || 'Take medicines strictly as instructed by your doctor.'}
+                <div className="bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 p-3 rounded-lg text-xs text-stone-800 dark:text-slate-200 leading-relaxed font-normal">
+                  <span className="font-semibold text-[#0B4F42] dark:text-teal-400">Simplified Instructions:</span> {doc.translated_text || doc.simplified_summary || doc.text_content || 'Take medicines strictly as instructed by your doctor.'}
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {/* DEDICATED PRESCRIPTION DETAIL MODAL */}
+      {selectedDetailDoc && (
+        <PrescriptionDetailModal
+          item={selectedDetailDoc}
+          onClose={() => setSelectedDetailDoc(null)}
+          onDelete={(itemToDelete) => {
+            handleDelete(itemToDelete.id);
+            setSelectedDetailDoc(null);
+          }}
+          showToast={showToast}
+        />
+      )}
     </div>
   );
 };
