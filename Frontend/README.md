@@ -1,70 +1,82 @@
-﻿# Frontend: React + Vite Client for Rural Healthcare Assistant
+# 💻 React 19 + Vite Frontend — Rural Healthcare Communication Assistant
 
-This frontend application is built with React 19 and Vite to provide the user interface for the AI-Powered Healthcare Communication Assistant. It is designed to interact with the Django backend via REST APIs and present a professional, modular client architecture.
+[![React Version](https://img.shields.io/badge/react-19.2-blue)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/vite-8.2-purple)](https://vitejs.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/tailwindcss-3.4-38B2AC)](https://tailwindcss.com/)
 
-## Frontend Folder Structure
+> **Infosys Springboard Virtual Internship Project Submission**  
+> Modern, accessible Single Page Application (SPA) built for rural patients, healthcare workers (ASHA Workers & Doctors), and family caregivers. Provides voice-guided medication instructions, OCR prescription display, visual pillbox calendars, and ABHA digital health cards.
+
+---
+
+## 📁 Frontend Architecture & Folder Structure
 
 ```
 Frontend/
-├── public/                  # Static HTML and image assets
+├── public/                  # Static HTML & image assets (icons, badges, demo audio)
 ├── src/
-│   ├── api/                 # API service layer for backend communication
-│   ├── components/
-│   │   ├── auth/            # login and registration components
-│   │   ├── layout/          # navigation and shared layout components
-│   │   ├── medical/         # medical documents and upload UI
-│   │   ├── profile/         # profile dashboard and user settings UI
-│   │   └── ui/              # shared UI components such as toast notifications
-│   ├── context/             # auth and global application state
-│   ├── pages/               # page-level view containers
-│   └── styles/              # shared CSS styles
-├── package.json             # frontend dependencies and scripts
-├── package-lock.json        # generated npm lock file
-├── README.md                # frontend documentation
-└── requirements.txt         # frontend dependency notes for reviewers
+│   ├── api/                 # Axios client with JWT token injection & auto-refresh interceptor
+│   ├── app/                 # App initialization, Providers & router configuration
+│   ├── assets/              # App images & brand assets
+│   ├── components/          # Reusable interface components
+│   │   ├── application/     # Application workflow components
+│   │   ├── auth/            # Login & multi-step registration forms
+│   │   ├── layout/          # Navbar, Sidebar & layout wrappers
+│   │   ├── marketing/       # Hero banner & feature overview cards
+│   │   ├── medical/         # Medical document upload & OCR display
+│   │   ├── profile/         # Profile management & ABHA digital health card view
+│   │   └── ui/              # Toast notifications, badges, modals, & buttons
+│   ├── context/             # AuthContext (user state, JWT tokens) & Language context
+│   ├── features/            # Role-specific feature modules
+│   │   ├── auth/            # Role selection & login/register state
+│   │   ├── caregiver/       # Caregiver dashboard & patient adherence monitor
+│   │   ├── healthcare-worker/# Doctor & ASHA worker portal
+│   │   ├── patient/         # Patient vault, voice assistant & pillbox treatment planner
+│   │   └── public/          # Public landing pages & educational content
+│   ├── hooks/               # Custom React hooks (speech synthesis, auth state, reminders)
+│   ├── pages/               # Top-level view pages & authentication routes
+│   ├── services/            # API service calls mapping to backend domain endpoints
+│   ├── shared/              # Shared UI utility components & icons
+│   ├── styles/              # Global & modular CSS styles
+│   ├── utils/               # Route constants, speech helpers & formatters
+│   ├── App.jsx              # Application root element
+│   ├── index.css            # Modern utility & custom CSS styling
+│   └── main.jsx             # React DOM entrypoint
+├── index.html               # Main HTML entry document
+├── package.json             # NPM dependencies & scripts
+├── tailwind.config.js       # Tailwind CSS configuration
+├── vite.config.js           # Vite dev server configuration & API proxy settings
+└── README.md                # Frontend documentation (This File)
 ```
 
-## How to Run the Frontend
+---
 
-1. Open a terminal in `Frontend`.
-2. Install dependencies:
+## 🛠️ How to Run the Frontend
 
-```powershell
-npm install
-```
+1. Open a terminal in the `Frontend` directory:
+   ```powershell
+   cd Frontend
+   ```
+2. Install npm dependencies:
+   ```powershell
+   npm install
+   ```
+3. Start the Vite development server:
+   ```powershell
+   npm run dev
+   ```
+4. Access the web interface in your browser:
+   > 🌐 `http://localhost:5173/`
 
-3. Start the development server:
+The frontend is configured to communicate with the Django backend REST API running on `http://127.0.0.1:8000/api/v1/`.
 
-```powershell
-npm run dev
-```
+---
 
-4. Open the provided Vite URL in your browser.
+## ⚡ Key Modules & Features
 
-The frontend is configured to communicate with the backend on `/api/v1/`.
-
-## Key Frontend Features
-
-- `src/context/AuthContext.jsx` — manages authentication state, JWT token refresh, profile refresh, and language preference.
-- `src/api/api.js` — centralized API request helper with token handling and refresh retry.
-- `src/components/auth/Login.jsx` — login UI with role selection for patient, caregiver, and healthcare worker.
-- `src/components/auth/Register.jsx` — multi-step registration UI for profile creation.
-- `src/components/profile/ProfileDashboard.jsx` — user profile details, edit form, and JWT refresh helper.
-- `src/components/medical/MedicalDocuments.jsx` — medical document upload, listing, filtering, and audio helper logic.
-- `src/components/layout/Navbar.jsx` — global navigation, API health indicator, language switcher, and logout.
-
-## Notes for Reviewers
-
-- The frontend is built to reflect clean separation of responsibilities and a scalable component architecture.
-- The current implementation supports secure JWT-based communication with the backend.
-- `requirements.txt` is included as a reviewer note; the actual frontend dependency manager is `npm`.
-
-## Future Enhancements
-
-The structure supports future additions such as:
-
-- OCR prescription preview screens
-- AI-based translation and simplification interfaces
-- voice guidance playback controls
-- medication reminders dashboard
-- role-specific dashboards for patients, providers, and caregivers
+- 🔐 **Auth Context (`src/context/AuthContext.jsx`)**: Manages JWT authentication state, access token refreshing, role selection (Patient/Caregiver/Doctor), and user session persistence.
+- 🌐 **Axios API Layer (`src/api/api.js` & `src/services/`)**: Intercepts requests to inject JWT bearer tokens and automatically handles token refresh retries.
+- 🖼️ **OCR Prescription Scanner (`src/components/medical/`)**: Allows users to upload doctor prescriptions and view parsed medication instructions.
+- 🗣️ **Voice Guidance Assistant (`src/utils/` & `src/hooks/`)**: Provides voice synthesis (Text-to-Speech) in 12+ Indian regional languages for low-literacy rural patients.
+- 📅 **5-Day Visual Treatment Planner (`src/features/patient/`)**: Displays visual pillboxes with morning/afternoon/evening dose badges.
+- 🆔 **ABHA Digital Health Vault (`src/components/profile/`)**: Renders interactive digital health cards with downloadable QR codes for quick hospital registration.
