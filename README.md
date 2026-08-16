@@ -10,7 +10,7 @@
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 > **Infosys Springboard Virtual Internship Project Submission**  
-> **Repository:** [Prince-git-hub-360/AI-Healthcare-Assistant-for-Rural-Communities](https://github.com/Prince-git-hub-360/AI-Healthcare-Assistant-for-Rural-Communities)  
+> **Official Repository:** [Springboard-Internship-2026/AI-Powered-Healthcare-Communication-Assistant-for-Rural-Communities-July-2026](https://github.com/Springboard-Internship-2026/AI-Powered-Healthcare-Communication-Assistant-for-Rural-Communities-July-2026)  
 > **Author:** Prince (`kumariafprince@gmail.com`)
 
 ---
@@ -292,9 +292,9 @@ Follow these exact steps to push this project to the repository assigned by Info
 ```powershell
 git remote -v
 ```
-If the origin remote is set to your Infosys Springboard repo link (`https://github.com/Prince-git-hub-360/AI-Healthcare-Assistant-for-Rural-Communities.git`), proceed. If not, add/update it:
+To set your remote origin to the official Infosys Springboard repository URL:
 ```powershell
-git remote set-url origin https://github.com/Prince-git-hub-360/AI-Healthcare-Assistant-for-Rural-Communities.git
+git remote set-url origin https://github.com/Springboard-Internship-2026/AI-Powered-Healthcare-Communication-Assistant-for-Rural-Communities-July-2026.git
 ```
 
 ### 2. Stage and Commit All Project Files
