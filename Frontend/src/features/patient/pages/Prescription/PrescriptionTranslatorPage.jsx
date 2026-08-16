@@ -22,6 +22,7 @@ import {
 import { speakNativeAudio } from '../../../../shared/utils/speech';
 import { PrescriptionDetailModal } from '../../components/PrescriptionDetailModal';
 import { DeletePrescriptionModal } from '../../components/DeletePrescriptionModal';
+import { MedicineList } from '../../components/MedicineList';
 
 export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
   const { currentLang, updateLanguage, showToast } = useAuth();
@@ -29,6 +30,8 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
   const [convertText, setConvertText] = useState('');
   const [convertLang, setConvertLang] = useState(currentLang || 'hi');
   const [translatedResult, setTranslatedResult] = useState('');
+  const [extractedMedicines, setExtractedMedicines] = useState([]);
+  const [extractionConfidence, setExtractionConfidence] = useState(null);
   const [converting, setConverting] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [showManualInput, setShowManualInput] = useState(false);
@@ -71,6 +74,8 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
         title: doc.title || doc.original_filename || 'Prescription',
         extractedText: doc.text_content || doc.extracted_text || '',
         translatedText: doc.translated_text || doc.simplified_summary || doc.text_content || '',
+        medications: doc.medications || doc.medication_items || doc.extracted_data?.medications || [],
+        confidence: doc.confidence || doc.confidence_score || null,
         languageCode: doc.language || 'hi',
         languageNative: LANGUAGES.find((l) => l.code === (doc.language || 'hi'))?.native || 'हिंदी',
         languageName: LANGUAGES.find((l) => l.code === (doc.language || 'hi'))?.name || 'Hindi',
@@ -119,6 +124,12 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
       const res = await api.translateText(text, lang);
       const outputText = res.translated_text || res.simplified_text || text;
       setTranslatedResult(outputText);
+      if (res.medications || res.medication_items) {
+        setExtractedMedicines(res.medications || res.medication_items);
+      }
+      if (res.confidence || res.confidence_score) {
+        setExtractionConfidence(res.confidence || res.confidence_score);
+      }
     } catch (err) {
       console.warn('Translation error:', err);
       showToast?.('Translation warning: Showing extracted text.', 'warning');
@@ -211,6 +222,14 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
 
       const finalOutput = nativeText || extracted;
       setTranslatedResult(finalOutput);
+
+      // Extract existing medicine list and confidence from backend OCR response
+      const extractedMeds = res?.medications || res?.medication_items || res?.extracted_data?.medications || [];
+      const confidenceVal = res?.confidence || res?.confidence_score || null;
+
+      setExtractedMedicines(extractedMeds);
+      setExtractionConfidence(confidenceVal);
+
       showToast?.(`Prescription processed successfully!`, 'success');
 
       // Preserve prescription in history
@@ -219,6 +238,8 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
         title: file.name,
         extractedText: extracted,
         translatedText: finalOutput,
+        medications: extractedMeds,
+        confidence: confidenceVal,
         text_content: extracted,
         translated_text: finalOutput,
         simplified_text: finalOutput,
@@ -248,6 +269,17 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
       setSpeaking(false);
     }
     setSelectedDetailItem(item);
+    if (item.medications || item.medication_items) {
+      setExtractedMedicines(item.medications || item.medication_items);
+      setExtractionConfidence(item.confidence || null);
+    }
+    if (item.translatedText || item.extractedText) {
+      setTranslatedResult(item.translatedText || item.extractedText);
+      setConvertText(item.extractedText || item.translatedText);
+    }
+    if (item.imagePreview) {
+      setImagePreview(item.imagePreview);
+    }
   };
 
   const [deleteTargetItem, setDeleteTargetItem] = useState(null);
@@ -342,11 +374,15 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
         </div>
       </div>
 
-      {/* MAIN TWO-COLUMN DASHBOARD WORKSPACE */}
-      <div id="translate-main-workspace" className="scroll-mt-24 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      {/* BALANCED TWO-COLUMN DASHBOARD WORKSPACE */}
+      <div id="translate-main-workspace" className="scroll-mt-24 grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 items-start">
         
-        {/* LEFT COLUMN (~45%): YOUR PRESCRIPTION */}
+        {/* ================================================== */}
+        {/* LEFT COLUMN CONTAINER (45% width = lg:col-span-5)   */}
+        {/* ================================================== */}
         <div className="lg:col-span-5 space-y-5">
+          
+          {/* 1. PRESCRIPTION UPLOAD & PREVIEW CARD */}
           <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-sm space-y-4 transition-colors">
             <div>
               <h2 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
@@ -362,7 +398,7 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
             {!imagePreview ? (
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-teal-700 dark:hover:border-teal-400 bg-slate-50 dark:bg-slate-800/50 hover:bg-teal-50/50 dark:hover:bg-slate-800/80 rounded-2xl p-8 text-center space-y-3 cursor-pointer transition-all"
+                className="border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-teal-700 dark:hover:border-teal-400 bg-slate-50 dark:bg-slate-800/50 hover:bg-teal-50/50 dark:hover:bg-slate-800/80 rounded-2xl p-6 sm:p-8 text-center space-y-3 cursor-pointer transition-all"
               >
                 <div className="w-12 h-12 rounded-2xl bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800 mx-auto flex items-center justify-center shadow-2xs">
                   <CloudUploadIcon size={24} />
@@ -387,6 +423,8 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
                       setImagePreview(null);
                       setConvertText('');
                       setTranslatedResult('');
+                      setExtractedMedicines([]);
+                      setExtractionConfidence(null);
                     }}
                     className="text-rose-600 dark:text-rose-400 font-bold hover:underline min-h-[44px] flex items-center cursor-pointer"
                   >
@@ -462,13 +500,21 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
                   onClick={async () => {
                     const sampleText =
                       'आपको चक्कर और बेचैनी की शिकायत है। आपका रक्त शर्करा का स्तर बहुत कम है। डॉक्टर ने आपको 10 मिलीलीटर 5% डेक्सट्रोज का इंजेक्शन तुरंत लेने की सलाह दी है। इसके अलावा, आपको पर्याप्त मात्रा में तरल पदार्थ पीने और 2 पैकेट ओआरएस का सेवन करने की सलाह दी गई है।';
+                    const sampleMeds = [
+                      { medicine_name: '5% Dextrose Injection', strength: '10 ml', frequency: 'Immediate (Stat)', meal_rule: 'Intravenous / Under Doctor', duration_days: 1 },
+                      { medicine_name: 'ORS Oral Rehydration Solution', strength: '2 Packets', frequency: 'Twice daily', meal_rule: 'Dissolved in clean water', duration_days: 1 },
+                    ];
                     setConvertText(sampleText);
                     setTranslatedResult(sampleText);
+                    setExtractedMedicines(sampleMeds);
+                    setExtractionConfidence(0.98);
                     saveToHistory({
                       id: Date.now().toString(),
                       title: 'Sample Prescription',
                       extractedText: sampleText,
                       translatedText: sampleText,
+                      medications: sampleMeds,
+                      confidence: 0.98,
                       languageCode: convertLang,
                       languageName: selectedLanguage.name,
                       languageNative: selectedLanguage.native,
@@ -502,34 +548,9 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
               </div>
             )}
           </div>
-        </div>
-
-        {/* RIGHT COLUMN (~55%): TRANSLATION & GUIDANCE */}
-        <div className="lg:col-span-7 space-y-5">
-          
-          {/* 1. TRANSLATED INSTRUCTIONS CARD */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-sm space-y-4 transition-colors">
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3.5">
-              <h2 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                <TranslateIcon size={20} className="text-teal-700 dark:text-teal-400" />
-                <span>Translated Instructions</span>
-              </h2>
-
-              <span className="bg-teal-700 text-white text-xs font-bold px-3.5 py-1.5 rounded-full flex items-center gap-2 shadow-2xs">
-                <span>{selectedLanguage.flag}</span>
-                <span>{selectedLanguage.native}</span>
-              </span>
-            </div>
-
-            {/* Instruction Explanation Box */}
-            <div className="bg-emerald-50/70 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/80 rounded-2xl p-5 text-emerald-950 dark:text-emerald-100 text-sm sm:text-base leading-relaxed font-semibold whitespace-pre-wrap min-h-[140px] shadow-2xs">
-              {translatedResult ||
-                'आपको चक्कर और बेचैनी की शिकायत है। आपका रक्त शर्करा का स्तर बहुत कम है। डॉक्टर ने आपको 10 मिलीलीटर 5% डेक्सट्रोज का इंजेक्शन तुरंत लेने की सलाह दी है। इसके अलावा, आपको पर्याप्त मात्रा में तरल पदार्थ पीने और 2 पैकेट ओआरएस का सेवन करने की सलाह दी गई है।'}
-            </div>
-          </div>
 
           {/* 2. VOICE GUIDANCE CARD */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4 transition-colors">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-sm space-y-4 transition-colors">
             <div className="space-y-0.5">
               <div className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
                 <SpeakerIcon size={20} className="text-teal-700 dark:text-teal-400" />
@@ -544,7 +565,7 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
               <button
                 type="button"
                 onClick={() => handleSpeakToggle()}
-                className={`font-bold text-xs px-6 py-3 min-h-[44px] rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm ${
+                className={`font-bold text-xs px-6 py-3 min-h-[44px] rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm w-full sm:w-auto ${
                   speaking
                     ? 'bg-rose-600 border border-rose-600 text-white animate-pulse'
                     : 'bg-teal-700 hover:bg-teal-800 text-white'
@@ -581,8 +602,8 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
             </div>
           </div>
 
-          {/* 4. REMINDERS CARD */}
-          <div className="bg-sky-50/70 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800/80 rounded-2xl p-5 flex items-center justify-between gap-4 shadow-2xs transition-colors">
+          {/* 4. MEDICATION REMINDERS CTA CARD */}
+          <div className="bg-sky-50/70 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800/80 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-2xs transition-colors">
             <div className="flex items-center gap-3.5">
               <div className="w-10 h-10 rounded-xl bg-sky-100 dark:bg-sky-900/60 text-sky-800 dark:text-sky-200 flex items-center justify-center shrink-0 shadow-2xs">
                 <ClockIcon size={20} />
@@ -598,17 +619,53 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
             <button
               type="button"
               onClick={() => setCurrentView?.('reminders')}
-              className="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs px-4 py-3 min-h-[44px] rounded-xl shrink-0 cursor-pointer flex items-center gap-2 transition-colors shadow-xs"
+              className="w-full sm:w-auto bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs px-4 py-3 min-h-[44px] rounded-xl shrink-0 cursor-pointer flex items-center justify-center gap-2 transition-colors shadow-xs"
             >
               <span>📅 Create Reminders</span>
             </button>
           </div>
 
         </div>
+
+        {/* ================================================== */}
+        {/* RIGHT COLUMN CONTAINER (55% width = lg:col-span-7)  */}
+        {/* ================================================== */}
+        <div className="lg:col-span-7 space-y-5">
+          
+          {/* 1. TRANSLATED INSTRUCTIONS CARD */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-sm space-y-4 transition-colors">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3.5">
+              <h2 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                <TranslateIcon size={20} className="text-teal-700 dark:text-teal-400" />
+                <span>Translated Instructions</span>
+              </h2>
+
+              <span className="bg-teal-700 text-white text-xs font-bold px-3.5 py-1.5 rounded-full flex items-center gap-2 shadow-2xs">
+                <span>{selectedLanguage.flag}</span>
+                <span>{selectedLanguage.native}</span>
+              </span>
+            </div>
+
+            {/* Instruction Explanation Box */}
+            <div className="bg-emerald-50/70 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/80 rounded-2xl p-5 text-emerald-950 dark:text-emerald-100 text-sm sm:text-base leading-relaxed font-semibold whitespace-pre-wrap min-h-[140px] shadow-2xs">
+              {translatedResult ||
+                'आपको चक्कर और बेचैनी की शिकायत है। आपका रक्त शर्करा का स्तर बहुत कम है। डॉक्टर ने आपको 10 मिलीलीटर 5% डेक्सट्रोज का इंजेक्शन तुरंत लेने की सलाह दी है। इसके अलावा, आपको पर्याप्त मात्रा में तरल पदार्थ पीने और 2 पैकेट ओआरएस का सेवन करने की सलाह दी गई है।'}
+            </div>
+          </div>
+
+          {/* 2. MEDICINES IDENTIFIED CARD */}
+          <MedicineList 
+            medications={extractedMedicines}
+            confidence={extractionConfidence}
+            isLoading={converting}
+          />
+
+        </div>
+
       </div>
 
       {/* ================================================== */}
-      {/* 3. PRESCRIPTION HISTORY SECTION (COMPACT LIST)     */}
+      {/* PRESCRIPTION HISTORY SECTION (COMPACT LIST)        */}
       {/* ================================================== */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-sm space-y-4 transition-colors">
         <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3.5">
