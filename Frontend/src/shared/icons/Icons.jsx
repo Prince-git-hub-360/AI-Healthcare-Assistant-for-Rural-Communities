@@ -69,6 +69,12 @@ export const ChevronDownIcon = ({ size = 20, color = 'currentColor', className =
   </svg>
 );
 
+export const ChevronLeftIcon = ({ size = 20, color = 'currentColor', className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <path d="M15 18L9 12L15 6" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
 export const MenuIcon = ({ size = 24, color = 'currentColor', className = '' }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
     <path d="M3 12H21M3 6H21M3 18H21" stroke={color} strokeWidth="2" strokeLinecap="round"/>
@@ -246,5 +252,32 @@ export const VideoIcon = ({ size = 24, color = 'currentColor', className = '' })
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
     <polygon points="23 7 16 12 23 17 23 7" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
     <rect x="1" y="5" width="15" height="14" rx="2" ry="2" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+export const CalendarIcon = ({ size = 24, color = 'currentColor', className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke={color} strokeWidth="2"/>
+    <line x1="16" y1="2" x2="16" y2="6" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+    <line x1="8" y1="2" x2="8" y2="6" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+    <line x1="3" y1="10" x2="21" y2="10" stroke={color} strokeWidth="2"/>
+  </svg>
+);
+
+export const QrCodeIcon = ({ size = 24, color = 'currentColor', className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <rect x="3" y="3" width="7" height="7" stroke={color} strokeWidth="2" rx="1"/>
+    <rect x="14" y="3" width="7" height="7" stroke={color} strokeWidth="2" rx="1"/>
+    <rect x="3" y="14" width="7" height="7" stroke={color} strokeWidth="2" rx="1"/>
+    <path d="M14 14H17V17H14V14Z" fill={color}/>
+    <path d="M18 18H21V21H18V18Z" fill={color}/>
+    <path d="M14 19H17V21H14V19Z" fill={color}/>
+  </svg>
+);
+
+export const BellIcon = ({ size = 24, color = 'currentColor', className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 );

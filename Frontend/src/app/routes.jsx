@@ -8,7 +8,7 @@ import { SwasthyaMitrChatModal } from '../features/patient/components/VoiceAssis
 import { SparklesIcon } from '../shared/icons/Icons';
 
 // Public Pages
-import { HomePage } from '../pages/public/HomePage';
+import { LandingPage as HomePage } from '../pages/LandingPage';
 import { AboutPage } from '../pages/public/AboutPage';
 
 // Auth Pages
