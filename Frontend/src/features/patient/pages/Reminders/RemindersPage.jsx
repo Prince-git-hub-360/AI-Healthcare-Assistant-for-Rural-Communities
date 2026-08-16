@@ -178,74 +178,74 @@ export const RemindersPage = () => {
   const nightMeds = pendingReminders.filter((r) => getSlot(r) === 'night');
 
   return (
-    <div className="max-w-[1240px] mx-auto px-4 md:px-6 py-6 space-y-6 font-sans text-stone-900 dark:text-slate-100 transition-colors">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-[#161F30] border border-stone-200/80 dark:border-slate-800/80 rounded-2xl p-5 shadow-xs transition-colors">
-        <div className="space-y-0.5">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-[#0B4F42] dark:text-teal-400">
+    <div className="max-w-[1240px] mx-auto px-4 md:px-6 py-6 space-y-6 font-sans text-slate-900 dark:text-slate-100 transition-colors">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 shadow-sm transition-colors">
+        <div className="space-y-1">
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-teal-700 dark:text-teal-400">
             MEDICATION COMPLIANCE
           </span>
-          <h1 className="text-2xl sm:text-3xl font-bold text-stone-900 dark:text-white tracking-tight flex items-center gap-2">
-            <PillIcon size={24} className="text-[#0B4F42] dark:text-teal-400" />
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
+            <PillIcon size={26} className="text-teal-700 dark:text-teal-400" />
             <span>Medication Schedule & Reminders</span>
           </h1>
-          <p className="text-xs text-stone-500 dark:text-slate-400 font-normal">
+          <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
             Visual Day-Part Medication Schedule with 1-Tap Audio Guidance
           </p>
         </div>
 
         <button
           onClick={() => setShowAddForm(!showAddForm)}
-          className="bg-[#0B4F42] hover:bg-[#07362d] dark:bg-teal-600 dark:hover:bg-teal-500 text-white font-medium text-xs py-2 px-3.5 rounded-lg shadow-xs transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
+          className="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs px-4 py-3 min-h-[44px] rounded-xl shadow-sm transition-all flex items-center gap-2 cursor-pointer shrink-0"
         >
-          <PlusIcon size={16} />
+          <PlusIcon size={18} />
           <span>Add Reminder</span>
         </button>
       </div>
 
       {showAddForm && (
-        <form onSubmit={handleCreate} className="bg-white dark:bg-[#161F30] border border-stone-200/80 dark:border-slate-800/80 rounded-2xl p-5 shadow-xs space-y-3.5 transition-colors">
-          <h3 className="text-base font-bold text-stone-900 dark:text-white border-b border-stone-100 dark:border-slate-800 pb-2">Schedule New Medication</h3>
+        <form onSubmit={handleCreate} className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4 transition-colors">
+          <h3 className="text-base font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3">Schedule New Medication</h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-            <div className="space-y-1">
-              <label className="block text-xs font-semibold text-stone-700 dark:text-slate-300">Medication Name *</label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">Medication Name *</label>
               <input
                 type="text"
                 placeholder="e.g. Metformin 500mg"
-                className="w-full bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-stone-900 dark:text-slate-100 text-xs rounded-lg px-3 py-2 outline-none focus:border-[#0B4F42]"
+                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-3 min-h-[44px] outline-none focus:border-teal-700"
                 value={formData.medication_name}
                 onChange={(e) => setFormData({ ...formData, medication_name: e.target.value })}
                 required
               />
             </div>
 
-            <div className="space-y-1">
-              <label className="block text-xs font-semibold text-stone-700 dark:text-slate-300">Dosage Count *</label>
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">Dosage Count *</label>
               <input
                 type="text"
                 placeholder="e.g. 1 tablet"
-                className="w-full bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-stone-900 dark:text-slate-100 text-xs rounded-lg px-3 py-2 outline-none focus:border-[#0B4F42]"
+                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-3 min-h-[44px] outline-none focus:border-teal-700"
                 value={formData.dosage}
                 onChange={(e) => setFormData({ ...formData, dosage: e.target.value })}
                 required
               />
             </div>
 
-            <div className="space-y-1">
-              <label className="block text-xs font-semibold text-stone-700 dark:text-slate-300">Scheduled Time *</label>
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">Scheduled Time *</label>
               <input
                 type="time"
-                className="w-full bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-stone-900 dark:text-slate-100 text-xs rounded-lg px-3 py-2 outline-none focus:border-[#0B4F42]"
+                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-3 min-h-[44px] outline-none focus:border-teal-700"
                 value={formData.scheduled_time}
                 onChange={(e) => setFormData({ ...formData, scheduled_time: e.target.value })}
                 required
               />
             </div>
 
-            <div className="space-y-1">
-              <label className="block text-xs font-semibold text-stone-700 dark:text-slate-300">Meal Timing Rule *</label>
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">Meal Timing Rule *</label>
               <select
-                className="w-full bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-stone-900 dark:text-slate-100 text-xs rounded-lg px-3 py-2 outline-none focus:border-[#0B4F42] cursor-pointer"
+                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-3 min-h-[44px] outline-none focus:border-teal-700 cursor-pointer"
                 value={formData.meal_rule}
                 onChange={(e) => setFormData({ ...formData, meal_rule: e.target.value })}
               >
@@ -255,29 +255,29 @@ export const RemindersPage = () => {
             </div>
           </div>
 
-          <div className="space-y-1">
-            <label className="block text-xs font-semibold text-stone-700 dark:text-slate-300">Patient Instructions</label>
+          <div className="space-y-1.5">
+            <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">Patient Instructions</label>
             <input
               type="text"
               placeholder="e.g. Take 1 tablet after breakfast with warm water."
-              className="w-full bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-stone-900 dark:text-slate-100 text-xs rounded-lg px-3 py-2 outline-none focus:border-[#0B4F42]"
+              className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-xs rounded-xl px-3.5 py-3 min-h-[44px] outline-none focus:border-teal-700"
               value={formData.instructions}
               onChange={(e) => setFormData({ ...formData, instructions: e.target.value })}
             />
           </div>
 
-          <div className="flex justify-end gap-2 pt-1">
+          <div className="flex justify-end gap-3 pt-2">
             <button
               type="button"
               onClick={() => setShowAddForm(false)}
-              className="px-3 py-1.5 text-xs font-medium text-stone-600 dark:text-slate-400 hover:text-stone-900 cursor-pointer"
+              className="px-4 py-3 min-h-[44px] text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 cursor-pointer"
             >
               Cancel
             </button>
 
             <button
               type="submit"
-              className="bg-[#0B4F42] hover:bg-[#07362d] dark:bg-teal-600 dark:hover:bg-teal-500 text-white font-medium text-xs px-4 py-2 rounded-lg shadow-xs cursor-pointer"
+              className="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs px-5 py-3 min-h-[44px] rounded-xl shadow-sm cursor-pointer"
             >
               Save Reminder
             </button>
@@ -299,22 +299,22 @@ export const RemindersPage = () => {
 
           {/* ACTIVE PENDING DOSES TODAY (AUTOCLEARS AS PATIENT MARKS TAKEN) */}
           <div className="space-y-5">
-            <div className="flex items-center justify-between border-b border-stone-200 dark:border-slate-800 pb-2">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-extrabold uppercase tracking-widest text-[#0B4F42] dark:text-teal-400 bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 px-3 py-0.5 rounded-full">
+                <span className="text-xs font-extrabold uppercase tracking-widest text-teal-800 dark:text-teal-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 px-3.5 py-1 rounded-full shadow-2xs">
                   🔔 PENDING DOSES TODAY ({pendingReminders.length})
                 </span>
               </div>
-              <span className="text-xs font-semibold text-stone-500 dark:text-slate-400">
+              <span className="text-xs font-bold text-slate-600 dark:text-slate-400">
                 {completedReminders.length} / {reminders.length} Doses Taken Today
               </span>
             </div>
 
             {pendingReminders.length === 0 ? (
-              <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80 rounded-2xl p-6 text-center space-y-2">
-                <div className="text-3xl">🎉</div>
-                <h3 className="text-lg font-bold text-emerald-950 dark:text-emerald-200">All Medications Taken for Today!</h3>
-                <p className="text-xs text-emerald-800 dark:text-emerald-300 max-w-md mx-auto">
+              <div className="bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/80 rounded-2xl p-8 text-center space-y-3 shadow-xs">
+                <div className="text-4xl">🎉</div>
+                <h3 className="text-lg font-extrabold text-emerald-950 dark:text-emerald-100">All Medications Taken for Today!</h3>
+                <p className="text-xs text-emerald-800 dark:text-emerald-300 max-w-md mx-auto font-medium leading-relaxed">
                   Great job keeping up with your health! You have completed all scheduled doses for today. Your adherence record has been logged.
                 </p>
               </div>
@@ -322,40 +322,40 @@ export const RemindersPage = () => {
           <>
             {/* MORNING MEDS */}
             {morningMeds.length > 0 && (
-              <div className="bg-amber-50/60 dark:bg-[#161F30] border border-amber-200/80 dark:border-slate-800 rounded-2xl p-5 shadow-xs transition-colors">
-                <div className="flex items-center gap-2 mb-3">
-                  <SunriseIcon size={20} className="text-amber-600 dark:text-amber-400" />
-                  <h2 className="text-base font-semibold text-amber-950 dark:text-amber-200">🌅 Morning Medications ({morningMeds.length} pending)</h2>
+              <div className="bg-amber-50/60 dark:bg-slate-900 border border-amber-200/80 dark:border-slate-800 rounded-2xl p-6 shadow-sm transition-colors">
+                <div className="flex items-center gap-2.5 mb-4">
+                  <SunriseIcon size={22} className="text-amber-600 dark:text-amber-400" />
+                  <h2 className="text-base font-bold text-amber-950 dark:text-amber-200">🌅 Morning Medications ({morningMeds.length} pending)</h2>
                 </div>
-                <div className="space-y-2.5">
+                <div className="space-y-3">
                   {morningMeds.map((r) => {
                     const todayStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' });
                     const end = new Date(Date.now() + 4 * 86400000).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' });
                     return (
-                      <div key={r.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3.5 rounded-xl border border-amber-200/80 dark:border-slate-700/80 bg-white dark:bg-slate-800/80 gap-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-amber-100 dark:bg-amber-900/60 rounded-lg flex items-center justify-center font-bold text-xs text-amber-900 dark:text-amber-200 shrink-0">
+                      <div key={r.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 gap-4 shadow-2xs">
+                        <div className="flex items-center gap-3.5">
+                          <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/60 rounded-xl flex items-center justify-center font-bold text-sm text-amber-900 dark:text-amber-200 shrink-0">
                             💊
                           </div>
                           <div>
-                            <div className="font-semibold text-xs text-stone-900 dark:text-white">{r.medication_name || r.title}</div>
-                            <div className="text-[11px] text-stone-500 dark:text-slate-400">{r.instructions || r.dosage_note}</div>
-                            <div className="text-[10px] font-bold text-[#0B4F42] dark:text-teal-400 bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 px-2 py-0.5 rounded-full inline-block mt-1">
+                            <div className="font-extrabold text-xs text-slate-900 dark:text-white">{r.medication_name || r.title}</div>
+                            <div className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">{r.instructions || r.dosage_note}</div>
+                            <div className="text-[10px] font-extrabold text-teal-800 dark:text-teal-300 bg-emerald-50 dark:bg-teal-950/60 border border-emerald-200 dark:border-teal-800 px-2.5 py-0.5 rounded-full inline-block mt-1">
                               📅 {r.start_date || todayStr} – {r.end_date || end} (5-Day Course)
                             </div>
                           </div>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
-                          <button onClick={() => setIvrModal({ open: true, item: r })} className="border border-stone-300 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-700 text-stone-700 dark:text-slate-300 text-xs font-medium px-2.5 py-1 rounded-lg cursor-pointer flex items-center gap-1 transition-colors">
-                            <PhoneIcon size={12} /> <span>2G Call</span>
+                          <button onClick={() => setIvrModal({ open: true, item: r })} className="border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold px-3 py-2 min-h-[44px] rounded-xl cursor-pointer flex items-center gap-1.5 transition-colors">
+                            <PhoneIcon size={14} /> <span>2G Call</span>
                           </button>
-                          <button onClick={() => playVoiceAudio(r)} className="border border-stone-300 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-700 text-stone-700 dark:text-slate-300 text-xs font-medium px-2.5 py-1 rounded-lg cursor-pointer transition-colors">
+                          <button onClick={() => playVoiceAudio(r)} className="border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold px-3 py-2 min-h-[44px] rounded-xl cursor-pointer transition-colors">
                             <span>Listen</span>
                           </button>
-                          <button onClick={() => handleToggleTaken(r.id, r.is_taken)} className="bg-[#0B4F42] hover:bg-[#07362d] dark:bg-teal-600 dark:hover:bg-teal-500 text-white px-3 py-1 rounded-lg text-xs font-bold cursor-pointer transition-colors shadow-xs">
+                          <button onClick={() => handleToggleTaken(r.id, r.is_taken)} className="bg-teal-700 hover:bg-teal-800 text-white px-4 py-2 min-h-[44px] rounded-xl text-xs font-bold cursor-pointer transition-all shadow-sm">
                             Mark Taken ✓
                           </button>
-                          <button onClick={() => handleDeleteReminder(r.id)} title="Delete Reminder" className="text-stone-400 hover:text-rose-600 dark:hover:text-rose-400 text-xs p-1 cursor-pointer transition-colors">
+                          <button onClick={() => handleDeleteReminder(r.id)} title="Delete Reminder" className="text-slate-400 hover:text-rose-600 min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer transition-colors">
                             🗑️
                           </button>
                         </div>
@@ -368,40 +368,40 @@ export const RemindersPage = () => {
 
             {/* AFTERNOON MEDS */}
             {afternoonMeds.length > 0 && (
-              <div className="bg-sky-50/60 dark:bg-[#161F30] border border-sky-200/80 dark:border-slate-800 rounded-2xl p-5 shadow-xs transition-colors">
-                <div className="flex items-center gap-2 mb-3">
-                  <SunIcon size={20} className="text-sky-600 dark:text-sky-400" />
-                  <h2 className="text-base font-semibold text-sky-950 dark:text-sky-200">☀️ Afternoon Medications ({afternoonMeds.length} pending)</h2>
+              <div className="bg-sky-50/60 dark:bg-slate-900 border border-sky-200/80 dark:border-slate-800 rounded-2xl p-6 shadow-sm transition-colors">
+                <div className="flex items-center gap-2.5 mb-4">
+                  <SunIcon size={22} className="text-sky-600 dark:text-sky-400" />
+                  <h2 className="text-base font-bold text-sky-950 dark:text-sky-200">☀️ Afternoon Medications ({afternoonMeds.length} pending)</h2>
                 </div>
-                <div className="space-y-2.5">
+                <div className="space-y-3">
                   {afternoonMeds.map((r) => {
                     const todayStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' });
                     const end = new Date(Date.now() + 4 * 86400000).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' });
                     return (
-                      <div key={r.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3.5 rounded-xl border border-sky-200/80 dark:border-slate-700/80 bg-white dark:bg-slate-800/80 gap-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-sky-100 dark:bg-sky-900/60 rounded-lg flex items-center justify-center font-bold text-xs text-sky-900 dark:text-sky-200 shrink-0">
+                      <div key={r.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 gap-4 shadow-2xs">
+                        <div className="flex items-center gap-3.5">
+                          <div className="w-10 h-10 bg-sky-100 dark:bg-sky-900/60 rounded-xl flex items-center justify-center font-bold text-sm text-sky-900 dark:text-sky-200 shrink-0">
                             🟢
                           </div>
                           <div>
-                            <div className="font-semibold text-xs text-stone-900 dark:text-white">{r.medication_name || r.title}</div>
-                            <div className="text-[11px] text-stone-500 dark:text-slate-400">{r.instructions || r.dosage_note}</div>
-                            <div className="text-[10px] font-bold text-[#0B4F42] dark:text-teal-400 bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 px-2 py-0.5 rounded-full inline-block mt-1">
+                            <div className="font-extrabold text-xs text-slate-900 dark:text-white">{r.medication_name || r.title}</div>
+                            <div className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">{r.instructions || r.dosage_note}</div>
+                            <div className="text-[10px] font-extrabold text-teal-800 dark:text-teal-300 bg-emerald-50 dark:bg-teal-950/60 border border-emerald-200 dark:border-teal-800 px-2.5 py-0.5 rounded-full inline-block mt-1">
                               📅 {r.start_date || todayStr} – {r.end_date || end} (5-Day Course)
                             </div>
                           </div>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
-                          <button onClick={() => setIvrModal({ open: true, item: r })} className="border border-stone-300 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-700 text-stone-700 dark:text-slate-300 text-xs font-medium px-2.5 py-1 rounded-lg cursor-pointer flex items-center gap-1 transition-colors">
-                            <PhoneIcon size={12} /> <span>2G Call</span>
+                          <button onClick={() => setIvrModal({ open: true, item: r })} className="border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold px-3 py-2 min-h-[44px] rounded-xl cursor-pointer flex items-center gap-1.5 transition-colors">
+                            <PhoneIcon size={14} /> <span>2G Call</span>
                           </button>
-                          <button onClick={() => playVoiceAudio(r)} className="border border-stone-300 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-700 text-stone-700 dark:text-slate-300 text-xs font-medium px-2.5 py-1 rounded-lg cursor-pointer transition-colors">
+                          <button onClick={() => playVoiceAudio(r)} className="border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold px-3 py-2 min-h-[44px] rounded-xl cursor-pointer transition-colors">
                             <span>Listen</span>
                           </button>
-                          <button onClick={() => handleToggleTaken(r.id, r.is_taken)} className="bg-[#0B4F42] hover:bg-[#07362d] dark:bg-teal-600 dark:hover:bg-teal-500 text-white px-3 py-1 rounded-lg text-xs font-bold cursor-pointer transition-colors shadow-xs">
+                          <button onClick={() => handleToggleTaken(r.id, r.is_taken)} className="bg-teal-700 hover:bg-teal-800 text-white px-4 py-2 min-h-[44px] rounded-xl text-xs font-bold cursor-pointer transition-all shadow-sm">
                             Mark Taken ✓
                           </button>
-                          <button onClick={() => handleDeleteReminder(r.id)} title="Delete Reminder" className="text-stone-400 hover:text-rose-600 dark:hover:text-rose-400 text-xs p-1 cursor-pointer transition-colors">
+                          <button onClick={() => handleDeleteReminder(r.id)} title="Delete Reminder" className="text-slate-400 hover:text-rose-600 min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer transition-colors">
                             🗑️
                           </button>
                         </div>
@@ -414,40 +414,40 @@ export const RemindersPage = () => {
 
             {/* NIGHT MEDS */}
             {nightMeds.length > 0 && (
-              <div className="bg-indigo-50/60 dark:bg-[#161F30] border border-indigo-200/80 dark:border-slate-800 rounded-2xl p-5 shadow-xs transition-colors">
-                <div className="flex items-center gap-2 mb-3">
-                  <MoonIcon size={20} className="text-indigo-600 dark:text-indigo-400" />
-                  <h2 className="text-base font-semibold text-indigo-950 dark:text-indigo-200">🌙 Night & Bedtime Medications ({nightMeds.length} pending)</h2>
+              <div className="bg-indigo-50/60 dark:bg-slate-900 border border-indigo-200/80 dark:border-slate-800 rounded-2xl p-6 shadow-sm transition-colors">
+                <div className="flex items-center gap-2.5 mb-4">
+                  <MoonIcon size={22} className="text-indigo-600 dark:text-indigo-400" />
+                  <h2 className="text-base font-bold text-indigo-950 dark:text-indigo-200">🌙 Night & Bedtime Medications ({nightMeds.length} pending)</h2>
                 </div>
-                <div className="space-y-2.5">
+                <div className="space-y-3">
                   {nightMeds.map((r) => {
                     const todayStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' });
                     const end = new Date(Date.now() + 4 * 86400000).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' });
                     return (
-                      <div key={r.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3.5 rounded-xl border border-indigo-200/80 dark:border-slate-700/80 bg-white dark:bg-slate-800/80 gap-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-indigo-100 dark:bg-indigo-900/60 rounded-lg flex items-center justify-center font-bold text-xs text-indigo-900 dark:text-indigo-200 shrink-0">
+                      <div key={r.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 gap-4 shadow-2xs">
+                        <div className="flex items-center gap-3.5">
+                          <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/60 rounded-xl flex items-center justify-center font-bold text-sm text-indigo-900 dark:text-indigo-200 shrink-0">
                             🔵
                           </div>
                           <div>
-                            <div className="font-semibold text-xs text-stone-900 dark:text-white">{r.medication_name || r.title}</div>
-                            <div className="text-[11px] text-stone-500 dark:text-slate-400">{r.instructions || r.dosage_note}</div>
-                            <div className="text-[10px] font-bold text-[#0B4F42] dark:text-teal-400 bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 px-2 py-0.5 rounded-full inline-block mt-1">
+                            <div className="font-extrabold text-xs text-slate-900 dark:text-white">{r.medication_name || r.title}</div>
+                            <div className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">{r.instructions || r.dosage_note}</div>
+                            <div className="text-[10px] font-extrabold text-teal-800 dark:text-teal-300 bg-emerald-50 dark:bg-teal-950/60 border border-emerald-200 dark:border-teal-800 px-2.5 py-0.5 rounded-full inline-block mt-1">
                               📅 {r.start_date || todayStr} – {r.end_date || end} (5-Day Course)
                             </div>
                           </div>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
-                          <button onClick={() => setIvrModal({ open: true, item: r })} className="border border-stone-300 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-700 text-stone-700 dark:text-slate-300 text-xs font-medium px-2.5 py-1 rounded-lg cursor-pointer flex items-center gap-1 transition-colors">
-                            <PhoneIcon size={12} /> <span>2G Call</span>
+                          <button onClick={() => setIvrModal({ open: true, item: r })} className="border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold px-3 py-2 min-h-[44px] rounded-xl cursor-pointer flex items-center gap-1.5 transition-colors">
+                            <PhoneIcon size={14} /> <span>2G Call</span>
                           </button>
-                          <button onClick={() => playVoiceAudio(r)} className="border border-stone-300 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-700 text-stone-700 dark:text-slate-300 text-xs font-medium px-2.5 py-1 rounded-lg cursor-pointer transition-colors">
+                          <button onClick={() => playVoiceAudio(r)} className="border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold px-3 py-2 min-h-[44px] rounded-xl cursor-pointer transition-colors">
                             <span>Listen</span>
                           </button>
-                          <button onClick={() => handleToggleTaken(r.id, r.is_taken)} className="bg-[#0B4F42] hover:bg-[#07362d] dark:bg-teal-600 dark:hover:bg-teal-500 text-white px-3 py-1 rounded-lg text-xs font-bold cursor-pointer transition-colors shadow-xs">
+                          <button onClick={() => handleToggleTaken(r.id, r.is_taken)} className="bg-teal-700 hover:bg-teal-800 text-white px-4 py-2 min-h-[44px] rounded-xl text-xs font-bold cursor-pointer transition-all shadow-sm">
                             Mark Taken ✓
                           </button>
-                          <button onClick={() => handleDeleteReminder(r.id)} title="Delete Reminder" className="text-stone-400 hover:text-rose-600 dark:hover:text-rose-400 text-xs p-1 cursor-pointer transition-colors">
+                          <button onClick={() => handleDeleteReminder(r.id)} title="Delete Reminder" className="text-slate-400 hover:text-rose-600 min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer transition-colors">
                             🗑️
                           </button>
                         </div>
@@ -463,37 +463,37 @@ export const RemindersPage = () => {
 
       {/* COMPLETED DOSES TODAY (DAILY ADHERENCE LOG) */}
       {completedReminders.length > 0 && (
-        <div className="bg-stone-50 dark:bg-slate-900/90 border border-stone-200 dark:border-slate-800 rounded-2xl p-5 space-y-3">
-          <div className="flex items-center justify-between border-b border-stone-200 dark:border-slate-800 pb-2">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
+        <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+            <h3 className="text-xs font-extrabold uppercase tracking-wider text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
               <span>✅ COMPLETED TODAY ({completedReminders.length})</span>
             </h3>
-            <span className="text-[11px] text-stone-500 dark:text-slate-400">Log saved for caregiver & ASHA tracking</span>
+            <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Log saved for caregiver & ASHA tracking</span>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             {completedReminders.map((r) => (
-              <div key={r.id} className="flex items-center justify-between p-3 rounded-xl bg-white dark:bg-slate-800/60 border border-emerald-200/80 dark:border-emerald-900/60 opacity-80 hover:opacity-100 transition-all">
-                <div className="flex items-center gap-3">
-                  <span className="text-emerald-600 dark:text-emerald-400 font-bold text-sm">✓</span>
+              <div key={r.id} className="flex items-center justify-between p-3.5 rounded-xl bg-white dark:bg-slate-800 border border-emerald-200 dark:border-emerald-900/60 transition-all shadow-2xs">
+                <div className="flex items-center gap-3.5">
+                  <span className="text-emerald-600 dark:text-emerald-400 font-bold text-base">✓</span>
                   <div>
-                    <div className="font-bold text-xs text-stone-900 dark:text-slate-100 line-through text-stone-500 dark:text-slate-400">
+                    <div className="font-bold text-xs line-through text-slate-500 dark:text-slate-400">
                       {r.medication_name || r.title}
                     </div>
-                    <div className="text-[11px] text-stone-500 dark:text-slate-400">{r.instructions || r.dosage_note}</div>
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400">{r.instructions || r.dosage_note}</div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   <button
                     onClick={() => handleToggleTaken(r.id, true)}
-                    className="text-[11px] font-semibold text-stone-500 dark:text-slate-400 hover:text-stone-800 dark:hover:text-slate-200 hover:underline cursor-pointer"
+                    className="text-[11px] font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:underline min-h-[44px] px-2 flex items-center cursor-pointer"
                   >
                     Undo (Mark Pending)
                   </button>
                   <button
                     onClick={() => handleDeleteReminder(r.id)}
-                    className="text-xs text-red-500 hover:text-red-700 cursor-pointer px-1"
+                    className="text-xs text-rose-500 hover:text-rose-700 min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer"
                     title="Delete Reminder"
                   >
                     🗑️
@@ -506,16 +506,16 @@ export const RemindersPage = () => {
       )}
       </>
       ) : (
-        <div className="bg-white dark:bg-[#161F30] border border-stone-200 dark:border-slate-800 rounded-3xl p-8 sm:p-12 text-center space-y-4 shadow-xs transition-colors">
-          <div className="w-16 h-16 rounded-2xl bg-teal-50 dark:bg-teal-950/80 border border-teal-200 dark:border-teal-800 text-[#0B4F42] dark:text-teal-400 flex items-center justify-center mx-auto text-2xl shadow-xs">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 sm:p-12 text-center space-y-4 shadow-sm transition-colors">
+          <div className="w-16 h-16 rounded-2xl bg-teal-50 dark:bg-teal-950 border border-teal-200 dark:border-teal-800 text-teal-700 dark:text-teal-400 flex items-center justify-center mx-auto text-2xl shadow-xs">
             📋
           </div>
           <div className="space-y-1.5 max-w-md mx-auto">
-            <h3 className="text-base sm:text-lg font-extrabold text-stone-900 dark:text-white">
+            <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">
               No Prescription Schedule Active
             </h3>
-            <p className="text-xs text-stone-600 dark:text-slate-400 leading-relaxed font-medium">
-              When a patient uploads a prescription in <strong className="text-[#0B4F42] dark:text-teal-400">Translate Rx</strong> or <strong className="text-[#0B4F42] dark:text-teal-400">Health Vault</strong>, their 5-Day Treatment Calendar & Alarms will be automatically created here.
+            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+              When a patient uploads a prescription in <strong className="text-teal-700 dark:text-teal-400">Translate Rx</strong> or <strong className="text-teal-700 dark:text-teal-400">Health Vault</strong>, their 5-Day Treatment Calendar & Alarms will be automatically created here.
             </p>
           </div>
         </div>

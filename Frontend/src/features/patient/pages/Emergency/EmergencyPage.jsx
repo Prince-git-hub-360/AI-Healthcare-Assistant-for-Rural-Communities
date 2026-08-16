@@ -57,21 +57,21 @@ export const EmergencyPage = () => {
   };
 
   return (
-    <div className="max-w-[1240px] mx-auto px-4 md:px-6 py-6 space-y-6 font-sans text-stone-900 dark:text-slate-100 transition-colors">
+    <div className="max-w-[1240px] mx-auto px-4 md:px-6 py-6 space-y-6 font-sans text-slate-900 dark:text-slate-100 transition-colors">
       {/* Emergency Call Header */}
-      <div className="bg-red-50 dark:bg-[#161F30] border border-red-200/80 dark:border-red-900/80 rounded-2xl p-5 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-colors">
-        <div className="flex items-center gap-3.5">
-          <div className="w-10 h-10 bg-red-600 text-white rounded-xl flex items-center justify-center font-bold text-lg shrink-0 shadow-xs">
-            <PhoneIcon size={22} color="#ffffff" />
+      <div className="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-5 transition-colors">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-rose-600 text-white rounded-2xl flex items-center justify-center font-extrabold text-xl shrink-0 shadow-md">
+            <PhoneIcon size={24} color="#ffffff" />
           </div>
-          <div className="space-y-0.5">
-            <span className="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider">
+          <div className="space-y-1">
+            <span className="bg-rose-600 text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded-md uppercase tracking-wider shadow-2xs">
               24/7 EMERGENCY ASSISTANCE
             </span>
-            <h1 className="text-xl sm:text-2xl font-bold text-red-950 dark:text-red-100 tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-rose-950 dark:text-rose-100 tracking-tight">
               National Health Emergency Hotline
             </h1>
-            <p className="text-xs text-red-900/80 dark:text-red-300 font-medium">
+            <p className="text-xs text-rose-900 dark:text-rose-300 font-semibold">
               Instant connection to 108 Rural Ambulance & Primary Health Response
             </p>
           </div>
@@ -79,69 +79,69 @@ export const EmergencyPage = () => {
 
         <a
           href="tel:108"
-          className="w-full md:w-auto bg-red-600 hover:bg-red-700 text-white font-semibold text-xs px-5 py-2.5 rounded-lg shadow-xs transition-colors text-center flex items-center justify-center gap-2 cursor-pointer shrink-0"
+          className="w-full md:w-auto bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs px-6 py-3.5 min-h-[48px] rounded-xl shadow-md transition-all text-center flex items-center justify-center gap-2 cursor-pointer shrink-0"
         >
-          <PhoneIcon size={16} color="#ffffff" />
+          <PhoneIcon size={18} color="#ffffff" />
           <span>Call 108 Emergency Now</span>
         </a>
       </div>
 
       {/* First-Aid Guidance in Local Language */}
-      <div className="bg-white dark:bg-[#161F30] border border-stone-200/80 dark:border-slate-800/80 rounded-2xl p-5 shadow-xs space-y-4 transition-colors">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-stone-100 dark:border-slate-800 pb-3">
-          <h2 className="text-base font-bold text-stone-900 dark:text-white flex items-center gap-2">
-            <AlertIcon size={20} className="text-[#0B4F42] dark:text-teal-400" />
+      <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-5 transition-colors">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
+          <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <AlertIcon size={22} className="text-teal-700 dark:text-teal-400" />
             <span>Instant First-Aid Guidance</span>
           </h2>
 
           <button
             onClick={playFirstAidAudio}
             disabled={playingTopicAudio}
-            className="border border-stone-300 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-800 text-stone-800 dark:text-slate-200 text-xs font-medium px-3.5 py-1.5 rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+            className="border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-bold px-4 py-2.5 min-h-[44px] rounded-xl transition-colors cursor-pointer flex items-center gap-2 disabled:opacity-50"
           >
-            <SpeakerIcon size={14} />
+            <SpeakerIcon size={16} />
             <span>{playingTopicAudio ? 'Reading Aloud...' : 'Listen Audio First-Aid'}</span>
           </button>
         </div>
 
         {/* Topic Tabs */}
-        <div className="flex flex-wrap gap-2 pb-1">
+        <div className="flex flex-wrap gap-2.5 pb-1">
           <button
             onClick={() => setSelectedTopic('snakebite')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+            className={`px-4 py-2.5 min-h-[44px] text-xs font-bold rounded-xl transition-all cursor-pointer ${
               selectedTopic === 'snakebite'
-                ? 'bg-[#0B4F42] dark:bg-teal-600 text-white shadow-xs'
-                : 'bg-stone-50 dark:bg-slate-800 text-stone-700 dark:text-slate-300 hover:bg-stone-100 dark:hover:bg-slate-700'
+                ? 'bg-teal-700 text-white shadow-sm'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
             }`}
           >
             🐍 Snakebite
           </button>
           <button
             onClick={() => setSelectedTopic('burns')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+            className={`px-4 py-2.5 min-h-[44px] text-xs font-bold rounded-xl transition-all cursor-pointer ${
               selectedTopic === 'burns'
-                ? 'bg-[#0B4F42] dark:bg-teal-600 text-white shadow-xs'
-                : 'bg-stone-50 dark:bg-slate-800 text-stone-700 dark:text-slate-300 hover:bg-stone-100 dark:hover:bg-slate-700'
+                ? 'bg-teal-700 text-white shadow-sm'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
             }`}
           >
             🔥 Burns
           </button>
           <button
             onClick={() => setSelectedTopic('fever')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+            className={`px-4 py-2.5 min-h-[44px] text-xs font-bold rounded-xl transition-all cursor-pointer ${
               selectedTopic === 'fever'
-                ? 'bg-[#0B4F42] dark:bg-teal-600 text-white shadow-xs'
-                : 'bg-stone-50 dark:bg-slate-800 text-stone-700 dark:text-slate-300 hover:bg-stone-100 dark:hover:bg-slate-700'
+                ? 'bg-teal-700 text-white shadow-sm'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
             }`}
           >
             🤒 High Fever
           </button>
           <button
             onClick={() => setSelectedTopic('cardiac')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+            className={`px-4 py-2.5 min-h-[44px] text-xs font-bold rounded-xl transition-all cursor-pointer ${
               selectedTopic === 'cardiac'
-                ? 'bg-[#0B4F42] dark:bg-teal-600 text-white shadow-xs'
-                : 'bg-stone-50 dark:bg-slate-800 text-stone-700 dark:text-slate-300 hover:bg-stone-100 dark:hover:bg-slate-700'
+                ? 'bg-teal-700 text-white shadow-sm'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
             }`}
           >
             🫀 Chest Pain
@@ -149,18 +149,18 @@ export const EmergencyPage = () => {
         </div>
 
         {/* Guide Content */}
-        <div className="bg-stone-50/80 dark:bg-slate-800/60 border border-stone-200/80 dark:border-slate-700/60 p-4 rounded-xl space-y-3">
-          <h3 className="font-bold text-stone-900 dark:text-white text-sm">
+        <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-5 rounded-2xl space-y-4">
+          <h3 className="font-extrabold text-slate-900 dark:text-white text-sm">
             {firstAidGuides[selectedTopic].title}
           </h3>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             {firstAidGuides[selectedTopic].steps.map((step, idx) => (
-              <div key={idx} className="flex items-start gap-2.5 bg-white dark:bg-slate-900 p-3 rounded-lg border border-stone-200/80 dark:border-slate-800 text-xs text-stone-800 dark:text-slate-200 shadow-xs">
-                <div className="w-5 h-5 bg-[#0B4F42] dark:bg-teal-600 text-white font-bold rounded-md flex items-center justify-center shrink-0 text-[11px]">
+              <div key={idx} className="flex items-start gap-3 bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 text-xs text-slate-800 dark:text-slate-200 shadow-2xs">
+                <div className="w-6 h-6 bg-teal-700 text-white font-extrabold rounded-lg flex items-center justify-center shrink-0 text-xs shadow-2xs">
                   {idx + 1}
                 </div>
-                <div className="font-normal leading-relaxed pt-0.5">{step}</div>
+                <div className="font-medium leading-relaxed pt-0.5">{step}</div>
               </div>
             ))}
           </div>
@@ -168,31 +168,35 @@ export const EmergencyPage = () => {
       </div>
 
       {/* Nearby Primary Health Centres Directory */}
-      <div className="bg-white dark:bg-[#161F30] border border-stone-200/80 dark:border-slate-800/80 rounded-2xl p-5 shadow-xs space-y-3.5 transition-colors">
-        <h2 className="text-base font-bold text-stone-900 dark:text-white flex items-center gap-2 border-b border-stone-100 dark:border-slate-800 pb-3">
-          <HospitalIcon size={20} className="text-[#0B4F42] dark:text-teal-400" />
+      <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4 transition-colors">
+        <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3.5">
+          <HospitalIcon size={22} className="text-teal-700 dark:text-teal-400" />
           <span>Nearby Primary Health Facilities</span>
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div className="bg-stone-50/80 dark:bg-slate-800/60 border border-stone-200/80 dark:border-slate-700/60 p-3.5 rounded-xl space-y-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 p-4.5 rounded-2xl space-y-3 shadow-2xs">
             <div>
-              <h4 className="font-bold text-stone-900 dark:text-white text-xs">Mandya Primary Health Centre #4</h4>
-              <p className="text-[11px] text-stone-500 dark:text-slate-400 mt-0.5">Main Road, Mandya District • 2.4 km away</p>
+              <h4 className="font-extrabold text-slate-900 dark:text-white text-xs">Mandya Primary Health Centre #4</h4>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium">Main Road, Mandya District • 2.4 km away</p>
             </div>
-            <div className="text-[11px] font-medium text-emerald-800 dark:text-emerald-300">Available: 24/7 Casualty, ASV Antivenom, Maternity Ward</div>
-            <a href="tel:08232220101" className="inline-flex items-center gap-1.5 bg-[#0B4F42] hover:bg-[#07362d] dark:bg-teal-600 dark:hover:bg-teal-500 text-white font-medium text-xs px-3 py-1.5 rounded-lg transition-colors">
+            <div className="text-[11px] font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 p-2 rounded-lg border border-emerald-200 dark:border-emerald-800">
+              Available: 24/7 Casualty, ASV Antivenom, Maternity Ward
+            </div>
+            <a href="tel:08232220101" className="inline-flex items-center gap-2 bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs px-4 py-2.5 min-h-[44px] rounded-xl transition-all cursor-pointer shadow-sm">
               <span>📞 Call Health Centre</span>
             </a>
           </div>
 
-          <div className="bg-stone-50/80 dark:bg-slate-800/60 border border-stone-200/80 dark:border-slate-700/60 p-3.5 rounded-xl space-y-2">
+          <div className="bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 p-4.5 rounded-2xl space-y-3 shadow-2xs">
             <div>
-              <h4 className="font-bold text-stone-900 dark:text-white text-xs">Hassan General Referral Hospital</h4>
-              <p className="text-[11px] text-stone-500 dark:text-slate-400 mt-0.5">B.M. Road, Hassan • 8.1 km away</p>
+              <h4 className="font-extrabold text-slate-900 dark:text-white text-xs">Hassan General Referral Hospital</h4>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium">B.M. Road, Hassan • 8.1 km away</p>
             </div>
-            <div className="text-[11px] font-medium text-emerald-800 dark:text-emerald-300">Available: ICU Support, Emergency Surgery, Oxygen Bank</div>
-            <a href="tel:08172230202" className="inline-flex items-center gap-1.5 bg-[#0B4F42] hover:bg-[#07362d] dark:bg-teal-600 dark:hover:bg-teal-500 text-white font-medium text-xs px-3 py-1.5 rounded-lg transition-colors">
+            <div className="text-[11px] font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 p-2 rounded-lg border border-emerald-200 dark:border-emerald-800">
+              Available: ICU Support, Emergency Surgery, Oxygen Bank
+            </div>
+            <a href="tel:08172230202" className="inline-flex items-center gap-2 bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs px-4 py-2.5 min-h-[44px] rounded-xl transition-all cursor-pointer shadow-sm">
               <span>📞 Call Referral Hospital</span>
             </a>
           </div>

@@ -1,140 +1,145 @@
 # AI-Powered Healthcare Communication Assistant for Rural Communities
 
-This repository contains the complete backend and frontend artifacts for the "AI-Powered Healthcare Communication Assistant for Rural Communities" project. It is built to help rural patients understand medical prescriptions, manage medication reminders, and receive multilingual health guidance through a scalable Django + React architecture.
+A production-grade, domain-driven healthcare communication platform designed for rural patients, healthcare workers (ASHA workers & Doctors), and family caregivers. It bridges language, literacy, and accessibility barriers using AI-powered voice guidance, OCR prescription parsing, multilingual translation, ABHA digital health cards, and automated medication reminders.
 
-## Repository Overview
+---
 
-- `Backend/` — Django REST API backend with PostgreSQL integration, domain apps, JWT authentication, and API routing.
-- `Frontend/` — React / Vite client application for user interaction and healthcare task workflows.
-- `.vscode/` — VS Code workspace settings for the local developer environment.
+## 🌟 Architecture & System Overview
 
-## Current Status
+```mermaid
+graph TD
+    User["👵 Rural Patient / 👩‍⚕️ Doctor / 👨‍👩‍👧 Caregiver"]
+    ReactClient["💻 React 19 Frontend (Vite)"]
+    DjangoAPI["⚙️ Django REST API (v1)"]
+    PostgresDB[(🗄️ PostgreSQL Database)]
+    MediaStorage["📁 Audio & Prescription Document Storage"]
 
-This repo is currently configured as a working full-stack project with:
+    User -->|Voice / UI Input| ReactClient
+    ReactClient -->|REST API / JWT Auth| DjangoAPI
+    DjangoAPI -->|ORM Queries| PostgresDB
+    DjangoAPI -->|Read / Write Media| MediaStorage
+```
 
-- a connected Django backend using PostgreSQL
-- a React frontend using Vite
-- dynamic 5-Day Treatment Calendar & Patient Medication Planner
-- shared API contract between frontend and backend
-- clean modular folder structure for both backend and frontend
-- local Git repository initialized and pushed to GitHub
+---
 
-## What evaluators should know
-
-This project is organized into a professional, modular architecture:
-
-- Backend modules are split by feature domain (`accounts`, `patients`, `medical`, `medications`, `reminders`, `translations`, `healthcare_workers`).
-- Frontend components are separated into reusable UI, page-level pages, API service layer, and application state context.
-- The design supports future AI, OCR, translation, and voice assistant capabilities without changing the core API contract.
-
-## Technology Stack
-
-- Backend: Python, Django 5.2, Django REST Framework, PostgreSQL, Simple JWT, drf-spectacular, django-cors-headers
-- Frontend: React 19, Vite, Oxlint
-- Environment: `.env` for backend configuration, local Node and Python tools
-
-## Root Repository Structure
+## 📁 Repository Structure
 
 ```
 AI-Healthcare-Assistant-for-Rural-Communities/
-├── Backend/
-│   ├── apps/                  # Django apps for each domain module
-│   ├── config/                # Django configuration and URL routing
-│   ├── media/                 # uploaded documents and generated audio files
-│   ├── requirements.txt       # Python backend dependencies
-│   ├── README.md              # Backend-specific documentation
-│   └── manage.py              # Django management entry point
-├── Frontend/
-│   ├── public/                # frontend static assets
-│   ├── src/                   # React source code
-│   │   ├── api/               # frontend API service layer
-│   │   ├── components/        # reusable UI components
-│   │   ├── context/           # auth and app context state
-│   │   ├── pages/             # page-level route components
-│   │   └── styles/            # shared CSS styles
-│   ├── package.json           # frontend dependencies
-│   ├── README.md              # Frontend-specific documentation
-│   └── requirements.txt       # frontend dependency notes
-├── .vscode/                   # recommended VS Code workspace settings
-├── .gitignore
-└── README.md                  # project-level documentation
+├── Backend/                            # Django REST Framework Backend
+│   ├── apps/                           # Domain-Driven Django Modules
+│   │   ├── accounts/                   # User Auth, Profiles & Role Management (Patient/Doctor/Caregiver)
+│   │   ├── healthcare_workers/         # ASHA Worker & Doctor Management, Follow-ups
+│   │   ├── medical/                    # Medical Records, Consultations & Emergency Alerts
+│   │   ├── medications/                # Prescriptions, OCR Parsing & Drug Directories
+│   │   ├── patients/                   # Patient Master Data & ABHA Health Card Integration
+│   │   ├── reminders/                  # Medication Scheduling, Adherence & Alarm Logs
+│   │   └── translations/               # Multilingual Voice Guidance & Translation Engine
+│   ├── common/                         # Shared Helpers, Exception Handlers & Utilities
+│   ├── config/                         # Django Settings, URL Router & OpenAPI Docs Config
+│   ├── media/                          # Uploaded Prescriptions & Generated Voice Audio Files
+│   ├── scripts/                        # Database Seeding, Test Verification & Maintenance Scripts
+│   ├── manage.py                       # Django CLI Entry Point
+│   ├── requirements.txt                # Backend Python Dependencies
+│   └── README.md                       # Backend Architecture Specification
+│
+├── Frontend/                           # React 19 + Vite Single Page Application
+│   ├── public/                         # Static Assets (Icons, Badges & Audio Files)
+│   ├── src/                            # Modular React Application Source
+│   │   ├── app/                        # Application Entry, Router & Provider Config
+│   │   ├── components/                 # Reusable UI Components (Navbar, Modals, Badges)
+│   │   ├── features/                   # Feature Modules (Patient, Doctor, ASHA, Caregiver)
+│   │   │   ├── caregiver/              # Caregiver Dashboard & Patient Monitoring
+│   │   │   ├── healthcare-worker/      # Doctor & ASHA Worker Workflows
+│   │   │   ├── patient/                # Patient Vault, Voice Assistant & Prescription Translator
+│   │   │   └── public/                 # Landing Pages, About & How It Works
+│   │   ├── pages/                      # Top-level Page Views & Auth Login/Register Forms
+│   │   ├── services/                   # HTTP Client, JWT Interceptors & API Service Layer
+│   │   ├── shared/                     # Shared React Contexts, Hooks & UI Utility Icons
+│   │   └── utils/                      # Route Constants, Speech Synthesis & Formatting Helpers
+│   ├── index.html                      # HTML5 Entry Blueprint
+│   ├── package.json                    # Frontend Node Dependencies & Scripts
+│   ├── vite.config.js                  # Vite Dev Server & Proxy Configuration
+│   └── README.md                       # Frontend Specification
+│
+├── .gitignore                          # Excludes venv, node_modules, .env & Build Outputs
+└── README.md                           # Master Project Overview & Mentor Guide
 ```
 
-## How to Run the Project
+---
 
-### Backend
+## ⚡ Key Features
 
-1. Open a terminal and change directory into `Backend`.
-2. Create and activate a Python virtual environment:
+1. **Role-Based Portals**: Tailored interfaces for Patients, Doctors / ASHA Workers, and Caregivers.
+2. **Smart Authentication**:
+   - Differentiates between missing accounts (`USER_NOT_FOUND`) and invalid passwords (`INVALID_PASSWORD`).
+   - Guides unregistered users directly to account creation.
+3. **Multilingual Voice Guidance**: Built-in text-to-speech supporting 12+ Indian regional languages (Hindi, Bengali, Tamil, Telugu, Marathi, etc.).
+4. **OCR Prescription Translation**: Converts complex medical prescriptions into simplified, localized instructions.
+5. **Interactive Treatment Planner**: Dynamic 5-day visual pillbox calendar and automated adherence tracking.
+6. **Digital Health Vault**: ABHA health card generation, emergency QR access, and medical document uploads.
+
+---
+
+## 🛠️ Technology Stack
+
+| Layer | Technology |
+| :--- | :--- |
+| **Backend Framework** | Django 5.2 & Django REST Framework (DRF) |
+| **Database** | PostgreSQL |
+| **Authentication** | Simple JWT (JSON Web Tokens) with auto-refresh |
+| **API Documentation** | OpenAPI 3.0 via `drf-spectacular` & Swagger UI |
+| **Frontend Framework** | React 19 SPA powered by Vite |
+| **Styling** | Vanilla CSS3 + Tailwind CSS |
+| **Voice & Speech** | Web Speech Synthesis API & Local Audio Generators |
+
+---
+
+## 🚀 How to Run the Project locally
+
+### 1. Start Backend Server (Django)
 
 ```powershell
 cd Backend
-python -m venv venv
-.\venv\Scripts\activate
-```
 
-3. Install dependencies:
+# Activate virtual environment
+.\venv\Scripts\activate      # Windows (PowerShell)
+# source venv/bin/activate   # Linux/macOS
 
-```powershell
-pip install -r requirements.txt
-```
-
-4. Create or verify the `.env` file contains your database configuration.
-5. Apply migrations:
-
-```powershell
+# Apply database migrations
 python manage.py migrate
-```
 
-6. Run the backend server:
-
-```powershell
+# Start Django development server
 python manage.py runserver
 ```
+> Backend runs at: `http://127.0.0.1:8000/`  
+> OpenAPI Docs (Swagger): `http://127.0.0.1:8000/api/schema/swagger-ui/`
 
-The backend will start on `http://127.0.0.1:8000/`.
+### 2. Start Frontend Server (React + Vite)
 
-### Frontend
-
-1. Open a terminal and change directory into `Frontend`.
+Open a new terminal tab:
 
 ```powershell
 cd Frontend
-```
 
-2. Install dependencies:
-
-```powershell
+# Install npm dependencies (if not installed)
 npm install
-```
 
-3. Run the frontend dev server:
-
-```powershell
+# Start Vite dev server
 npm run dev
 ```
+> Frontend runs at: `http://localhost:5173/`
 
-By default, the frontend runs on a Vite development server and consumes backend APIs from `/api/v1/`.
+---
 
-## API Contract Summary
+## 📡 Primary API Endpoints
 
-The backend exposes a REST API under `http://127.0.0.1:8000/api/` and `http://127.0.0.1:8000/api/v1/`.
-
-Important API groups:
-
-- Authentication: `/api/v1/auth/`
-- Patients: `/api/v1/patients/`
-- Healthcare workers: `/api/v1/healthcare-workers/`
-- Medical documents: `/api/v1/medical-documents/`
-- Medications: `/api/v1/medications/`
-- Reminders: `/api/v1/reminders/`
-- Translations and voice endpoints: `/api/v1/translations/`, `/api/v1/voice/`
-- Offline sync and health check: `/api/v1/sync/`
-
-## Notes for Evaluators
-
-- This is a backend-first MVP architecture that is already integrated with the frontend.
-- The current implementation preserves the evaluated backend/frontend contract and adds professional structure.
-- Future improvements are designed to fit cleanly into the existing domain architecture.
-
-For more details on the backend and frontend modules, please see `Backend/README.md` and `Frontend/README.md`.
+| Endpoint | Method | Description |
+| :--- | :--- | :--- |
+| `/api/v1/auth/login/` | `POST` | User login (returns JWT tokens + user profile) |
+| `/api/v1/auth/register/` | `POST` | User registration (Patient / Doctor / Caregiver) |
+| `/api/v1/patients/profile/` | `GET / PUT` | Patient profile & ABHA card details |
+| `/api/v1/medications/prescriptions/` | `GET / POST` | Upload & list prescriptions for OCR parsing |
+| `/api/v1/reminders/` | `GET / POST` | Active medication reminders & adherence logs |
+| `/api/v1/medical/emergency/` | `GET / POST` | Emergency SOS trigger & contact notifications |
+| `/api/v1/translations/` | `POST` | Multilingual text & prescription translation |

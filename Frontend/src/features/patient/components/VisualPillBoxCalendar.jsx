@@ -31,11 +31,11 @@ export const VisualPillBoxCalendar = ({ reminders = [], onToggleTaken, onDeleteR
 
   const rawList = Array.isArray(reminders) ? reminders : [];
 
-  // Determine overall treatment course duration (dynamically from items or default to 5 days)
-  const maxDuration = Math.max(
-    5,
-    ...rawList.map((r) => r.duration_days || r.durationDays || 5)
-  );
+  // Determine overall treatment course duration (dynamically from prescription items, e.g. 3 days, 5 days, 7 days)
+  const durationValues = rawList
+    .map((r) => r.duration_days || r.durationDays || r.duration)
+    .filter((d) => typeof d === 'number' && d > 0);
+  const maxDuration = durationValues.length > 0 ? Math.max(...durationValues) : 5;
 
   // Generate dynamic date objects for the course duration
   const todayDate = new Date();
@@ -290,21 +290,21 @@ export const VisualPillBoxCalendar = ({ reminders = [], onToggleTaken, onDeleteR
         {/* 3. TIME OF DAY SECTIONS (MORNING / AFTERNOON / NIGHT) */}
         
         {/* 🌅 MORNING SECTION (7:00 AM - 8:00 AM) */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
+        <div className="bg-[#FFFBEB]/80 dark:bg-[#2A1F08]/60 border border-amber-200/90 dark:border-amber-900/60 rounded-2xl p-4 space-y-3 shadow-2xs">
+          <div className="flex items-center justify-between border-b border-amber-200/60 dark:border-amber-900/40 pb-2">
             <div className="flex items-center gap-2">
-              <SunriseIcon size={18} className="text-amber-600 dark:text-amber-400" />
-              <h4 className="text-sm font-extrabold text-stone-900 dark:text-white uppercase tracking-wider">
+              <SunriseIcon size={18} className="text-amber-700 dark:text-amber-400" />
+              <h4 className="text-xs sm:text-sm font-black text-amber-950 dark:text-amber-100 uppercase tracking-wider">
                 🌅 MORNING (7:00 AM – 8:00 AM)
               </h4>
             </div>
-            <span className="text-xs font-semibold text-stone-500 dark:text-slate-400">
+            <span className="text-xs font-bold text-amber-800 dark:text-amber-300">
               {morning.length} {morning.length === 1 ? 'medicine' : 'medicines'}
             </span>
           </div>
 
           {morning.length === 0 ? (
-            <div className="bg-white dark:bg-slate-800/40 border border-dashed border-stone-200 dark:border-slate-800 rounded-xl p-3 text-xs text-stone-400 dark:text-slate-500 font-medium">
+            <div className="bg-white/80 dark:bg-slate-800/60 border border-dashed border-amber-200 dark:border-amber-900/40 rounded-xl p-3 text-xs text-amber-800/70 dark:text-amber-300/70 font-medium">
               No morning medicines scheduled for this date.
             </div>
           ) : (
@@ -327,21 +327,21 @@ export const VisualPillBoxCalendar = ({ reminders = [], onToggleTaken, onDeleteR
         </div>
 
         {/* ☀️ AFTERNOON SECTION (1:00 PM - 3:00 PM) */}
-        <div className="space-y-3 pt-2">
-          <div className="flex items-center justify-between">
+        <div className="bg-[#F0F9FF]/80 dark:bg-[#0C2438]/60 border border-sky-200/90 dark:border-sky-900/60 rounded-2xl p-4 space-y-3 shadow-2xs">
+          <div className="flex items-center justify-between border-b border-sky-200/60 dark:border-sky-900/40 pb-2">
             <div className="flex items-center gap-2">
-              <SunIcon size={18} className="text-sky-600 dark:text-sky-400" />
-              <h4 className="text-sm font-extrabold text-stone-900 dark:text-white uppercase tracking-wider">
+              <SunIcon size={18} className="text-sky-700 dark:text-sky-400" />
+              <h4 className="text-xs sm:text-sm font-black text-sky-950 dark:text-sky-100 uppercase tracking-wider">
                 ☀️ AFTERNOON (1:00 PM – 3:00 PM)
               </h4>
             </div>
-            <span className="text-xs font-semibold text-stone-500 dark:text-slate-400">
+            <span className="text-xs font-bold text-sky-800 dark:text-sky-300">
               {afternoon.length} {afternoon.length === 1 ? 'medicine' : 'medicines'}
             </span>
           </div>
 
           {afternoon.length === 0 ? (
-            <div className="bg-white dark:bg-slate-800/40 border border-dashed border-stone-200 dark:border-slate-800 rounded-xl p-3 text-xs text-stone-400 dark:text-slate-500 font-medium">
+            <div className="bg-white/80 dark:bg-slate-800/60 border border-dashed border-sky-200 dark:border-sky-900/40 rounded-xl p-3 text-xs text-sky-800/70 dark:text-sky-300/70 font-medium">
               No afternoon medicines scheduled for this date.
             </div>
           ) : (
@@ -364,21 +364,21 @@ export const VisualPillBoxCalendar = ({ reminders = [], onToggleTaken, onDeleteR
         </div>
 
         {/* 🌙 NIGHT SECTION (8:00 PM - 10:00 PM) */}
-        <div className="space-y-3 pt-2">
-          <div className="flex items-center justify-between">
+        <div className="bg-[#EEF2FF]/80 dark:bg-[#1E1B4B]/60 border border-indigo-200/90 dark:border-indigo-900/60 rounded-2xl p-4 space-y-3 shadow-2xs">
+          <div className="flex items-center justify-between border-b border-indigo-200/60 dark:border-indigo-900/40 pb-2">
             <div className="flex items-center gap-2">
-              <MoonIcon size={18} className="text-indigo-600 dark:text-indigo-400" />
-              <h4 className="text-sm font-extrabold text-stone-900 dark:text-white uppercase tracking-wider">
+              <MoonIcon size={18} className="text-indigo-700 dark:text-indigo-400" />
+              <h4 className="text-xs sm:text-sm font-black text-indigo-950 dark:text-indigo-100 uppercase tracking-wider">
                 🌙 NIGHT (8:00 PM – 10:00 PM)
               </h4>
             </div>
-            <span className="text-xs font-semibold text-stone-500 dark:text-slate-400">
+            <span className="text-xs font-bold text-indigo-800 dark:text-indigo-300">
               {night.length} {night.length === 1 ? 'medicine' : 'medicines'}
             </span>
           </div>
 
           {night.length === 0 ? (
-            <div className="bg-white dark:bg-slate-800/40 border border-dashed border-stone-200 dark:border-slate-800 rounded-xl p-3 text-xs text-stone-400 dark:text-slate-500 font-medium">
+            <div className="bg-white/80 dark:bg-slate-800/60 border border-dashed border-indigo-200 dark:border-indigo-900/40 rounded-xl p-3 text-xs text-indigo-800/70 dark:text-indigo-300/70 font-medium">
               No night medicines scheduled for this date.
             </div>
           ) : (

@@ -101,8 +101,24 @@ export async function request(endpoint, options = {}, isRetry = false) {
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      const errorMsg = data.detail || data.message || (typeof data === 'object' ? JSON.stringify(data) : 'API Request Failed');
-      throw new Error(errorMsg);
+      let errorMsg = data.detail || data.message;
+      if (Array.isArray(errorMsg)) {
+        errorMsg = errorMsg[0];
+      }
+      if (!errorMsg) {
+        errorMsg = typeof data === 'object' ? JSON.stringify(data) : 'API Request Failed';
+      }
+
+      let errorCode = data.error_code;
+      if (Array.isArray(errorCode)) {
+        errorCode = errorCode[0];
+      }
+
+      const error = new Error(errorMsg);
+      error.errorCode = errorCode || null;
+      error.responseData = data;
+      error.status = response.status;
+      throw error;
     }
 
     return data;

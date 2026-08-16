@@ -112,8 +112,9 @@ export const MedicalDocuments = () => {
     if (!window.confirm('Are you sure you want to delete this medical record?')) return;
     try {
       await api.deleteMedicalDocument(docId);
-      showToast('Medical record deleted.', 'info');
+      showToast('Medical record & associated reminders deleted.', 'info');
       if (selectedDoc?.id === docId) setSelectedDoc(null);
+      window.dispatchEvent(new Event('swasthya_reminders_updated'));
       fetchDocuments();
     } catch (err) {
       showToast(err.message || 'Failed to delete record.', 'error');

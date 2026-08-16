@@ -88,7 +88,8 @@ class MedicalDocumentViewSet(viewsets.ModelViewSet):
             pass
 
         try:
-            PrescriptionParserService.process_prescription_document(doc)
+            ocr_meds = ocr_data.get('medications') if isinstance(ocr_data, dict) else None
+            PrescriptionParserService.process_prescription_document(doc, ocr_medications=ocr_meds)
             doc.refresh_from_db()
         except Exception:
             pass
@@ -107,14 +108,14 @@ class MedicalDocumentViewSet(viewsets.ModelViewSet):
     def perform_destroy(self, instance):
         """Cascade delete all linked medication reminders when a prescription is deleted."""
         try:
-            from medications.models import Medication
-            Medication.objects.filter(document=instance).delete()
+            from reminders.models import Reminder
+            Reminder.objects.filter(medication__document=instance).delete()
         except Exception:
             pass
 
         try:
-            from reminders.models import Reminder
-            Reminder.objects.filter(document=instance).delete()
+            from medications.models import Medication
+            Medication.objects.filter(document=instance).delete()
         except Exception:
             pass
 

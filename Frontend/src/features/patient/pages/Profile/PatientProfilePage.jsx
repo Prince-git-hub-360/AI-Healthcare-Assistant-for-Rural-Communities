@@ -184,17 +184,17 @@ export const PatientProfilePage = () => {
     : 'Patient';
 
   return (
-    <div className="max-w-[1240px] mx-auto px-4 md:px-6 py-6 space-y-6 font-sans text-stone-900 dark:text-slate-100 transition-colors">
+    <div className="max-w-[1240px] mx-auto px-4 md:px-6 py-6 space-y-6 font-sans text-slate-900 dark:text-slate-100 transition-colors">
       {/* HEADER */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-[#161F30] border border-stone-200/80 dark:border-slate-800/80 rounded-2xl p-5 shadow-xs transition-colors">
-        <div className="space-y-0.5">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-[#0B4F42] dark:text-teal-400">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 shadow-sm transition-colors">
+        <div className="space-y-1">
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-teal-700 dark:text-teal-400">
             PATIENT ACCOUNT
           </span>
-          <h1 className="text-2xl sm:text-3xl font-bold text-stone-900 dark:text-white tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
             My Profile & Settings
           </h1>
-          <p className="text-xs text-stone-500 dark:text-slate-400 font-normal">
+          <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
             Manage your personal information, preferences and accessibility options.
           </p>
         </div>
@@ -204,17 +204,17 @@ export const PatientProfilePage = () => {
             <button
               type="button"
               onClick={() => setIsEditing(true)}
-              className="bg-[#0B4F42] hover:bg-[#07362d] dark:bg-teal-600 dark:hover:bg-teal-500 text-white font-medium text-xs py-2 px-3.5 rounded-lg shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+              className="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs px-4 py-3 min-h-[44px] rounded-xl shadow-sm transition-all flex items-center gap-2 cursor-pointer"
             >
               <span>✏️ Edit Profile</span>
             </button>
           ) : (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <button
                 type="button"
                 onClick={handleCancel}
                 disabled={saving}
-                className="border border-stone-300 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-800 text-stone-700 dark:text-slate-300 font-medium text-xs py-2 px-3 rounded-lg transition-colors cursor-pointer"
+                className="border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs px-4 py-3 min-h-[44px] rounded-xl transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -222,7 +222,7 @@ export const PatientProfilePage = () => {
                 type="button"
                 onClick={handleSave}
                 disabled={saving}
-                className="bg-[#0B4F42] hover:bg-[#07362d] dark:bg-teal-600 dark:hover:bg-teal-500 text-white font-medium text-xs py-2 px-3.5 rounded-lg shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                className="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs px-5 py-3 min-h-[44px] rounded-xl shadow-sm transition-colors cursor-pointer disabled:opacity-50"
               >
                 {saving ? 'Saving...' : 'Save Changes'}
               </button>
@@ -232,7 +232,7 @@ export const PatientProfilePage = () => {
       </div>
 
         {/* PROFILE SUMMARY CARD */}
-        <div className="bg-white border border-stone-200 rounded-3xl p-6 md:p-8 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 md:p-8 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-6 transition-colors">
           <div className="flex flex-col sm:flex-row items-center sm:items-start lg:items-center gap-5">
             {/* Left: Circular Photo */}
             <div className="relative group">
@@ -240,10 +240,10 @@ export const PatientProfilePage = () => {
                 <img
                   src={formData.profile_photo}
                   alt={fullNameDisplay}
-                  className="w-20 h-20 rounded-full object-cover border-2 border-teal-800 shadow-sm"
+                  className="w-20 h-20 rounded-full object-cover border-2 border-teal-700 dark:border-teal-400 shadow-sm"
                 />
               ) : (
-                <div className="w-20 h-20 bg-teal-800 text-white rounded-full flex items-center justify-center text-3xl font-extrabold shadow-sm">
+                <div className="w-20 h-20 bg-teal-700 text-white rounded-full flex items-center justify-center text-3xl font-extrabold shadow-sm">
                   {fullNameDisplay.charAt(0).toUpperCase()}
                 </div>
               )}
@@ -251,7 +251,7 @@ export const PatientProfilePage = () => {
               {isEditing && (
                 <label
                   htmlFor="avatar-upload"
-                  className="absolute bottom-0 right-0 bg-stone-900 text-white p-2 rounded-full cursor-pointer shadow-md hover:bg-teal-800 transition-colors text-xs"
+                  className="absolute bottom-0 right-0 bg-slate-900 text-white p-2 rounded-full cursor-pointer shadow-md hover:bg-teal-700 transition-colors text-xs"
                   title="Upload profile photo"
                 >
                   📷
@@ -269,17 +269,17 @@ export const PatientProfilePage = () => {
             {/* Center: Details */}
             <div className="text-center sm:text-left space-y-1">
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                <h2 className="text-xl font-extrabold text-stone-900">{fullNameDisplay}</h2>
-                <span className="bg-teal-100 text-teal-900 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase">
+                <h2 className="text-xl font-extrabold text-slate-900 dark:text-white">{fullNameDisplay}</h2>
+                <span className="bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase">
                   Patient
                 </span>
               </div>
-              <p className="text-xs font-mono text-stone-500 font-semibold">
+              <p className="text-xs font-mono text-slate-500 dark:text-slate-400 font-semibold">
                 @{user?.username || 'username'}
               </p>
-              <div className="flex items-center justify-center sm:justify-start gap-2 text-xs font-semibold text-stone-700 pt-1">
+              <div className="flex items-center justify-center sm:justify-start gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 pt-1">
                 <span>📞 {user?.profile?.phone_number || user?.username || '+91 XXXXX XXXXX'}</span>
-                <span className="text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md text-[10px] font-extrabold flex items-center gap-1">
+                <span className="text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5 rounded-md text-[10px] font-extrabold flex items-center gap-1">
                   ✓ Verified
                 </span>
               </div>
@@ -287,46 +287,46 @@ export const PatientProfilePage = () => {
           </div>
 
           {/* Right: Profile Completion Progress Indicator */}
-          <div className="bg-stone-50 border border-stone-200 p-4 md:p-5 rounded-2xl space-y-2 min-w-[240px]">
-            <div className="flex justify-between items-center text-xs font-bold">
-              <span className="text-stone-700">Profile Completion</span>
-              <span className="text-teal-800 font-extrabold">{completionPercentage}%</span>
+          <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-5 rounded-2xl space-y-2.5 min-w-[260px]">
+            <div className="flex justify-between items-center text-xs font-extrabold">
+              <span className="text-slate-800 dark:text-slate-200">Profile Completion</span>
+              <span className="text-teal-700 dark:text-teal-400 font-extrabold">{completionPercentage}%</span>
             </div>
-            <div className="w-full bg-stone-200 h-2.5 rounded-full overflow-hidden">
+            <div className="w-full bg-slate-200 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden">
               <div
-                className="bg-teal-700 h-full rounded-full transition-all duration-500"
+                className="bg-teal-700 dark:bg-teal-400 h-full rounded-full transition-all duration-500"
                 style={{ width: `${completionPercentage}%` }}
               />
             </div>
-            <p className="text-[11px] text-stone-500 font-medium">
+            <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">
               {completionPercentage >= 80 ? 'Your profile is well detailed.' : 'Complete missing fields for better care assistance.'}
             </p>
           </div>
         </div>
 
         {/* TWO-COLUMN CONTENT GRID */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* LEFT COLUMN */}
-          <div className="space-y-8">
+          <div className="space-y-6">
             {/* 1. PERSONAL INFORMATION */}
-            <div className="bg-white border border-stone-200 rounded-3xl p-6 md:p-8 shadow-sm space-y-5">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 md:p-8 shadow-sm space-y-5 transition-colors">
               <div>
-                <h2 className="text-lg font-extrabold text-stone-900">Personal Information</h2>
-                <p className="text-xs text-stone-500">Keep your basic information up to date.</p>
+                <h2 className="text-lg font-extrabold text-slate-900 dark:text-white">Personal Information</h2>
+                <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Keep your basic information up to date.</p>
               </div>
 
               <div className="space-y-4 text-xs">
                 <div>
-                  <label className="font-bold text-stone-700 block mb-1">Full Name</label>
+                  <label className="font-bold text-slate-800 dark:text-slate-200 block mb-1.5">Full Name</label>
                   {isEditing ? (
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-2 gap-3">
                       <input
                         type="text"
                         name="first_name"
                         value={formData.first_name}
                         onChange={handleChange}
                         placeholder="First Name"
-                        className="rounded-xl border border-stone-300 bg-stone-50 px-3.5 py-2.5 text-xs text-stone-900 outline-none focus:border-teal-700 focus:bg-white font-medium"
+                        className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3.5 py-3 min-h-[44px] text-xs text-slate-900 dark:text-slate-100 outline-none focus:border-teal-700 font-medium"
                       />
                       <input
                         type="text"
@@ -334,20 +334,20 @@ export const PatientProfilePage = () => {
                         value={formData.last_name}
                         onChange={handleChange}
                         placeholder="Last Name"
-                        className="rounded-xl border border-stone-300 bg-stone-50 px-3.5 py-2.5 text-xs text-stone-900 outline-none focus:border-teal-700 focus:bg-white font-medium"
+                        className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3.5 py-3 min-h-[44px] text-xs text-slate-900 dark:text-slate-100 outline-none focus:border-teal-700 font-medium"
                       />
                     </div>
                   ) : (
-                    <div className="bg-stone-50 border border-stone-200 p-3 rounded-xl font-bold text-stone-900">
+                    <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3.5 rounded-xl font-bold text-slate-900 dark:text-slate-100">
                       {fullNameDisplay}
                     </div>
                   )}
                 </div>
 
                 <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <label className="font-bold text-stone-700">Username</label>
-                    <span className="text-[10px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md flex items-center gap-1">
+                  <div className="flex justify-between items-center mb-1.5">
+                    <label className="font-bold text-slate-800 dark:text-slate-200">Username</label>
+                    <span className="text-[10px] font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 px-2 py-0.5 rounded-md flex items-center gap-1">
                       🔒 Read Only
                     </span>
                   </div>
@@ -355,14 +355,14 @@ export const PatientProfilePage = () => {
                     type="text"
                     disabled
                     value={user?.username || ''}
-                    className="w-full rounded-xl border border-stone-200 bg-stone-100/70 px-3.5 py-2.5 text-xs font-mono font-bold text-stone-600 cursor-not-allowed outline-none"
+                    className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/50 px-3.5 py-3 min-h-[44px] text-xs font-mono font-bold text-slate-600 dark:text-slate-400 cursor-not-allowed outline-none"
                   />
                 </div>
 
                 <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <label className="font-bold text-stone-700">Mobile Number</label>
-                    <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md flex items-center gap-1">
+                  <div className="flex justify-between items-center mb-1.5">
+                    <label className="font-bold text-slate-800 dark:text-slate-200">Mobile Number</label>
+                    <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5 rounded-md flex items-center gap-1">
                       ✓ Verified
                     </span>
                   </div>
@@ -370,13 +370,13 @@ export const PatientProfilePage = () => {
                     type="text"
                     disabled
                     value={user?.profile?.phone_number || user?.username || '+91 XXXXX XXXXX'}
-                    className="w-full rounded-xl border border-stone-200 bg-stone-100/70 px-3.5 py-2.5 text-xs font-mono font-bold text-stone-600 cursor-not-allowed outline-none"
+                    className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/50 px-3.5 py-3 min-h-[44px] text-xs font-mono font-bold text-slate-600 dark:text-slate-400 cursor-not-allowed outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="font-bold text-stone-700 block mb-1">
-                    Email Address <span className="text-stone-400 font-normal">(Optional)</span>
+                  <label className="font-bold text-slate-800 dark:text-slate-200 block mb-1.5">
+                    Email Address <span className="text-slate-400 font-normal">(Optional)</span>
                   </label>
                   {isEditing ? (
                     <div>
@@ -386,14 +386,14 @@ export const PatientProfilePage = () => {
                         value={formData.email}
                         onChange={handleChange}
                         placeholder="email@example.com"
-                        className={`w-full rounded-xl border px-3.5 py-2.5 text-xs text-stone-900 outline-none transition ${
-                          emailError ? 'border-red-500 bg-red-50/20' : 'border-stone-300 bg-stone-50 focus:border-teal-700 focus:bg-white'
+                        className={`w-full rounded-xl border px-3.5 py-3 min-h-[44px] text-xs text-slate-900 dark:text-slate-100 outline-none transition ${
+                          emailError ? 'border-rose-500 bg-rose-50/20' : 'border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:border-teal-700'
                         }`}
                       />
-                      {emailError && <p className="text-[11px] text-red-600 font-bold mt-1">{emailError}</p>}
+                      {emailError && <p className="text-[11px] text-rose-600 font-bold mt-1">{emailError}</p>}
                     </div>
                   ) : (
-                    <div className="bg-stone-50 border border-stone-200 p-3 rounded-xl font-medium text-stone-900">
+                    <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3.5 rounded-xl font-medium text-slate-900 dark:text-slate-100">
                       {user?.email || 'Not provided'}
                     </div>
                   )}
@@ -401,30 +401,30 @@ export const PatientProfilePage = () => {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="font-bold text-stone-700 block mb-1">Date of Birth</label>
+                    <label className="font-bold text-slate-800 dark:text-slate-200 block mb-1.5">Date of Birth</label>
                     {isEditing ? (
                       <input
                         type="date"
                         name="date_of_birth"
                         value={formData.date_of_birth}
                         onChange={handleChange}
-                        className="w-full rounded-xl border border-stone-300 bg-stone-50 px-3 py-2 text-xs text-stone-900 outline-none focus:border-teal-700 focus:bg-white"
+                        className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3.5 py-3 min-h-[44px] text-xs text-slate-900 dark:text-slate-100 outline-none focus:border-teal-700"
                       />
                     ) : (
-                      <div className="bg-stone-50 border border-stone-200 p-3 rounded-xl font-medium text-stone-900">
+                      <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3.5 rounded-xl font-medium text-slate-900 dark:text-slate-100">
                         {formData.date_of_birth || 'Not provided'}
                       </div>
                     )}
                   </div>
 
                   <div>
-                    <label className="font-bold text-stone-700 block mb-1">Gender</label>
+                    <label className="font-bold text-slate-800 dark:text-slate-200 block mb-1.5">Gender</label>
                     {isEditing ? (
                       <select
                         name="gender"
                         value={formData.gender}
                         onChange={handleChange}
-                        className="w-full rounded-xl border border-stone-300 bg-stone-50 px-3 py-2 text-xs text-stone-900 outline-none focus:border-teal-700 focus:bg-white"
+                        className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3.5 py-3 min-h-[44px] text-xs text-slate-900 dark:text-slate-100 outline-none focus:border-teal-700 cursor-pointer"
                       >
                         <option value="PREFER_NOT_TO_SAY">Prefer Not To Say</option>
                         <option value="M">Male</option>
@@ -432,7 +432,7 @@ export const PatientProfilePage = () => {
                         <option value="O">Other</option>
                       </select>
                     ) : (
-                      <div className="bg-stone-50 border border-stone-200 p-3 rounded-xl font-medium text-stone-900">
+                      <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3.5 rounded-xl font-medium text-slate-900 dark:text-slate-100">
                         {formData.gender === 'M' ? 'Male' : formData.gender === 'F' ? 'Female' : formData.gender === 'O' ? 'Other' : 'Not specified'}
                       </div>
                     )}
@@ -442,16 +442,16 @@ export const PatientProfilePage = () => {
             </div>
 
             {/* 2. EMERGENCY & CAREGIVER INFORMATION */}
-            <div className="bg-white border border-stone-200 rounded-3xl p-6 md:p-8 shadow-sm space-y-5">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 md:p-8 shadow-sm space-y-5 transition-colors">
               <div>
-                <h2 className="text-lg font-extrabold text-stone-900">Emergency & Caregiver Information</h2>
-                <p className="text-xs text-stone-500">Add trusted contacts who can assist you when needed.</p>
+                <h2 className="text-lg font-extrabold text-slate-900 dark:text-white">Emergency & Caregiver Information</h2>
+                <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Add trusted contacts who can assist you when needed.</p>
               </div>
 
               <div className="space-y-4 text-xs">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="font-bold text-stone-700 block mb-1">Emergency Contact Name</label>
+                    <label className="font-bold text-slate-800 dark:text-slate-200 block mb-1.5">Emergency Contact Name</label>
                     {isEditing ? (
                       <input
                         type="text"
@@ -459,17 +459,17 @@ export const PatientProfilePage = () => {
                         value={formData.emergency_contact_name}
                         onChange={handleChange}
                         placeholder="Primary Emergency Contact"
-                        className="w-full rounded-xl border border-stone-300 bg-stone-50 px-3.5 py-2.5 text-xs text-stone-900 outline-none focus:border-teal-700 focus:bg-white"
+                        className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3.5 py-3 min-h-[44px] text-xs text-slate-900 dark:text-slate-100 outline-none focus:border-teal-700 font-medium"
                       />
                     ) : (
-                      <div className="bg-stone-50 border border-stone-200 p-3 rounded-xl font-medium text-stone-900">
+                      <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3.5 rounded-xl font-medium text-slate-900 dark:text-slate-100">
                         {formData.emergency_contact_name || 'None listed'}
                       </div>
                     )}
                   </div>
 
                   <div>
-                    <label className="font-bold text-stone-700 block mb-1">Emergency Contact Mobile</label>
+                    <label className="font-bold text-slate-800 dark:text-slate-200 block mb-1.5">Emergency Contact Mobile</label>
                     {isEditing ? (
                       <input
                         type="text"
@@ -477,10 +477,10 @@ export const PatientProfilePage = () => {
                         value={formData.emergency_contact_phone}
                         onChange={handleChange}
                         placeholder="+91 XXXXX XXXXX"
-                        className="w-full rounded-xl border border-stone-300 bg-stone-50 px-3.5 py-2.5 text-xs text-stone-900 outline-none focus:border-teal-700 focus:bg-white"
+                        className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3.5 py-3 min-h-[44px] text-xs text-slate-900 dark:text-slate-100 outline-none focus:border-teal-700 font-medium"
                       />
                     ) : (
-                      <div className="bg-stone-50 border border-stone-200 p-3 rounded-xl font-medium text-stone-900">
+                      <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3.5 rounded-xl font-medium text-slate-900 dark:text-slate-100">
                         {formData.emergency_contact_phone || 'None listed'}
                       </div>
                     )}
@@ -488,7 +488,7 @@ export const PatientProfilePage = () => {
                 </div>
 
                 <div>
-                  <label className="font-bold text-stone-700 block mb-1">Relationship</label>
+                  <label className="font-bold text-slate-800 dark:text-slate-200 block mb-1.5">Relationship</label>
                   {isEditing ? (
                     <input
                       type="text"
@@ -496,10 +496,10 @@ export const PatientProfilePage = () => {
                       value={formData.emergency_contact_relationship}
                       onChange={handleChange}
                       placeholder="e.g. Spouse, Parent, Brother"
-                      className="w-full rounded-xl border border-stone-300 bg-stone-50 px-3.5 py-2.5 text-xs text-stone-900 outline-none focus:border-teal-700 focus:bg-white"
+                      className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3.5 py-3 min-h-[44px] text-xs text-slate-900 dark:text-slate-100 outline-none focus:border-teal-700 font-medium"
                     />
                   ) : (
-                    <div className="bg-stone-50 border border-stone-200 p-3 rounded-xl font-medium text-stone-900">
+                    <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3.5 rounded-xl font-medium text-slate-900 dark:text-slate-100">
                       {formData.emergency_contact_relationship || 'Not specified'}
                     </div>
                   )}
@@ -508,15 +508,15 @@ export const PatientProfilePage = () => {
             </div>
 
             {/* 3. LOCATION & ADDRESS */}
-            <div className="bg-white border border-stone-200 rounded-3xl p-6 md:p-8 shadow-sm space-y-5">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 md:p-8 shadow-sm space-y-5 transition-colors">
               <div>
-                <h2 className="text-lg font-extrabold text-stone-900">Location & Address</h2>
-                <p className="text-xs text-stone-500">Residential details for local clinic follow-ups.</p>
+                <h2 className="text-lg font-extrabold text-slate-900 dark:text-white">Location & Address</h2>
+                <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Residential details for local clinic follow-ups.</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div>
-                  <label className="font-bold text-stone-700 block mb-1">State</label>
+                  <label className="font-bold text-slate-800 dark:text-slate-200 block mb-1.5">State</label>
                   {isEditing ? (
                     <input
                       type="text"
@@ -524,17 +524,17 @@ export const PatientProfilePage = () => {
                       value={formData.state}
                       onChange={handleChange}
                       placeholder="e.g. Karnataka / Uttar Pradesh"
-                      className="w-full rounded-xl border border-stone-300 bg-stone-50 px-3.5 py-2.5 text-xs text-stone-900 outline-none focus:border-teal-700 focus:bg-white"
+                      className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3.5 py-3 min-h-[44px] text-xs text-slate-900 dark:text-slate-100 outline-none focus:border-teal-700 font-medium"
                     />
                   ) : (
-                    <div className="bg-stone-50 border border-stone-200 p-3 rounded-xl font-medium text-stone-900">
+                    <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3.5 rounded-xl font-medium text-slate-900 dark:text-slate-100">
                       {formData.state || 'Not provided'}
                     </div>
                   )}
                 </div>
 
                 <div>
-                  <label className="font-bold text-stone-700 block mb-1">District</label>
+                  <label className="font-bold text-slate-800 dark:text-slate-200 block mb-1.5">District</label>
                   {isEditing ? (
                     <input
                       type="text"
@@ -542,17 +542,17 @@ export const PatientProfilePage = () => {
                       value={formData.district}
                       onChange={handleChange}
                       placeholder="e.g. Mandya District"
-                      className="w-full rounded-xl border border-stone-300 bg-stone-50 px-3.5 py-2.5 text-xs text-stone-900 outline-none focus:border-teal-700 focus:bg-white"
+                      className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3.5 py-3 min-h-[44px] text-xs text-slate-900 dark:text-slate-100 outline-none focus:border-teal-700 font-medium"
                     />
                   ) : (
-                    <div className="bg-stone-50 border border-stone-200 p-3 rounded-xl font-medium text-stone-900">
+                    <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3.5 rounded-xl font-medium text-slate-900 dark:text-slate-100">
                       {formData.district || 'Not provided'}
                     </div>
                   )}
                 </div>
 
                 <div>
-                  <label className="font-bold text-stone-700 block mb-1">Village / Town</label>
+                  <label className="font-bold text-slate-800 dark:text-slate-200 block mb-1.5">Village / Town</label>
                   {isEditing ? (
                     <input
                       type="text"
@@ -560,10 +560,10 @@ export const PatientProfilePage = () => {
                       value={formData.village_or_town}
                       onChange={handleChange}
                       placeholder="e.g. Mandya"
-                      className="w-full rounded-xl border border-stone-300 bg-stone-50 px-3.5 py-2.5 text-xs text-stone-900 outline-none focus:border-teal-700 focus:bg-white"
+                      className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3.5 py-3 min-h-[44px] text-xs text-slate-900 dark:text-slate-100 outline-none focus:border-teal-700 font-medium"
                     />
                   ) : (
-                    <div className="bg-stone-50 border border-stone-200 p-3 rounded-xl font-medium text-stone-900">
+                    <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3.5 rounded-xl font-medium text-slate-900 dark:text-slate-100">
                       {formData.village_or_town || 'Not provided'}
                     </div>
                   )}
@@ -573,25 +573,25 @@ export const PatientProfilePage = () => {
           </div>
 
           {/* RIGHT COLUMN */}
-          <div className="space-y-8">
+          <div className="space-y-6">
             {/* 4. LANGUAGE & ACCESSIBILITY */}
-            <div className="bg-white border border-stone-200 rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 md:p-8 shadow-sm space-y-6 transition-colors">
               <div>
-                <h2 className="text-lg font-extrabold text-stone-900">Language & Accessibility</h2>
-                <p className="text-xs text-stone-500">
+                <h2 className="text-lg font-extrabold text-slate-900 dark:text-white">Language & Accessibility</h2>
+                <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
                   Customize Swasthya Sanchar for the way you understand healthcare best.
                 </p>
               </div>
 
               <div className="space-y-5 text-xs">
                 <div>
-                  <label className="font-bold text-stone-700 block mb-1">Preferred Language</label>
+                  <label className="font-bold text-slate-800 dark:text-slate-200 block mb-1.5">Preferred Language</label>
                   {isEditing ? (
                     <select
                       name="preferred_language"
                       value={formData.preferred_language}
                       onChange={handleChange}
-                      className="w-full rounded-xl border border-stone-300 bg-stone-50 px-3.5 py-2.5 text-xs text-stone-900 outline-none focus:border-teal-700 focus:bg-white font-bold"
+                      className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3.5 py-3 min-h-[44px] text-xs text-slate-900 dark:text-slate-100 outline-none focus:border-teal-700 font-bold cursor-pointer"
                     >
                       {LANGUAGES_LIST.map((l) => (
                         <option key={l.code} value={l.code}>
@@ -600,9 +600,9 @@ export const PatientProfilePage = () => {
                       ))}
                     </select>
                   ) : (
-                    <div className="bg-stone-50 border border-stone-200 p-3 rounded-xl font-bold text-teal-800 flex items-center justify-between">
+                    <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3.5 rounded-xl font-bold text-teal-800 dark:text-teal-300 flex items-center justify-between">
                       <span>{LANGUAGES_LIST.find((l) => l.code === formData.preferred_language)?.native || formData.preferred_language}</span>
-                      <span className="text-xs text-stone-500">({LANGUAGES_LIST.find((l) => l.code === formData.preferred_language)?.name})</span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">({LANGUAGES_LIST.find((l) => l.code === formData.preferred_language)?.name})</span>
                     </div>
                   )}
                 </div>

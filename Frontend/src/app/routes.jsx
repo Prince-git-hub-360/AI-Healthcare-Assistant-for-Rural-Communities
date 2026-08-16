@@ -161,23 +161,22 @@ const AuthenticatedApp = ({ currentPath, navigate, onOpenChat, chatModalOpen, se
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAFAFA] dark:bg-[#0B0F17] text-stone-900 dark:text-slate-100 antialiased relative font-sans transition-colors duration-200">
+    <div className="min-h-screen flex flex-col bg-[#F4F7F6] dark:bg-[#0B0F17] text-stone-900 dark:text-slate-100 antialiased relative font-sans transition-colors duration-200">
       <AppNavbar currentPath={currentPath} onNavigate={navigate} onOpenChat={onOpenChat} />
 
-      <main className="flex-1">
+      <main className="flex-1 lg:pl-64 transition-all duration-200">
         {renderContent()}
       </main>
 
-      {/* Floating AI Health Assistant Companion Button */}
+      {/* Floating AI Health Assistant Companion Button (Compact & Elegant) */}
       <button
+        type="button"
         onClick={onOpenChat}
-        className="fixed bottom-6 right-6 z-40 bg-[#0B4F42] hover:bg-[#07362d] dark:bg-teal-600 dark:hover:bg-teal-500 text-white py-2.5 px-4 rounded-full shadow-xl transition-all transform hover:scale-105 flex items-center gap-2 cursor-pointer border border-teal-500/30"
-        title="Ask Swasthya Mitr AI Voice & Chat"
+        className="fixed bottom-5 right-5 z-40 bg-[#0B4F42] hover:bg-[#07362d] dark:bg-teal-600 dark:hover:bg-teal-500 text-white text-xs font-bold px-3.5 py-2 rounded-full shadow-lg transition-all transform hover:scale-105 flex items-center gap-2 cursor-pointer border border-teal-400/30"
+        title="Ask Swasthya Mitr AI Assistant"
       >
-        <div className="w-5 h-5 bg-teal-600 dark:bg-teal-700 rounded-full flex items-center justify-center animate-pulse">
-          <SparklesIcon size={12} color="#ffffff" />
-        </div>
-        <span className="font-semibold text-xs tracking-wide hidden sm:inline">Ask AI Assistant</span>
+        <SparklesIcon size={14} className="animate-pulse" />
+        <span className="hidden sm:inline">Ask AI</span>
       </button>
 
       {/* AI Voice Assistant Modal */}

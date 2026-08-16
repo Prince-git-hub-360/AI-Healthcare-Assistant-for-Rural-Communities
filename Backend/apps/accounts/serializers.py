@@ -266,18 +266,41 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
 
     def validate(self, attrs):
-        username = attrs.get('username')
+        username_input = attrs.get('username', '').strip()
         password = attrs.get('password')
 
-        if username and password:
-            user = authenticate(username=username, password=password)
-            if not user:
-                raise serializers.ValidationError('Invalid username or password credentials.')
-        else:
-            raise serializers.ValidationError('Username and password are required.')
+        if not username_input or not password:
+            raise serializers.ValidationError({
+                'error_code': 'REQUIRED_FIELDS_MISSING',
+                'detail': 'Username and password are required.'
+            })
+
+        # 1. Check if user exists by username, email, or phone number
+        user_obj = User.objects.filter(username__iexact=username_input).first() or \
+                   User.objects.filter(email__iexact=username_input).first()
+
+        if not user_obj:
+            profile = UserProfile.objects.filter(phone_number__icontains=username_input).first()
+            if profile:
+                user_obj = profile.user
+
+        if not user_obj:
+            raise serializers.ValidationError({
+                'error_code': 'USER_NOT_FOUND',
+                'detail': 'No account found with this username or mobile number. Please register first.'
+            })
+
+        # 2. Authenticate user password
+        user = authenticate(username=user_obj.username, password=password)
+        if not user:
+            raise serializers.ValidationError({
+                'error_code': 'INVALID_PASSWORD',
+                'detail': 'Incorrect password. Please try again or reset your password.'
+            })
 
         attrs['user'] = user
         return attrs
+
 
 
 class PasswordResetRequestSerializer(serializers.Serializer):

@@ -229,6 +229,9 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
         timestamp: new Date().toISOString(),
       });
 
+      // Notify Reminders tab to synchronize auto-generated alarms
+      window.dispatchEvent(new Event('swasthya_reminders_updated'));
+
       // CRITICAL REQUIREMENT: DO NOT AUTO-PLAY VOICE AFTER UPLOAD!
     } catch (err) {
       console.error('File upload error:', err);
@@ -269,7 +272,7 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
       console.warn('API delete error:', err);
     }
 
-    // Cascade delete associated reminders
+    // Cascade delete associated reminders from local storage and trigger global sync
     try {
       const savedReminders = JSON.parse(localStorage.getItem('swasthya_medication_reminders') || '[]');
       const filteredReminders = savedReminders.filter(
@@ -280,6 +283,7 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
     } catch (e) {
       console.warn('Failed to cascade delete reminders:', e);
     }
+    window.dispatchEvent(new Event('swasthya_reminders_updated'));
 
     setHistoryItems((prev) => {
       const updated = prev.filter((h) => h.id !== item.id && h.title !== item.title);
@@ -297,25 +301,25 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 font-sans text-stone-900 dark:text-slate-100 transition-colors">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 font-sans text-slate-900 dark:text-slate-100 transition-colors">
       
       {/* PAGE HEADER & PREFERRED LANGUAGE SELECTION */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2">
-        <div className="space-y-1 max-w-2xl">
-          <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#0B4F42] dark:text-teal-400 bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 px-3 py-0.5 rounded-full inline-block">
+      <div className="bg-emerald-50/70 dark:bg-slate-900 border border-emerald-200/80 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 transition-colors">
+        <div className="space-y-1.5 max-w-2xl">
+          <span className="text-[11px] font-extrabold uppercase tracking-widest text-teal-800 dark:text-teal-300 bg-white/90 dark:bg-teal-950/80 border border-teal-200 dark:border-teal-800 px-3.5 py-1 rounded-full inline-block shadow-2xs">
             PATIENT • TRANSLATE RX
           </span>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-stone-900 dark:text-white tracking-tight leading-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight">
             Understand your prescription
           </h1>
-          <p className="text-sm sm:text-base text-stone-500 dark:text-slate-400 font-medium leading-relaxed">
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
             Upload a prescription and receive simple, easy-to-understand instructions in your preferred language.
           </p>
         </div>
 
         {/* Preferred Language Form Control */}
-        <div className="bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-xl p-3 shadow-xs space-y-1 md:w-72 shrink-0 transition-colors">
-          <label className="text-[11px] font-bold text-stone-500 dark:text-slate-400 uppercase tracking-wider block">
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 shadow-xs space-y-1.5 md:w-72 shrink-0 transition-colors">
+          <label className="text-[10px] font-extrabold text-teal-700 dark:text-teal-400 uppercase tracking-wider block">
             Preferred language
           </label>
 
@@ -323,7 +327,7 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
             <select
               value={convertLang}
               onChange={(e) => handleLangChange(e.target.value)}
-              className="w-full appearance-none bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-lg px-3 py-2 pr-8 text-xs font-bold text-stone-900 dark:text-slate-100 cursor-pointer focus:outline-none focus:border-[#0B4F42]"
+              className="w-full appearance-none bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 min-h-[44px] pr-8 text-xs font-bold text-slate-900 dark:text-slate-100 cursor-pointer focus:outline-none focus:border-teal-700"
             >
               {LANGUAGES.map((lang) => (
                 <option key={lang.code} value={lang.code}>
@@ -331,8 +335,8 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
                 </option>
               ))}
             </select>
-            <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-stone-500 dark:text-slate-400">
-              <ChevronDownIcon size={14} />
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500 dark:text-slate-400">
+              <ChevronDownIcon size={16} />
             </div>
           </div>
         </div>
@@ -343,13 +347,13 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
         
         {/* LEFT COLUMN (~45%): YOUR PRESCRIPTION */}
         <div className="lg:col-span-5 space-y-5">
-          <div className="bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4 transition-colors">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-sm space-y-4 transition-colors">
             <div>
-              <h2 className="text-base font-bold text-stone-900 dark:text-white flex items-center gap-2">
-                <DocumentIcon size={20} className="text-[#0B4F42] dark:text-teal-400" />
+              <h2 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                <DocumentIcon size={20} className="text-teal-700 dark:text-teal-400" />
                 <span>Your Prescription</span>
               </h2>
-              <p className="text-xs text-stone-500 dark:text-slate-400 mt-0.5">
+              <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 font-medium">
                 Upload a clear photo or scan of your prescription.
               </p>
             </div>
@@ -358,15 +362,15 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
             {!imagePreview ? (
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-stone-200 dark:border-slate-700 hover:border-[#0B4F42] dark:hover:border-teal-400 bg-stone-50/50 dark:bg-slate-800/50 rounded-2xl p-6 text-center space-y-2 cursor-pointer transition-all"
+                className="border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-teal-700 dark:hover:border-teal-400 bg-slate-50 dark:bg-slate-800/50 hover:bg-teal-50/50 dark:hover:bg-slate-800/80 rounded-2xl p-8 text-center space-y-3 cursor-pointer transition-all"
               >
-                <div className="w-10 h-10 rounded-full bg-stone-100 dark:bg-slate-700 text-stone-500 dark:text-slate-300 mx-auto flex items-center justify-center">
-                  <CloudUploadIcon size={22} />
+                <div className="w-12 h-12 rounded-2xl bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800 mx-auto flex items-center justify-center shadow-2xs">
+                  <CloudUploadIcon size={24} />
                 </div>
-                <div className="text-xs font-bold text-stone-800 dark:text-slate-200">
+                <div className="text-xs font-bold text-slate-900 dark:text-slate-100">
                   Drag and drop or click to upload
                 </div>
-                <div className="text-[11px] text-stone-400 dark:text-slate-400">
+                <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
                   JPG, PNG or PDF (Max 5MB)
                 </div>
               </div>
@@ -376,7 +380,7 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
             {imagePreview && (
               <div className="space-y-3">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-stone-700 dark:text-slate-300">Uploaded Prescription</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200">Uploaded Prescription</span>
                   <button
                     type="button"
                     onClick={() => {
@@ -384,25 +388,25 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
                       setConvertText('');
                       setTranslatedResult('');
                     }}
-                    className="text-[#0B4F42] dark:text-teal-400 font-bold hover:underline cursor-pointer"
+                    className="text-rose-600 dark:text-rose-400 font-bold hover:underline min-h-[44px] flex items-center cursor-pointer"
                   >
                     Clear
                   </button>
                 </div>
 
-                <div className="border border-stone-200 dark:border-slate-700 rounded-xl overflow-hidden bg-stone-50 dark:bg-slate-800 p-2 flex items-center justify-center max-h-72">
+                <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-slate-50 dark:bg-slate-800 p-2 flex items-center justify-center max-h-72">
                   <img src={imagePreview} alt="Uploaded Prescription" className="object-contain max-h-68 w-full rounded-lg" />
                 </div>
 
-                <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 font-bold text-xs">
-                  <span className="w-2 h-2 rounded-full bg-emerald-600 dark:bg-emerald-400 animate-pulse" />
+                <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-400 font-bold text-xs">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 dark:bg-emerald-400 animate-pulse" />
                   <span>Prescription processed</span>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full border border-stone-300 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-800 text-stone-800 dark:text-slate-200 font-bold text-xs py-2.5 px-4 rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs py-3 px-4 min-h-[44px] rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-2"
                 >
                   <span>⬆ Upload another prescription</span>
                 </button>
@@ -419,22 +423,22 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
             />
 
             {/* Manual text input toggle & preset samples */}
-            <div className="pt-2 border-t border-stone-100 dark:border-slate-800 space-y-2">
+            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-3">
               <div className="flex items-center justify-between text-xs">
                 <button
                   type="button"
                   onClick={() => setShowManualInput(!showManualInput)}
-                  className="text-xs text-stone-600 dark:text-slate-400 hover:text-[#0B4F42] dark:hover:text-teal-400 font-semibold underline cursor-pointer"
+                  className="text-xs text-teal-700 dark:text-teal-400 hover:underline font-bold min-h-[44px] flex items-center cursor-pointer"
                 >
                   {showManualInput ? 'Hide manual text input' : 'Type doctor instructions manually'}
                 </button>
               </div>
 
               {showManualInput && (
-                <div className="bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-xl p-3 space-y-2.5">
+                <div className="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 space-y-3">
                   <textarea
                     rows={8}
-                    className="w-full rounded-lg border border-stone-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 text-xs text-stone-900 dark:text-slate-100 focus:border-[#0B4F42] outline-none font-mono leading-relaxed whitespace-pre-wrap min-h-[160px]"
+                    className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-3.5 text-xs text-slate-900 dark:text-slate-100 focus:border-teal-700 outline-none font-mono leading-relaxed whitespace-pre-wrap min-h-[160px]"
                     value={convertText}
                     onChange={(e) => setConvertText(e.target.value)}
                     placeholder="Type doctor instructions or scanned prescription text..."
@@ -443,7 +447,7 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
                     type="button"
                     onClick={handleConvert}
                     disabled={converting}
-                    className="w-full bg-[#0B4F42] dark:bg-teal-600 hover:bg-[#07362d] text-white text-xs font-bold py-2.5 rounded-lg transition-colors cursor-pointer disabled:opacity-50 shadow-xs"
+                    className="w-full bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold py-3 min-h-[44px] rounded-xl transition-colors cursor-pointer disabled:opacity-50 shadow-sm"
                   >
                     {converting ? 'Processing...' : 'Translate Instructions'}
                   </button>
@@ -451,8 +455,8 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
               )}
 
               {/* Sample Prescriptions */}
-              <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-stone-500 dark:text-slate-400 pt-1">
-                <span>Samples:</span>
+              <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600 dark:text-slate-400 pt-1">
+                <span className="font-bold text-slate-700 dark:text-slate-300">Samples:</span>
                 <button
                   type="button"
                   onClick={async () => {
@@ -471,7 +475,7 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
                       timestamp: new Date().toISOString(),
                     });
                   }}
-                  className="bg-stone-100 dark:bg-slate-800 hover:bg-stone-200 dark:hover:bg-slate-700 text-stone-700 dark:text-slate-300 font-bold px-2 py-0.5 rounded transition-colors cursor-pointer"
+                  className="bg-emerald-50 dark:bg-slate-800 hover:bg-emerald-100 dark:hover:bg-slate-700 text-teal-800 dark:text-teal-300 border border-emerald-200 dark:border-slate-700 font-bold px-3 py-1.5 min-h-[44px] rounded-xl transition-colors cursor-pointer flex items-center"
                 >
                   Hypoglycemia Sample
                 </button>
@@ -480,18 +484,18 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
 
             {/* Processing Loading Status */}
             {converting && (
-              <div className="bg-teal-50/70 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 rounded-xl p-3.5 space-y-2 text-xs">
-                <div className="flex items-center gap-2 text-[#0B4F42] dark:text-teal-400 font-bold">
-                  <SparklesIcon size={16} className="animate-spin text-[#0B4F42] dark:text-teal-400" />
+              <div className="bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 rounded-2xl p-4 space-y-2.5 text-xs">
+                <div className="flex items-center gap-2 text-teal-800 dark:text-teal-300 font-extrabold">
+                  <SparklesIcon size={18} className="animate-spin text-teal-700 dark:text-teal-400" />
                   <span>Processing prescription...</span>
                 </div>
-                <div className="space-y-1 pl-6 text-[11px] text-stone-600 dark:text-slate-300 font-medium">
-                  <div className="flex items-center gap-1.5 text-emerald-800 dark:text-emerald-400">
-                    <CheckIcon size={12} color="#059669" />
+                <div className="space-y-1 pl-6 text-xs text-slate-700 dark:text-slate-300 font-bold">
+                  <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300">
+                    <CheckIcon size={14} color="#059669" />
                     <span>Extracting text</span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-[#0B4F42] dark:text-teal-400 font-bold animate-pulse">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#0B4F42] dark:bg-teal-400" />
+                  <div className="flex items-center gap-2 text-teal-800 dark:text-teal-300 font-bold animate-pulse">
+                    <span className="w-2 h-2 rounded-full bg-teal-700 dark:bg-teal-400" />
                     <span>Translating into {selectedLanguage.native}</span>
                   </div>
                 </div>
@@ -504,34 +508,34 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
         <div className="lg:col-span-7 space-y-5">
           
           {/* 1. TRANSLATED INSTRUCTIONS CARD */}
-          <div className="bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4 transition-colors">
-            <div className="flex items-center justify-between border-b border-stone-100 dark:border-slate-800 pb-3">
-              <h2 className="text-base font-bold text-stone-900 dark:text-white flex items-center gap-2">
-                <TranslateIcon size={20} className="text-[#0B4F42] dark:text-teal-400" />
+          <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-sm space-y-4 transition-colors">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3.5">
+              <h2 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                <TranslateIcon size={20} className="text-teal-700 dark:text-teal-400" />
                 <span>Translated Instructions</span>
               </h2>
 
-              <span className="bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-xs font-bold px-3 py-1 rounded-md flex items-center gap-1.5 border border-emerald-200 dark:border-emerald-800">
+              <span className="bg-teal-700 text-white text-xs font-bold px-3.5 py-1.5 rounded-full flex items-center gap-2 shadow-2xs">
                 <span>{selectedLanguage.flag}</span>
                 <span>{selectedLanguage.native}</span>
               </span>
             </div>
 
             {/* Instruction Explanation Box */}
-            <div className="bg-emerald-50/50 dark:bg-slate-800/80 border border-emerald-200/80 dark:border-slate-700 rounded-2xl p-5 text-stone-900 dark:text-slate-100 text-sm sm:text-base leading-relaxed font-medium whitespace-pre-wrap min-h-[140px]">
+            <div className="bg-emerald-50/70 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/80 rounded-2xl p-5 text-emerald-950 dark:text-emerald-100 text-sm sm:text-base leading-relaxed font-semibold whitespace-pre-wrap min-h-[140px] shadow-2xs">
               {translatedResult ||
                 'आपको चक्कर और बेचैनी की शिकायत है। आपका रक्त शर्करा का स्तर बहुत कम है। डॉक्टर ने आपको 10 मिलीलीटर 5% डेक्सट्रोज का इंजेक्शन तुरंत लेने की सलाह दी है। इसके अलावा, आपको पर्याप्त मात्रा में तरल पदार्थ पीने और 2 पैकेट ओआरएस का सेवन करने की सलाह दी गई है।'}
             </div>
           </div>
 
           {/* 2. VOICE GUIDANCE CARD */}
-          <div className="bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs space-y-3 transition-colors">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4 transition-colors">
             <div className="space-y-0.5">
-              <div className="text-sm font-bold text-stone-900 dark:text-white flex items-center gap-2">
-                <SpeakerIcon size={18} className="text-[#0B4F42] dark:text-teal-400" />
+              <div className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                <SpeakerIcon size={20} className="text-teal-700 dark:text-teal-400" />
                 <span>Voice Guidance</span>
               </div>
-              <p className="text-xs text-stone-500 dark:text-slate-400">
+              <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
                 Tap the button below to listen to your translated prescription.
               </p>
             </div>
@@ -540,23 +544,23 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
               <button
                 type="button"
                 onClick={() => handleSpeakToggle()}
-                className={`border font-bold text-xs px-5 py-2.5 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                className={`font-bold text-xs px-6 py-3 min-h-[44px] rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm ${
                   speaking
-                    ? 'bg-rose-600 border-rose-600 text-white animate-pulse'
-                    : 'border-[#0B4F42] dark:border-teal-500 text-[#0B4F42] dark:text-teal-300 hover:bg-teal-50 dark:hover:bg-slate-800 bg-white dark:bg-slate-900'
+                    ? 'bg-rose-600 border border-rose-600 text-white animate-pulse'
+                    : 'bg-teal-700 hover:bg-teal-800 text-white'
                 }`}
               >
                 <span>{speaking ? '⏸ Stop' : `▶ Listen in ${selectedLanguage.native}`}</span>
               </button>
 
               {/* Audio Waveform Graphic */}
-              <div className="flex items-center gap-3 text-xs text-stone-400 dark:text-slate-500 font-mono">
+              <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 font-mono font-bold">
                 <span>{speaking ? '0:14 / 1:02' : '0:00 / 1:02'}</span>
                 <div className="flex items-center gap-0.5 h-4">
                   {[40, 70, 30, 90, 50, 80, 40, 60, 100, 50, 30, 70, 90, 40, 60, 30].map((h, i) => (
                     <span
                       key={i}
-                      className={`w-0.5 rounded-full ${speaking ? 'bg-[#0B4F42] dark:bg-teal-400 animate-pulse' : 'bg-stone-300 dark:bg-slate-700'}`}
+                      className={`w-0.5 rounded-full ${speaking ? 'bg-teal-700 dark:bg-teal-400 animate-pulse' : 'bg-slate-300 dark:bg-slate-700'}`}
                       style={{ height: `${h}%` }}
                     />
                   ))}
@@ -566,11 +570,11 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
           </div>
 
           {/* 3. IMPORTANT INFORMATION WARNING BOX */}
-          <div className="bg-amber-50 dark:bg-[#161F30] border border-amber-200/80 dark:border-amber-900/60 rounded-2xl p-4 flex items-start gap-3">
-            <AlertIcon size={20} className="text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-            <div className="space-y-0.5 text-xs">
-              <div className="font-semibold text-amber-900 dark:text-amber-200">Important Information</div>
-              <p className="text-amber-800/90 dark:text-amber-300/80 leading-relaxed font-normal">
+          <div className="bg-amber-50/80 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800/80 rounded-2xl p-4.5 flex items-start gap-3.5 text-amber-950 dark:text-amber-100 shadow-2xs">
+            <AlertIcon size={22} className="text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+            <div className="space-y-1 text-xs">
+              <div className="font-extrabold text-amber-950 dark:text-amber-100">Important Information</div>
+              <p className="text-amber-900 dark:text-amber-200 leading-relaxed font-semibold">
                 Some information may be unclear.<br />
                 Please verify unclear instructions with an ASHA worker or healthcare professional.
               </p>
@@ -578,14 +582,14 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
           </div>
 
           {/* 4. REMINDERS CARD */}
-          <div className="bg-white dark:bg-[#161F30] border border-stone-200/80 dark:border-slate-800/80 rounded-2xl p-4 flex items-center justify-between gap-4 shadow-xs transition-colors">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 flex items-center justify-center shrink-0">
-                <ClockIcon size={18} />
+          <div className="bg-sky-50/70 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800/80 rounded-2xl p-5 flex items-center justify-between gap-4 shadow-2xs transition-colors">
+            <div className="flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-sky-100 dark:bg-sky-900/60 text-sky-800 dark:text-sky-200 flex items-center justify-center shrink-0 shadow-2xs">
+                <ClockIcon size={20} />
               </div>
               <div className="space-y-0.5">
-                <div className="text-xs font-semibold text-stone-900 dark:text-white">Want help remembering?</div>
-                <p className="text-[11px] text-stone-500 dark:text-slate-400 font-normal">
+                <div className="text-xs font-bold text-sky-950 dark:text-sky-100">Want help remembering?</div>
+                <p className="text-[11px] text-sky-900 dark:text-sky-300 font-medium">
                   Create reminders for each medicine and receive notifications when it is time.
                 </p>
               </div>
@@ -594,7 +598,7 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
             <button
               type="button"
               onClick={() => setCurrentView?.('reminders')}
-              className="border border-stone-300 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-800 text-stone-800 dark:text-slate-200 font-medium text-xs px-3.5 py-2 rounded-lg shrink-0 cursor-pointer flex items-center gap-1.5 transition-colors"
+              className="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs px-4 py-3 min-h-[44px] rounded-xl shrink-0 cursor-pointer flex items-center gap-2 transition-colors shadow-xs"
             >
               <span>📅 Create Reminders</span>
             </button>
@@ -606,39 +610,39 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
       {/* ================================================== */}
       {/* 3. PRESCRIPTION HISTORY SECTION (COMPACT LIST)     */}
       {/* ================================================== */}
-      <div className="bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4 transition-colors">
-        <div className="flex items-center justify-between border-b border-stone-100 dark:border-slate-800 pb-3">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-sm space-y-4 transition-colors">
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3.5">
           <div>
-            <h2 className="text-base font-bold text-stone-900 dark:text-white flex items-center gap-2">
-              <HistoryIcon size={18} className="text-[#0B4F42] dark:text-teal-400" />
+            <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <HistoryIcon size={20} className="text-teal-700 dark:text-teal-400" />
               <span>Prescription History</span>
             </h2>
-            <p className="text-xs text-stone-500 dark:text-slate-400 mt-0.5">
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 font-medium">
               Your previously uploaded and translated prescriptions.
             </p>
           </div>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           {historyItems.length === 0 ? (
-            <div className="text-xs text-stone-400 dark:text-slate-500 py-3 text-center font-medium">
+            <div className="text-xs text-slate-500 dark:text-slate-500 py-4 text-center font-medium">
               No saved prescription history yet.
             </div>
           ) : (
             historyItems.map((item) => (
               <div
                 key={item.id || item.timestamp}
-                className="bg-stone-50/70 dark:bg-slate-800/80 border border-stone-200 dark:border-slate-700/80 rounded-xl p-3 flex items-center justify-between gap-4 transition-all hover:border-[#0B4F42] dark:hover:border-teal-500"
+                className="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl p-3.5 flex items-center justify-between gap-4 transition-all hover:border-teal-700 dark:hover:border-teal-400 shadow-2xs"
               >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-lg bg-teal-100 dark:bg-teal-900/60 text-[#0B4F42] dark:text-teal-300 flex items-center justify-center shrink-0">
-                    <DocumentIcon size={16} />
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="w-9 h-9 rounded-xl bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800 flex items-center justify-center shrink-0">
+                    <DocumentIcon size={18} />
                   </div>
                   <div className="min-w-0">
-                    <div className="text-xs font-bold text-stone-900 dark:text-white truncate">
+                    <div className="text-xs font-bold text-slate-900 dark:text-white truncate">
                       📄 {item.title || 'Prescription Document'}
                     </div>
-                    <div className="text-[11px] text-stone-500 dark:text-slate-400">
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
                       {item.languageNative || item.languageName || 'Hindi'} • {item.timestamp ? new Date(item.timestamp).toLocaleDateString() : 'Today'}
                     </div>
                   </div>
@@ -648,10 +652,10 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
                   <button
                     type="button"
                     onClick={() => handleViewHistoryItem(item)}
-                    className="text-xs font-bold text-[#0B4F42] dark:text-teal-400 hover:underline cursor-pointer flex items-center gap-1"
+                    className="text-xs font-bold text-teal-700 dark:text-teal-400 hover:text-teal-900 dark:hover:text-teal-300 min-h-[44px] px-3 flex items-center gap-1 cursor-pointer"
                   >
                     <span>View</span>
-                    <ArrowRightIcon size={14} />
+                    <ArrowRightIcon size={16} />
                   </button>
                 </div>
               </div>
