@@ -1,6 +1,7 @@
 import React from 'react';
 import { PublicNavbar } from '../marketing/PublicNavbar';
 import { HospitalIcon, CheckIcon, ShieldIcon } from '../../shared/icons/Icons';
+import SwasthyaLogo from '../branding/SwasthyaLogo';
 
 export const AuthLayout = ({ children, onNavigate }) => {
   return (
@@ -16,13 +17,8 @@ export const AuthLayout = ({ children, onNavigate }) => {
             <div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-400/10 rounded-full blur-3xl pointer-events-none" />
 
             <div className="space-y-4 relative z-10">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-teal-500/20 border border-teal-400/30 flex items-center justify-center text-teal-300">
-                  <HospitalIcon size={22} color="#2dd4bf" />
-                </div>
-                <span className="font-display font-extrabold text-xl text-white tracking-tight">
-                  Swasthya Sanchar <span className="text-teal-300 font-normal">AI</span>
-                </span>
+              <div className="pt-2">
+                <SwasthyaLogo variant="dark" height={44} />
               </div>
 
               <h3 className="font-display text-2xl font-extrabold tracking-tight leading-snug pt-2">

@@ -6,6 +6,7 @@ import { caregiverApi } from './caregiver';
 import { prescriptionApi } from './prescription';
 import { medicationApi } from './medication';
 import { healthVaultApi } from './healthVault';
+import { aiAssistantApi } from './aiAssistant';
 
 export const api = {
   // System Health
@@ -33,6 +34,9 @@ export const api = {
 
   // Health Vault
   ...healthVaultApi,
+
+  // Swasthya Mitr AI Medicine Assistant
+  ...aiAssistantApi,
 };
 
 export {
@@ -43,6 +47,7 @@ export {
   prescriptionApi,
   medicationApi,
   healthVaultApi,
+  aiAssistantApi,
 };
 
 export default api;

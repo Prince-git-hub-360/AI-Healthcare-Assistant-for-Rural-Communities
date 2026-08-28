@@ -1,4 +1,4 @@
-﻿# Byte-compiled / optimized / DLL files
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
@@ -101,6 +101,8 @@ env/
 # Temporary and upload media
 Backend/media/translations/audio/*
 !Backend/media/translations/audio/.gitkeep
+Backend/media/medical_documents/*
+!Backend/media/medical_documents/.gitkeep
 
 # Frontend / Node
 Frontend/node_modules/

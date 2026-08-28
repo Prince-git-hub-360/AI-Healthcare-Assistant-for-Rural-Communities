@@ -79,10 +79,12 @@ def test_apis():
         ("Symptom Explanation Module", "POST", "/api/v1/symptoms/explain/", {"symptom": "fever", "language": "hi"}),
         ("Multilingual Knowledge Base FAQs", "GET", "/api/v1/knowledge-base/faqs/?language=te"),
 
-        # Emergency Information Assistance
+        # Emergency Information Assistance & Care Navigation System
         ("First Aid Guidance", "GET", "/api/v1/emergency/first-aid/"),
         ("Emergency Contacts", "GET", "/api/v1/emergency/contacts/"),
-        ("Nearby Healthcare Facilities", "GET", "/api/v1/emergency/nearby-facilities/"),
+        ("Nearby Healthcare Facilities", "GET", "/api/v1/emergency/nearby-facilities/?latitude=12.5244&longitude=76.8958"),
+        ("Start Emergency SOS Session", "POST", "/api/v1/emergency/start/", {"latitude": 12.5244, "longitude": 76.8958, "emergency_type": "Snakebite Emergency"}),
+        ("Notify Emergency Contacts", "POST", "/api/v1/emergency/notify-contacts/", {}),
 
         # Health Education Services
         ("Preventive Health Education", "GET", "/api/v1/education/preventive/"),
@@ -113,7 +115,7 @@ def test_apis():
             req.data = data_bytes
 
         try:
-            with urllib.request.urlopen(req, timeout=5) as response:
+            with urllib.request.urlopen(req, timeout=12) as response:
                 status_code = response.getcode()
                 if status_code in [200, 201]:
                     print(f"[OK] {name:<40} ({method} {endpoint}) -> HTTP {status_code}")

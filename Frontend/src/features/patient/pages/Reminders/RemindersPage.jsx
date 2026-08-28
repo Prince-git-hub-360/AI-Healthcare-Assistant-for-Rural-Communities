@@ -29,12 +29,9 @@ export const RemindersPage = () => {
       const data = await api.getReminders();
       let rawList = Array.isArray(data) ? data : data?.results || [];
       if (rawList.length > 0) {
-        const defaultTimes = ['08:00 AM', '01:30 PM', '08:00 PM'];
-        const mapped = rawList.map((r, idx) => {
+        const mapped = rawList.map((r) => {
           let timeVal = r.scheduled_time || r.time || '';
-          if (!timeVal || timeVal === '20:00:00' || timeVal === '20:00') {
-            timeVal = defaultTimes[idx % defaultTimes.length];
-          } else if (timeVal.includes(':') && !timeVal.includes(' AM') && !timeVal.includes(' PM')) {
+          if (timeVal.includes(':') && !timeVal.includes(' AM') && !timeVal.includes(' PM')) {
             const parts = timeVal.split(':');
             const h = parseInt(parts[0], 10);
             const m = parts[1] || '00';
@@ -42,12 +39,27 @@ export const RemindersPage = () => {
             const h12 = h % 12 || 12;
             timeVal = `${h12.toString().padStart(2, '0')}:${m} ${ampm}`;
           }
+
+          let durationVal = r.duration_days || r.durationDays || r.duration;
+          if (!durationVal && r.start_date && r.end_date) {
+            const s = new Date(r.start_date);
+            const e = new Date(r.end_date);
+            const diff = Math.round((e - s) / (1000 * 60 * 60 * 24)) + 1;
+            if (diff > 0) durationVal = diff;
+          }
+
           return {
             id: r.id,
             medication_name: r.medication_name || r.title || 'Prescribed Medicine',
-            scheduled_time: timeVal,
+            title: r.title || r.medication_name,
+            scheduled_time: timeVal || '08:00 AM',
+            time: timeVal || '08:00 AM',
             instructions: r.instructions || r.notes || r.dosage_note || 'Take 1 tablet with water',
             is_taken: r.is_taken || r.dose_status === 'taken',
+            duration_days: durationVal || 5,
+            start_date: r.start_date,
+            end_date: r.end_date,
+            timeSlot: r.timeSlot || r.dose_slot,
           };
         });
         setReminders(mapped);

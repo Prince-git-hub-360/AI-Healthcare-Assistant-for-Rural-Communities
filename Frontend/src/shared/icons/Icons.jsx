@@ -281,3 +281,29 @@ export const BellIcon = ({ size = 24, color = 'currentColor', className = '' }) 
     <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 );
+
+export const MapPinIcon = ({ size = 24, color = 'currentColor', className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1 1 18 0z" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <circle cx="12" cy="10" r="3" stroke={color} strokeWidth="2"/>
+  </svg>
+);
+
+export const AmbulanceIcon = ({ size = 24, color = 'currentColor', className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <rect x="1" y="6" width="15" height="11" rx="2" stroke={color} strokeWidth="2"/>
+    <path d="M16 8h4l3 3v6h-7V8z" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <circle cx="5.5" cy="18.5" r="2.5" stroke={color} strokeWidth="2"/>
+    <circle cx="18.5" cy="18.5" r="2.5" stroke={color} strokeWidth="2"/>
+    <path d="M8.5 9.5v4M6.5 11.5h4" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+  </svg>
+);
+
+export const TrashIcon = ({ size = 24, color = 'currentColor', className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <line x1="10" y1="11" x2="10" y2="17" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+    <line x1="14" y1="11" x2="14" y2="17" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+  </svg>
+);
+

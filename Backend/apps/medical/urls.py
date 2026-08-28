@@ -7,6 +7,11 @@ from .emergency_views import (
     EmergencyContactsAPIView,
     NearbyHealthcareFacilitiesAPIView,
     AmbulanceRequestAPIView,
+    StartEmergencySessionAPIView,
+    UpdateEmergencyLocationAPIView,
+    StopEmergencySessionAPIView,
+    GetEmergencySessionCardAPIView,
+    NotifyTrustedContactsAPIView,
 )
 from .education_views import (
     PreventiveHealthAPIView,
@@ -33,11 +38,16 @@ urlpatterns = [
     path('symptoms/explain/', SymptomExplanationAPIView.as_view(), name='symptoms-explain'),
     path('knowledge-base/faqs/', MultilingualKnowledgeBaseAPIView.as_view(), name='knowledge-base-faqs'),
 
-    # Emergency
+    # Emergency Assistance & Care Navigation System
     path('emergency/first-aid/', FirstAidGuidanceAPIView.as_view(), name='emergency-first-aid'),
     path('emergency/contacts/', EmergencyContactsAPIView.as_view(), name='emergency-contacts'),
     path('emergency/nearby-facilities/', NearbyHealthcareFacilitiesAPIView.as_view(), name='emergency-facilities'),
     path('emergency/ambulance-request/', AmbulanceRequestAPIView.as_view(), name='emergency-ambulance'),
+    path('emergency/start/', StartEmergencySessionAPIView.as_view(), name='emergency-start'),
+    path('emergency/location/', UpdateEmergencyLocationAPIView.as_view(), name='emergency-location-update'),
+    path('emergency/stop/', StopEmergencySessionAPIView.as_view(), name='emergency-stop'),
+    path('emergency/session/<str:token>/', GetEmergencySessionCardAPIView.as_view(), name='emergency-session-card'),
+    path('emergency/notify-contacts/', NotifyTrustedContactsAPIView.as_view(), name='emergency-notify-contacts'),
 
     # Health Education
     path('education/preventive/', PreventiveHealthAPIView.as_view(), name='education-preventive'),

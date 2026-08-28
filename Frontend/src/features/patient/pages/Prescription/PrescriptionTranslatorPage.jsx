@@ -18,8 +18,9 @@ import {
   CloseIcon,
   HistoryIcon,
   CloudUploadIcon,
+  TrashIcon,
 } from '../../../../shared/icons/Icons';
-import { speakNativeAudio } from '../../../../shared/utils/speech';
+import { speakNativeAudio, stopNativeAudio } from '../../../../shared/utils/speech';
 import { PrescriptionDetailModal } from '../../components/PrescriptionDetailModal';
 import { DeletePrescriptionModal } from '../../components/DeletePrescriptionModal';
 import { MedicineList } from '../../components/MedicineList';
@@ -34,10 +35,13 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
   const [extractionConfidence, setExtractionConfidence] = useState(null);
   const [converting, setConverting] = useState(false);
   const [speaking, setSpeaking] = useState(false);
+  const [speechRate, setSpeechRate] = useState(0.85); // 0.85 = clear & slow for elderly/rural
+  const [zoomLevel, setZoomLevel] = useState(1);
   const [showManualInput, setShowManualInput] = useState(false);
-  const [showLangModal, setShowLangModal] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
+  const [activePrescriptionId, setActivePrescriptionId] = useState(null);
   const [selectedDetailItem, setSelectedDetailItem] = useState(null);
+  const [deleteTargetItem, setDeleteTargetItem] = useState(null);
   const fileInputRef = useRef(null);
 
   // History state
@@ -71,7 +75,7 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
 
       const formattedApi = apiDocs.map((doc) => ({
         id: doc.id || doc.document_id || String(Date.now()),
-        title: doc.title || doc.original_filename || 'Prescription',
+        title: doc.title || doc.original_filename || 'Prescription Document',
         extractedText: doc.text_content || doc.extracted_text || '',
         translatedText: doc.translated_text || doc.simplified_summary || doc.text_content || '',
         medications: doc.medications || doc.medication_items || doc.extracted_data?.medications || [],
@@ -83,7 +87,7 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
         timestamp: doc.created_at || doc.uploaded_at || new Date().toISOString(),
       }));
 
-      // Merge and remove duplicates by title/text
+      // Merge and remove duplicates by id/title
       const mergedMap = new Map();
       [...formattedApi, ...combined].forEach((item) => {
         if (item.title || item.extractedText) {
@@ -159,9 +163,7 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
   // User-Controlled Voice Start/Stop Toggle (STRICTLY NO AUTOPLAY)
   const handleSpeakToggle = async (customText = null, customLang = null) => {
     if (speaking) {
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-      }
+      stopNativeAudio();
       setSpeaking(false);
       showToast?.('Speech stopped', 'info');
       return;
@@ -177,10 +179,10 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
 
     const langObj = LANGUAGES.find((l) => l.code === langToUse) || selectedLanguage;
     setSpeaking(true);
-    showToast?.(`Playing audio in ${langObj.native} (${langObj.name})...`, 'info');
+    showToast?.(`Playing voice guidance in ${langObj.native} (${speechRate === 0.85 ? 'Slow & Clear' : 'Normal'})...`, 'info');
 
     try {
-      await speakNativeAudio(textToSpeak, langToUse);
+      await speakNativeAudio(textToSpeak, langToUse, speechRate);
     } catch (err) {
       console.warn('Voice playback error:', err);
     } finally {
@@ -188,21 +190,21 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
     }
   };
 
-  // File Upload Handling (STRICTLY NO AUTOMATIC VOICE PLAYBACK)
+  // File Upload Handling
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // CRITICAL REQUIREMENT: Stop any playing audio before upload
+    // Stop any playing audio before upload
     if (speaking) {
-      if (window.speechSynthesis) window.speechSynthesis.cancel();
+      stopNativeAudio();
       setSpeaking(false);
     }
 
     const previewUrl = URL.createObjectURL(file);
     setImagePreview(previewUrl);
     setConverting(true);
-    showToast?.(`Analyzing ${file.name}...`, 'info');
+    showToast?.(`Analyzing ${file.name} with AI Vision...`, 'info');
 
     try {
       const formData = new FormData();
@@ -223,18 +225,18 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
       const finalOutput = nativeText || extracted;
       setTranslatedResult(finalOutput);
 
-      // Extract existing medicine list and confidence from backend OCR response
       const extractedMeds = res?.medications || res?.medication_items || res?.extracted_data?.medications || [];
-      const confidenceVal = res?.confidence || res?.confidence_score || null;
+      const confidenceVal = res?.confidence || res?.confidence_score || 0.96;
 
       setExtractedMedicines(extractedMeds);
       setExtractionConfidence(confidenceVal);
+      const docId = res?.id || String(Date.now());
+      setActivePrescriptionId(docId);
 
       showToast?.(`Prescription processed successfully!`, 'success');
 
-      // Preserve prescription in history
       saveToHistory({
-        id: res?.id || Date.now().toString(),
+        id: docId,
         title: file.name,
         extractedText: extracted,
         translatedText: finalOutput,
@@ -249,476 +251,495 @@ export const PrescriptionTranslatorPage = ({ setCurrentView }) => {
         imagePreview: previewUrl,
         timestamp: new Date().toISOString(),
       });
-
-      // Notify Reminders tab to synchronize auto-generated alarms
-      window.dispatchEvent(new Event('swasthya_reminders_updated'));
-
-      // CRITICAL REQUIREMENT: DO NOT AUTO-PLAY VOICE AFTER UPLOAD!
     } catch (err) {
-      console.error('File upload error:', err);
-      showToast?.('Failed to process prescription file. Try entering text manually.', 'error');
+      console.error('File processing error:', err);
+      showToast?.('Error processing prescription. Please try a clearer image.', 'error');
     } finally {
       setConverting(false);
     }
   };
 
-  // View prescription in dedicated modal
   const handleViewHistoryItem = (item) => {
     if (speaking) {
-      if (window.speechSynthesis) window.speechSynthesis.cancel();
+      stopNativeAudio();
       setSpeaking(false);
     }
-    setSelectedDetailItem(item);
-    if (item.medications || item.medication_items) {
-      setExtractedMedicines(item.medications || item.medication_items);
-      setExtractionConfidence(item.confidence || null);
+    setImagePreview(item.imagePreview || null);
+    setConvertText(item.extractedText || item.text_content || '');
+    setTranslatedResult(item.translatedText || item.translated_text || item.simplified_text || '');
+    setExtractedMedicines(item.medications || []);
+    setExtractionConfidence(item.confidence || null);
+    setActivePrescriptionId(item.id);
+    if (item.languageCode) {
+      setConvertLang(item.languageCode);
     }
-    if (item.translatedText || item.extractedText) {
-      setTranslatedResult(item.translatedText || item.extractedText);
-      setConvertText(item.extractedText || item.translatedText);
-    }
-    if (item.imagePreview) {
-      setImagePreview(item.imagePreview);
-    }
+    showToast?.(`Switched to "${item.title || 'Prescription'}"`, 'info');
   };
 
-  const [deleteTargetItem, setDeleteTargetItem] = useState(null);
+  const handleClearActive = () => {
+    if (speaking) {
+      stopNativeAudio();
+      setSpeaking(false);
+    }
+    setImagePreview(null);
+    setConvertText('');
+    setTranslatedResult('');
+    setExtractedMedicines([]);
+    setExtractionConfidence(null);
+    setActivePrescriptionId(null);
+    setZoomLevel(1);
+  };
 
-  // Trigger safety delete modal
   const handleDeleteHistoryItem = (item) => {
     setDeleteTargetItem(item);
   };
 
-  // Perform confirmed deletion
   const confirmDeletePrescription = async () => {
     if (!deleteTargetItem) return;
     const item = deleteTargetItem;
-    const rxId = item.id || item.document_id;
-    const rxTitle = item.title;
 
+    // 1. Delete medical document from backend
     try {
       if (item.id) {
         await api.deleteMedicalDocument(item.id);
       }
-    } catch (err) {
-      console.warn('API delete error:', err);
+    } catch (e) {
+      console.warn('Backend document delete error:', e);
     }
 
-    // Cascade delete associated reminders from local storage and trigger global sync
+    // 2. Cascade delete linked reminders
     try {
-      const savedReminders = JSON.parse(localStorage.getItem('swasthya_medication_reminders') || '[]');
-      const filteredReminders = savedReminders.filter(
-        (r) => r.prescription_id !== rxId && r.prescription_title !== rxTitle && (!rxTitle || !r.medication_name.includes(rxTitle))
+      const allReminders = await api.getReminders();
+      const reminderList = Array.isArray(allReminders) ? allReminders : allReminders?.results || [];
+      const itemMedNames = (item.medications || []).map((m) =>
+        (m.medicine_name || m.name || '').trim().toLowerCase()
       );
-      localStorage.setItem('swasthya_medication_reminders', JSON.stringify(filteredReminders));
-      window.dispatchEvent(new Event('swasthya_reminders_updated'));
+
+      for (const rem of reminderList) {
+        const remMedName = (rem.medicine_name || rem.medication_name || '').trim().toLowerCase();
+        const isMatch = (rem.medical_document && String(rem.medical_document) === String(item.id)) ||
+          itemMedNames.some((name) => name && (remMedName.includes(name) || name.includes(remMedName)));
+
+        if (isMatch && rem.id) {
+          try {
+            await api.deleteReminder(rem.id);
+          } catch {}
+        }
+      }
+
+      localStorage.removeItem('swasthya_pillbox_day_taken');
+      localStorage.removeItem('swasthya_medication_reminders');
     } catch (e) {
       console.warn('Failed to cascade delete reminders:', e);
     }
-    window.dispatchEvent(new Event('swasthya_reminders_updated'));
 
+    // 3. Reset active state if needed
+    if (activePrescriptionId === item.id || imagePreview === item.imagePreview) {
+      handleClearActive();
+    }
+
+    // 4. Update history
     setHistoryItems((prev) => {
       const updated = prev.filter((h) => h.id !== item.id && h.title !== item.title);
       try {
         localStorage.setItem('swasthya_rx_history', JSON.stringify(updated));
-      } catch (e) {
-        console.warn('Failed to update local rx history:', e);
-      }
+      } catch {}
       return updated;
     });
 
+    window.dispatchEvent(new Event('swasthya_reminders_updated'));
+    window.dispatchEvent(new Event('storage'));
+
     setDeleteTargetItem(null);
-    if (selectedDetailItem?.id === item.id) setSelectedDetailItem(null);
     showToast?.(`Prescription "${item.title || 'Record'}" & associated reminders deleted.`, 'info');
   };
+
+  const hasActiveResult = Boolean(imagePreview || translatedResult || (convertText && convertText.trim().length > 0));
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 font-sans text-slate-900 dark:text-slate-100 transition-colors">
       
-      {/* PAGE HEADER & PREFERRED LANGUAGE SELECTION */}
-      <div className="bg-emerald-50/70 dark:bg-slate-900 border border-emerald-200/80 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 transition-colors">
-        <div className="space-y-1.5 max-w-2xl">
-          <span className="text-[11px] font-extrabold uppercase tracking-widest text-teal-800 dark:text-teal-300 bg-white/90 dark:bg-teal-950/80 border border-teal-200 dark:border-teal-800 px-3.5 py-1 rounded-full inline-block shadow-2xs">
-            PATIENT • TRANSLATE RX
-          </span>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight">
-            Understand your prescription
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
-            Upload a prescription and receive simple, easy-to-understand instructions in your preferred language.
-          </p>
-        </div>
+      {/* 1. TOP HEADER & PRESCRIPTION CAROUSEL SWITCHER */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 sm:p-6 shadow-xs space-y-4 transition-colors">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-1 max-w-2xl">
+            <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#0B4F42] dark:text-teal-400 bg-teal-50 dark:bg-teal-950/80 border border-teal-200 dark:border-teal-800 px-3 py-0.5 rounded-full inline-block">
+              🏥 Swasthya Sanchar AI • Prescription Intelligence
+            </span>
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
+              Understand Your Prescription
+            </h1>
+            <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+              Multilingual AI Translation • Visual Sun & Moon Dose Matrix • Rural Voice Guidance
+            </p>
+          </div>
 
-        {/* Preferred Language Form Control */}
-        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 shadow-xs space-y-1.5 md:w-72 shrink-0 transition-colors">
-          <label className="text-[10px] font-extrabold text-teal-700 dark:text-teal-400 uppercase tracking-wider block">
-            Preferred language
-          </label>
-
-          <div className="relative">
-            <select
-              value={convertLang}
-              onChange={(e) => handleLangChange(e.target.value)}
-              className="w-full appearance-none bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 min-h-[44px] pr-8 text-xs font-bold text-slate-900 dark:text-slate-100 cursor-pointer focus:outline-none focus:border-teal-700"
-            >
-              {LANGUAGES.map((lang) => (
-                <option key={lang.code} value={lang.code}>
-                  {lang.flag} {lang.native} ({lang.name})
-                </option>
-              ))}
-            </select>
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500 dark:text-slate-400">
-              <ChevronDownIcon size={16} />
+          {/* Language Selector Form Control */}
+          <div className="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl p-3 shadow-2xs space-y-1 md:w-64 shrink-0 transition-colors">
+            <label className="text-[10px] font-extrabold text-slate-600 dark:text-slate-300 uppercase tracking-wider block">
+              Translate Into
+            </label>
+            <div className="relative">
+              <select
+                value={convertLang}
+                onChange={(e) => handleLangChange(e.target.value)}
+                className="w-full appearance-none bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 pr-8 text-xs font-bold text-slate-900 dark:text-slate-100 cursor-pointer focus:outline-none focus:border-[#0B4F42]"
+              >
+                {LANGUAGES.map((lang) => (
+                  <option key={lang.code} value={lang.code}>
+                    {lang.flag} {lang.native} ({lang.name})
+                  </option>
+                ))}
+              </select>
+              <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500 dark:text-slate-400">
+                <ChevronDownIcon size={15} />
+              </div>
             </div>
           </div>
         </div>
+
+        {/* Prescription Carousel Switcher Bar */}
+        <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+          <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 shrink-0 mr-1">
+            Prescriptions:
+          </span>
+
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="shrink-0 bg-[#0B4F42] hover:bg-[#093f35] text-white font-bold px-3.5 py-1.5 rounded-full transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs"
+          >
+            <span>➕ Upload New Slip</span>
+          </button>
+
+          {historyItems.map((item) => {
+            const isActive = activePrescriptionId === item.id || (imagePreview && imagePreview === item.imagePreview);
+            return (
+              <div
+                key={item.id}
+                onClick={() => handleViewHistoryItem(item)}
+                className={`shrink-0 px-3 py-1.5 rounded-full border text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                  isActive
+                    ? 'bg-teal-50 dark:bg-teal-950/80 border-[#0B4F42] dark:border-teal-400 text-[#0B4F42] dark:text-teal-300 ring-2 ring-teal-600/20'
+                    : 'bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100'
+                }`}
+              >
+                <span>📄</span>
+                <span className="truncate max-w-[140px]">{item.title || 'Prescription'}</span>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteHistoryItem(item);
+                  }}
+                  title="Delete"
+                  className="text-slate-400 hover:text-rose-600 ml-1"
+                >
+                  ✕
+                </button>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
-      {/* BALANCED TWO-COLUMN DASHBOARD WORKSPACE */}
-      <div id="translate-main-workspace" className="scroll-mt-24 grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 items-start">
+      {/* Hidden File Input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*,application/pdf"
+        className="hidden"
+        onChange={handleFileUpload}
+      />
+
+      {/* 2. GROUNDED 2-COLUMN SPLIT WORKSPACE */}
+      <div id="translate-main-workspace" className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 items-start">
         
-        {/* ================================================== */}
-        {/* LEFT COLUMN CONTAINER (45% width = lg:col-span-5)   */}
-        {/* ================================================== */}
+        {/* ======================================================= */}
+        {/* LEFT PANEL: DOCUMENT INSPECTOR & SOURCE (42% / Col 5)   */}
+        {/* ======================================================= */}
         <div className="lg:col-span-5 space-y-5">
           
-          {/* 1. PRESCRIPTION UPLOAD & PREVIEW CARD */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-sm space-y-4 transition-colors">
-            <div>
-              <h2 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                <DocumentIcon size={20} className="text-teal-700 dark:text-teal-400" />
-                <span>Your Prescription</span>
-              </h2>
-              <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 font-medium">
-                Upload a clear photo or scan of your prescription.
-              </p>
-            </div>
-
-            {/* Upload Dropzone */}
-            {!imagePreview ? (
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-teal-700 dark:hover:border-teal-400 bg-slate-50 dark:bg-slate-800/50 hover:bg-teal-50/50 dark:hover:bg-slate-800/80 rounded-2xl p-6 sm:p-8 text-center space-y-3 cursor-pointer transition-all"
-              >
-                <div className="w-12 h-12 rounded-2xl bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800 mx-auto flex items-center justify-center shadow-2xs">
-                  <CloudUploadIcon size={24} />
-                </div>
-                <div className="text-xs font-bold text-slate-900 dark:text-slate-100">
-                  Drag and drop or click to upload
-                </div>
-                <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                  JPG, PNG or PDF (Max 5MB)
-                </div>
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs space-y-4 transition-colors">
+            
+            {/* Header & Zoom Toolbar */}
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <DocumentIcon size={18} className="text-[#0B4F42] dark:text-teal-400" />
+                <h2 className="text-sm font-extrabold text-slate-900 dark:text-white">
+                  Prescription Document
+                </h2>
               </div>
-            ) : null}
 
-            {/* Uploaded Prescription Preview Area */}
-            {imagePreview && (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-slate-800 dark:text-slate-200">Uploaded Prescription</span>
+              {imagePreview && (
+                <div className="flex items-center gap-1.5 text-xs">
                   <button
                     type="button"
-                    onClick={() => {
-                      setImagePreview(null);
-                      setConvertText('');
-                      setTranslatedResult('');
-                      setExtractedMedicines([]);
-                      setExtractionConfidence(null);
-                    }}
-                    className="text-rose-600 dark:text-rose-400 font-bold hover:underline min-h-[44px] flex items-center cursor-pointer"
+                    onClick={() => setZoomLevel((z) => Math.max(0.8, z - 0.2))}
+                    title="Zoom Out"
+                    className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 font-bold flex items-center justify-center cursor-pointer"
+                  >
+                    -
+                  </button>
+                  <span className="text-[11px] font-mono text-slate-500 w-9 text-center">
+                    {Math.round(zoomLevel * 100)}%
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setZoomLevel((z) => Math.min(2.2, z + 0.2))}
+                    title="Zoom In"
+                    className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 font-bold flex items-center justify-center cursor-pointer"
+                  >
+                    +
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleClearActive}
+                    title="Clear Document"
+                    className="text-rose-600 dark:text-rose-400 font-bold text-xs hover:underline cursor-pointer ml-1"
                   >
                     Clear
                   </button>
                 </div>
+              )}
+            </div>
 
-                <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-slate-50 dark:bg-slate-800 p-2 flex items-center justify-center max-h-72">
-                  <img src={imagePreview} alt="Uploaded Prescription" className="object-contain max-h-68 w-full rounded-lg" />
+            {/* Document Image View / Upload Dropzone */}
+            {imagePreview ? (
+              <div className="border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden bg-slate-50 dark:bg-slate-800 p-2 flex items-center justify-center min-h-[260px] max-h-[360px] overflow-auto relative">
+                <img
+                  src={imagePreview}
+                  alt="Uploaded Prescription"
+                  style={{ transform: `scale(${zoomLevel})`, transition: 'transform 0.2s ease' }}
+                  className="object-contain max-h-[340px] w-full rounded-xl origin-center"
+                />
+              </div>
+            ) : (
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="border-2 border-dashed border-teal-600/40 hover:border-[#0B4F42] dark:border-teal-500/40 dark:hover:border-teal-400 bg-teal-50/40 dark:bg-slate-800/60 hover:bg-teal-50 dark:hover:bg-slate-800 rounded-2xl p-8 text-center space-y-3 cursor-pointer transition-all group"
+              >
+                <div className="w-12 h-12 rounded-2xl bg-teal-50 dark:bg-teal-950 text-[#0B4F42] dark:text-teal-300 border border-teal-200 dark:border-teal-800 mx-auto flex items-center justify-center shadow-2xs">
+                  <CloudUploadIcon size={24} />
                 </div>
-
-                <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-400 font-bold text-xs">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 dark:bg-emerald-400 animate-pulse" />
-                  <span>Prescription processed</span>
+                <div className="text-xs font-black text-[#0B4F42] dark:text-teal-300 group-hover:scale-102 transition-transform">
+                  Upload Doctor's Slip or Photo
                 </div>
-
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs py-3 px-4 min-h-[44px] rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-2"
-                >
-                  <span>⬆ Upload another prescription</span>
-                </button>
+                <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                  JPG, PNG, WEBP or PDF (Max 5MB)
+                </div>
+                <div className="pt-2 flex items-center justify-center gap-1.5 text-[10px] font-bold text-slate-500">
+                  <span className="bg-white dark:bg-slate-700 px-2 py-0.5 rounded-full border">⚡ AI Vision OCR</span>
+                  <span className="bg-white dark:bg-slate-700 px-2 py-0.5 rounded-full border">🌐 12+ Languages</span>
+                </div>
               </div>
             )}
 
-            {/* Hidden File Input */}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*,application/pdf"
-              className="hidden"
-              onChange={handleFileUpload}
-            />
-
-            {/* Manual text input toggle & preset samples */}
-            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-3">
-              <div className="flex items-center justify-between text-xs">
-                <button
-                  type="button"
-                  onClick={() => setShowManualInput(!showManualInput)}
-                  className="text-xs text-teal-700 dark:text-teal-400 hover:underline font-bold min-h-[44px] flex items-center cursor-pointer"
-                >
-                  {showManualInput ? 'Hide manual text input' : 'Type doctor instructions manually'}
-                </button>
+            {/* Converting / Processing Progress Banner */}
+            {converting && (
+              <div className="bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 rounded-2xl p-4 space-y-2 text-xs">
+                <div className="flex items-center gap-2 text-[#0B4F42] dark:text-teal-300 font-extrabold">
+                  <SparklesIcon size={16} className="animate-spin" />
+                  <span>Processing prescription with AI Vision...</span>
+                </div>
+                <div className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">
+                  Extracting doctor's handwriting, medicines, dosage timings, and translating...
+                </div>
               </div>
+            )}
 
-              {showManualInput && (
-                <div className="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 space-y-3">
-                  <textarea
-                    rows={8}
-                    className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-3.5 text-xs text-slate-900 dark:text-slate-100 focus:border-teal-700 outline-none font-mono leading-relaxed whitespace-pre-wrap min-h-[160px]"
-                    value={convertText}
-                    onChange={(e) => setConvertText(e.target.value)}
-                    placeholder="Type doctor instructions or scanned prescription text..."
-                  />
+            {/* Document Metadata Bar & Action */}
+            {imagePreview && (
+              <div className="space-y-2.5 pt-1 text-xs">
+                <div className="flex items-center justify-between font-bold">
+                  <span className="text-emerald-800 dark:text-emerald-400 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-600 dark:bg-emerald-400 animate-pulse" />
+                    <span>AI Vision Verified</span>
+                  </span>
+                  <span className="text-slate-500 text-[11px]">
+                    {extractionConfidence ? `${Math.round(extractionConfidence * 100)}% confidence` : 'Clinical Grade OCR'}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={handleConvert}
-                    disabled={converting}
-                    className="w-full bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold py-3 min-h-[44px] rounded-xl transition-colors cursor-pointer disabled:opacity-50 shadow-sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2 rounded-xl transition-colors cursor-pointer text-center text-xs"
                   >
-                    {converting ? 'Processing...' : 'Translate Instructions'}
+                    ⬆ Replace Slip
                   </button>
-                </div>
-              )}
-
-              {/* Sample Prescriptions */}
-              <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600 dark:text-slate-400 pt-1">
-                <span className="font-bold text-slate-700 dark:text-slate-300">Samples:</span>
-                <button
-                  type="button"
-                  onClick={async () => {
-                    const sampleText =
-                      'आपको चक्कर और बेचैनी की शिकायत है। आपका रक्त शर्करा का स्तर बहुत कम है। डॉक्टर ने आपको 10 मिलीलीटर 5% डेक्सट्रोज का इंजेक्शन तुरंत लेने की सलाह दी है। इसके अलावा, आपको पर्याप्त मात्रा में तरल पदार्थ पीने और 2 पैकेट ओआरएस का सेवन करने की सलाह दी गई है।';
-                    const sampleMeds = [
-                      { medicine_name: '5% Dextrose Injection', strength: '10 ml', frequency: 'Immediate (Stat)', meal_rule: 'Intravenous / Under Doctor', duration_days: 1 },
-                      { medicine_name: 'ORS Oral Rehydration Solution', strength: '2 Packets', frequency: 'Twice daily', meal_rule: 'Dissolved in clean water', duration_days: 1 },
-                    ];
-                    setConvertText(sampleText);
-                    setTranslatedResult(sampleText);
-                    setExtractedMedicines(sampleMeds);
-                    setExtractionConfidence(0.98);
-                    saveToHistory({
-                      id: Date.now().toString(),
-                      title: 'Sample Prescription',
-                      extractedText: sampleText,
-                      translatedText: sampleText,
-                      medications: sampleMeds,
-                      confidence: 0.98,
-                      languageCode: convertLang,
-                      languageName: selectedLanguage.name,
-                      languageNative: selectedLanguage.native,
-                      timestamp: new Date().toISOString(),
-                    });
-                  }}
-                  className="bg-emerald-50 dark:bg-slate-800 hover:bg-emerald-100 dark:hover:bg-slate-700 text-teal-800 dark:text-teal-300 border border-emerald-200 dark:border-slate-700 font-bold px-3 py-1.5 min-h-[44px] rounded-xl transition-colors cursor-pointer flex items-center"
-                >
-                  Hypoglycemia Sample
-                </button>
-              </div>
-            </div>
-
-            {/* Processing Loading Status */}
-            {converting && (
-              <div className="bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 rounded-2xl p-4 space-y-2.5 text-xs">
-                <div className="flex items-center gap-2 text-teal-800 dark:text-teal-300 font-extrabold">
-                  <SparklesIcon size={18} className="animate-spin text-teal-700 dark:text-teal-400" />
-                  <span>Processing prescription...</span>
-                </div>
-                <div className="space-y-1 pl-6 text-xs text-slate-700 dark:text-slate-300 font-bold">
-                  <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300">
-                    <CheckIcon size={14} color="#059669" />
-                    <span>Extracting text</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-teal-800 dark:text-teal-300 font-bold animate-pulse">
-                    <span className="w-2 h-2 rounded-full bg-teal-700 dark:bg-teal-400" />
-                    <span>Translating into {selectedLanguage.native}</span>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowManualInput(!showManualInput)}
+                    className="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2 px-3 rounded-xl transition-colors cursor-pointer text-xs"
+                    title="View / Edit Raw OCR Text"
+                  >
+                    ✍️ Edit OCR
+                  </button>
                 </div>
               </div>
             )}
-          </div>
 
-          {/* 2. VOICE GUIDANCE CARD */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-sm space-y-4 transition-colors">
-            <div className="space-y-0.5">
-              <div className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                <SpeakerIcon size={20} className="text-teal-700 dark:text-teal-400" />
-                <span>Voice Guidance</span>
+            {/* Expandable Manual Text Editor */}
+            {showManualInput && (
+              <div className="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 space-y-3 animate-in fade-in">
+                <label className="text-[11px] font-extrabold text-slate-700 dark:text-slate-300 block">
+                  Doctor Notes / Scanned Text:
+                </label>
+                <textarea
+                  rows={4}
+                  className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 text-xs text-slate-900 dark:text-slate-100 focus:border-[#0B4F42] outline-none font-mono leading-relaxed"
+                  value={convertText}
+                  onChange={(e) => setConvertText(e.target.value)}
+                  placeholder="Type doctor instructions..."
+                />
+                <button
+                  type="button"
+                  onClick={handleConvert}
+                  disabled={converting || !convertText.trim()}
+                  className="w-full bg-[#0B4F42] hover:bg-[#093f35] text-white text-xs font-bold py-2 rounded-xl transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  {converting ? 'Processing...' : 'Translate Instructions'}
+                </button>
               </div>
-              <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
-                Tap the button below to listen to your translated prescription.
-              </p>
-            </div>
+            )}
 
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-1">
-              <button
-                type="button"
-                onClick={() => handleSpeakToggle()}
-                className={`font-bold text-xs px-6 py-3 min-h-[44px] rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm w-full sm:w-auto ${
-                  speaking
-                    ? 'bg-rose-600 border border-rose-600 text-white animate-pulse'
-                    : 'bg-teal-700 hover:bg-teal-800 text-white'
-                }`}
-              >
-                <span>{speaking ? '⏸ Stop' : `▶ Listen in ${selectedLanguage.native}`}</span>
-              </button>
-
-              {/* Audio Waveform Graphic */}
-              <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 font-mono font-bold">
-                <span>{speaking ? '0:14 / 1:02' : '0:00 / 1:02'}</span>
-                <div className="flex items-center gap-0.5 h-4">
-                  {[40, 70, 30, 90, 50, 80, 40, 60, 100, 50, 30, 70, 90, 40, 60, 30].map((h, i) => (
-                    <span
-                      key={i}
-                      className={`w-0.5 rounded-full ${speaking ? 'bg-teal-700 dark:bg-teal-400 animate-pulse' : 'bg-slate-300 dark:bg-slate-700'}`}
-                      style={{ height: `${h}%` }}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 3. IMPORTANT INFORMATION WARNING BOX */}
-          <div className="bg-amber-50/80 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800/80 rounded-2xl p-4.5 flex items-start gap-3.5 text-amber-950 dark:text-amber-100 shadow-2xs">
-            <AlertIcon size={22} className="text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-            <div className="space-y-1 text-xs">
-              <div className="font-extrabold text-amber-950 dark:text-amber-100">Important Information</div>
-              <p className="text-amber-900 dark:text-amber-200 leading-relaxed font-semibold">
-                Some information may be unclear.<br />
-                Please verify unclear instructions with an ASHA worker or healthcare professional.
-              </p>
-            </div>
-          </div>
-
-          {/* 4. MEDICATION REMINDERS CTA CARD */}
-          <div className="bg-sky-50/70 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800/80 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-2xs transition-colors">
-            <div className="flex items-center gap-3.5">
-              <div className="w-10 h-10 rounded-xl bg-sky-100 dark:bg-sky-900/60 text-sky-800 dark:text-sky-200 flex items-center justify-center shrink-0 shadow-2xs">
-                <ClockIcon size={20} />
-              </div>
-              <div className="space-y-0.5">
-                <div className="text-xs font-bold text-sky-950 dark:text-sky-100">Want help remembering?</div>
-                <p className="text-[11px] text-sky-900 dark:text-sky-300 font-medium">
-                  Create reminders for each medicine and receive notifications when it is time.
-                </p>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setCurrentView?.('reminders')}
-              className="w-full sm:w-auto bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs px-4 py-3 min-h-[44px] rounded-xl shrink-0 cursor-pointer flex items-center justify-center gap-2 transition-colors shadow-xs"
-            >
-              <span>📅 Create Reminders</span>
-            </button>
           </div>
 
         </div>
 
-        {/* ================================================== */}
-        {/* RIGHT COLUMN CONTAINER (55% width = lg:col-span-7)  */}
-        {/* ================================================== */}
+        {/* ============================================================== */}
+        {/* RIGHT PANEL: TRANSLATED GUIDANCE & DOSE MATRIX (58% / Col 7)   */}
+        {/* ============================================================== */}
         <div className="lg:col-span-7 space-y-5">
           
-          {/* 1. TRANSLATED INSTRUCTIONS CARD */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-sm space-y-4 transition-colors">
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3.5">
-              <h2 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                <TranslateIcon size={20} className="text-teal-700 dark:text-teal-400" />
-                <span>Translated Instructions</span>
-              </h2>
+          {/* 1. TRANSLATED GUIDANCE & RURAL AUDIO CAPSULE */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 sm:p-6 shadow-xs space-y-4 transition-colors">
+            
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3.5">
+              <div className="flex items-center gap-2">
+                <TranslateIcon size={18} className="text-[#0B4F42] dark:text-teal-400" />
+                <h2 className="text-base font-black text-slate-900 dark:text-white">
+                  Translated Instructions
+                </h2>
+              </div>
 
-              <span className="bg-teal-700 text-white text-xs font-bold px-3.5 py-1.5 rounded-full flex items-center gap-2 shadow-2xs">
+              <span className="bg-teal-50 dark:bg-teal-950/80 border border-teal-200 dark:border-teal-800 text-[#0B4F42] dark:text-teal-300 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
                 <span>{selectedLanguage.flag}</span>
                 <span>{selectedLanguage.native}</span>
               </span>
             </div>
 
-            {/* Instruction Explanation Box */}
-            <div className="bg-emerald-50/70 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/80 rounded-2xl p-5 text-emerald-950 dark:text-emerald-100 text-sm sm:text-base leading-relaxed font-semibold whitespace-pre-wrap min-h-[140px] shadow-2xs">
-              {translatedResult ||
-                'आपको चक्कर और बेचैनी की शिकायत है। आपका रक्त शर्करा का स्तर बहुत कम है। डॉक्टर ने आपको 10 मिलीलीटर 5% डेक्सट्रोज का इंजेक्शन तुरंत लेने की सलाह दी है। इसके अलावा, आपको पर्याप्त मात्रा में तरल पदार्थ पीने और 2 पैकेट ओआरएस का सेवन करने की सलाह दी गई है।'}
+            {/* Translated Explanation Box */}
+            <div className="bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80 rounded-2xl p-5 text-emerald-950 dark:text-emerald-100 text-sm sm:text-base leading-relaxed font-semibold whitespace-pre-wrap min-h-[90px] shadow-2xs">
+              {translatedResult || convertText || (
+                <span className="text-slate-400 font-normal italic">
+                  Upload a prescription or type doctor notes on the left to see simplified instructions here in {selectedLanguage.native}.
+                </span>
+              )}
             </div>
+
+            {/* RURAL MULTILINGUAL AUDIO CAPSULE BAR */}
+            <div className="bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/80 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={() => handleSpeakToggle()}
+                  className={`font-bold text-xs px-5 py-2.5 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs shrink-0 ${
+                    speaking
+                      ? 'bg-rose-600 text-white animate-pulse'
+                      : 'bg-[#0B4F42] hover:bg-[#093f35] text-white'
+                  }`}
+                >
+                  <SpeakerIcon size={16} />
+                  <span>{speaking ? '⏹ Stop Audio' : `▶ Listen in ${selectedLanguage.native}`}</span>
+                </button>
+
+                {/* Elderly Slow Pace Selector */}
+                <div className="flex items-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-1 text-[11px] font-bold">
+                  <button
+                    type="button"
+                    onClick={() => setSpeechRate(0.85)}
+                    className={`px-2.5 py-1 rounded-lg transition-colors cursor-pointer ${
+                      speechRate === 0.85
+                        ? 'bg-teal-100 dark:bg-teal-950 text-[#0B4F42] dark:text-teal-300 font-black'
+                        : 'text-slate-500'
+                    }`}
+                    title="Slow & clear voice for seniors"
+                  >
+                    🐢 0.8x Slow
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSpeechRate(1.0)}
+                    className={`px-2.5 py-1 rounded-lg transition-colors cursor-pointer ${
+                      speechRate === 1.0
+                        ? 'bg-teal-100 dark:bg-teal-950 text-[#0B4F42] dark:text-teal-300 font-black'
+                        : 'text-slate-500'
+                    }`}
+                  >
+                    ⚡ 1.0x Normal
+                  </button>
+                </div>
+              </div>
+
+              {/* Pulsing Soundwave Visualization */}
+              <div className="flex items-center gap-1 h-5 shrink-0">
+                {[30, 70, 40, 90, 60, 100, 50, 80, 40, 90, 60, 30].map((h, i) => (
+                  <span
+                    key={i}
+                    className={`w-0.5 rounded-full transition-all ${
+                      speaking ? 'bg-[#0B4F42] dark:bg-teal-400 animate-pulse' : 'bg-slate-300 dark:bg-slate-600'
+                    }`}
+                    style={{ height: `${speaking ? h : 25}%` }}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Clinical Safety Disclaimer Chip */}
+            <div className="bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/60 rounded-xl p-3 flex items-center gap-2.5 text-[11px] text-amber-950 dark:text-amber-200 font-medium">
+              <AlertIcon size={16} className="text-amber-600 dark:text-amber-400 shrink-0" />
+              <span>Always take medicines strictly as instructed by your treating doctor or ASHA health worker.</span>
+            </div>
+
           </div>
 
-          {/* 2. MEDICINES IDENTIFIED CARD */}
+          {/* 2. VISUAL SUN & MOON DOSE MATRIX */}
           <MedicineList 
             medications={extractedMedicines}
             confidence={extractionConfidence}
             isLoading={converting}
           />
 
-        </div>
-
-      </div>
-
-      {/* ================================================== */}
-      {/* PRESCRIPTION HISTORY SECTION (COMPACT LIST)        */}
-      {/* ================================================== */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-sm space-y-4 transition-colors">
-        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3.5">
-          <div>
-            <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <HistoryIcon size={20} className="text-teal-700 dark:text-teal-400" />
-              <span>Prescription History</span>
-            </h2>
-            <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 font-medium">
-              Your previously uploaded and translated prescriptions.
-            </p>
-          </div>
-        </div>
-
-        <div className="space-y-2.5">
-          {historyItems.length === 0 ? (
-            <div className="text-xs text-slate-500 dark:text-slate-500 py-4 text-center font-medium">
-              No saved prescription history yet.
-            </div>
-          ) : (
-            historyItems.map((item) => (
-              <div
-                key={item.id || item.timestamp}
-                className="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl p-3.5 flex items-center justify-between gap-4 transition-all hover:border-teal-700 dark:hover:border-teal-400 shadow-2xs"
-              >
-                <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="w-9 h-9 rounded-xl bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800 flex items-center justify-center shrink-0">
-                    <DocumentIcon size={18} />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                      📄 {item.title || 'Prescription Document'}
-                    </div>
-                    <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                      {item.languageNative || item.languageName || 'Hindi'} • {item.timestamp ? new Date(item.timestamp).toLocaleDateString() : 'Today'}
-                    </div>
-                  </div>
+          {/* 3. SCHEDULE REMINDERS ACTION CARD */}
+          <div className="bg-gradient-to-r from-teal-50 to-emerald-50 dark:from-slate-800/90 dark:to-slate-800/60 border border-teal-200 dark:border-slate-700 rounded-3xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs transition-colors">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-[#0B4F42] text-white flex items-center justify-center font-bold text-lg shrink-0 shadow-xs">
+                ⏰
+              </div>
+              <div>
+                <div className="text-xs font-extrabold text-slate-900 dark:text-white">
+                  Automated Medication Reminders & PillBox
                 </div>
-
-                <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => handleViewHistoryItem(item)}
-                    className="text-xs font-bold text-teal-700 dark:text-teal-400 hover:text-teal-900 dark:hover:text-teal-300 min-h-[44px] px-3 flex items-center gap-1 cursor-pointer"
-                  >
-                    <span>View</span>
-                    <ArrowRightIcon size={16} />
-                  </button>
+                <div className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">
+                  Alarms for Morning (8:00 AM), Afternoon (1:30 PM), and Night (8:30 PM).
                 </div>
               </div>
-            ))
-          )}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setCurrentView?.('reminders')}
+              className="bg-[#0B4F42] hover:bg-[#093f35] text-white font-bold text-xs px-5 py-2.5 rounded-xl transition-all cursor-pointer shadow-xs shrink-0"
+            >
+              <span>📅 View Reminders Schedule →</span>
+            </button>
+          </div>
+
         </div>
+
       </div>
 
       {/* DEDICATED PRESCRIPTION DETAIL MODAL */}

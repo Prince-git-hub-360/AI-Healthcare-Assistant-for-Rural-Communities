@@ -28,14 +28,35 @@ export const VisualPillBoxCalendar = ({ reminders = [], onToggleTaken, onDeleteR
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
   const [playingId, setPlayingId] = useState(null);
   const [alarmStates, setAlarmStates] = useState({});
+  // Per-day completion map: { "day_0_rem_12": true, "day_1_rem_12": false }
+  const [dayTakenState, setDayTakenState] = useState(() => {
+    try {
+      const saved = localStorage.getItem('swasthya_pillbox_day_taken');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
 
   const rawList = Array.isArray(reminders) ? reminders : [];
 
-  // Determine overall treatment course duration (dynamically from prescription items, e.g. 3 days, 5 days, 7 days)
+  // Determine overall treatment course duration (dynamically from prescription items, e.g. 4 days, 5 days, 7 days)
   const durationValues = rawList
-    .map((r) => r.duration_days || r.durationDays || r.duration)
-    .filter((d) => typeof d === 'number' && d > 0);
-  const maxDuration = durationValues.length > 0 ? Math.max(...durationValues) : 5;
+    .map((r) => {
+      if (typeof r.duration_days === 'number' && r.duration_days > 0) return r.duration_days;
+      if (typeof r.durationDays === 'number' && r.durationDays > 0) return r.durationDays;
+      if (typeof r.duration === 'number' && r.duration > 0) return r.duration;
+      if (r.start_date && r.end_date) {
+        const s = new Date(r.start_date);
+        const e = new Date(r.end_date);
+        const diff = Math.round((e - s) / (1000 * 60 * 60 * 24)) + 1;
+        if (diff > 0) return diff;
+      }
+      return null;
+    })
+    .filter(Boolean);
+
+  const maxDuration = durationValues.length > 0 ? Math.max(...durationValues) : (rawList.length > 0 ? 4 : 4);
 
   // Generate dynamic date objects for the course duration
   const todayDate = new Date();
@@ -63,10 +84,45 @@ export const VisualPillBoxCalendar = ({ reminders = [], onToggleTaken, onDeleteR
 
   const selectedDay = calendarDays[selectedDayIndex] || calendarDays[0];
 
+  // Helper to check if a dose is taken on a specific day
+  const isDoseTakenOnDay = (reminderId, dayIdx, fallbackTaken = false) => {
+    const key = `day_${dayIdx}_rem_${reminderId}`;
+    if (dayTakenState[key] !== undefined) {
+      return dayTakenState[key];
+    }
+    // For today (day 0), fallback to backend reminder status
+    if (dayIdx === 0) return fallbackTaken;
+    return false;
+  };
+
+  // Toggle dose taken on a specific day
+  const handleToggleDayTaken = (reminderId, dayIdx, currentVal) => {
+    const nextVal = !currentVal;
+    const key = `day_${dayIdx}_rem_${reminderId}`;
+    const nextState = { ...dayTakenState, [key]: nextVal };
+    setDayTakenState(nextState);
+    try {
+      localStorage.setItem('swasthya_pillbox_day_taken', JSON.stringify(nextState));
+    } catch {}
+
+    if (dayIdx === 0 && onToggleTaken) {
+      onToggleTaken(reminderId, currentVal);
+    } else {
+      showToast?.(nextVal ? 'Dose marked as completed for this date ✓' : 'Dose marked as pending ○', 'success');
+    }
+  };
+
   // Helper to filter and group medications for a specific day
   const getDayMedications = (dayIdx) => {
     const dayMeds = rawList.filter((r) => {
-      const itemDuration = r.duration_days || r.durationDays || maxDuration;
+      let itemDuration = r.duration_days || r.durationDays;
+      if (!itemDuration && r.start_date && r.end_date) {
+        const s = new Date(r.start_date);
+        const e = new Date(r.end_date);
+        const diff = Math.round((e - s) / (1000 * 60 * 60 * 24)) + 1;
+        if (diff > 0) itemDuration = diff;
+      }
+      itemDuration = itemDuration || maxDuration;
       return dayIdx < itemDuration;
     });
 
@@ -76,6 +132,7 @@ export const VisualPillBoxCalendar = ({ reminders = [], onToggleTaken, onDeleteR
       const normName = normalizeMedicationName(r.medication_name || r.title);
       const time = (r.scheduled_time || r.time || '').toLowerCase();
       const key = `${normName.toLowerCase()}_${time}_day_${dayIdx}`;
+      const takenThisDay = isDoseTakenOnDay(r.id, dayIdx, r.is_taken);
 
       if (!uniqueMap.has(key)) {
         uniqueMap.set(key, {
@@ -83,6 +140,7 @@ export const VisualPillBoxCalendar = ({ reminders = [], onToggleTaken, onDeleteR
           displayName: normName,
           rawTitle: r.medication_name || r.title,
           uniqueKey: key,
+          is_taken_this_day: takenThisDay,
         });
       }
     });
@@ -107,6 +165,7 @@ export const VisualPillBoxCalendar = ({ reminders = [], onToggleTaken, onDeleteR
         time.includes('21:') ||
         time.includes('22:') ||
         time.includes('08:00 pm') ||
+        time.includes('08:30 pm') ||
         time.includes('09:00 pm') ||
         time.includes('10:00 pm') ||
         (time.includes('pm') && (time.includes('08:') || time.includes('09:') || time.includes('10:')))
@@ -138,12 +197,12 @@ export const VisualPillBoxCalendar = ({ reminders = [], onToggleTaken, onDeleteR
 
   // Daily Progress Calculation
   const totalDayDoses = deduplicated.length;
-  const takenDayDoses = deduplicated.filter((r) => r.is_taken).length;
+  const takenDayDoses = deduplicated.filter((r) => r.is_taken_this_day).length;
   const progressPercent = totalDayDoses > 0 ? Math.round((takenDayDoses / totalDayDoses) * 100) : 0;
 
-  const morningTaken = morning.filter((r) => r.is_taken).length;
-  const afternoonTaken = afternoon.filter((r) => r.is_taken).length;
-  const nightTaken = night.filter((r) => r.is_taken).length;
+  const morningTaken = morning.filter((r) => r.is_taken_this_day).length;
+  const afternoonTaken = afternoon.filter((r) => r.is_taken_this_day).length;
+  const nightTaken = night.filter((r) => r.is_taken_this_day).length;
 
   const handleAudioToggle = async (reminder) => {
     if (playingId === reminder.id) {
@@ -207,7 +266,7 @@ export const VisualPillBoxCalendar = ({ reminders = [], onToggleTaken, onDeleteR
             const isSelected = selectedDayIndex === day.index;
             const dayMedsData = getDayMedications(day.index);
             const dayTotal = dayMedsData.deduplicated.length;
-            const dayTaken = dayMedsData.deduplicated.filter((r) => r.is_taken).length;
+            const dayTaken = dayMedsData.deduplicated.filter((r) => r.is_taken_this_day).length;
             
             let statusBadge = `○ 0/${dayTotal} pending`;
             let badgeClass = 'bg-stone-100 dark:bg-slate-700/60 text-stone-600 dark:text-slate-300';
@@ -285,6 +344,82 @@ export const VisualPillBoxCalendar = ({ reminders = [], onToggleTaken, onDeleteR
               </div>
             </div>
           </div>
+
+          {/* ALL COMPLETED CELEBRATION BANNER ON SELECTED DATE */}
+          {totalDayDoses > 0 && takenDayDoses === totalDayDoses && (
+            <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 animate-in fade-in">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
+                  ✓
+                </div>
+                <div>
+                  <div className="text-xs font-extrabold text-emerald-900 dark:text-emerald-100">
+                    All doses for {selectedDay.dateNum} {selectedDay.monthName} completed!
+                  </div>
+                  <div className="text-[11px] text-emerald-800/80 dark:text-emerald-300 font-medium">
+                    Great adherence to your medical course. Keep it up!
+                  </div>
+                </div>
+              </div>
+
+              {selectedDayIndex < calendarDays.length - 1 && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedDayIndex(selectedDayIndex + 1)}
+                  className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shadow-xs shrink-0"
+                >
+                  <span>View Next Date ({calendarDays[selectedDayIndex + 1]?.subLabel})</span>
+                  <span>→</span>
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* GRAND COURSE MILESTONE BANNER (WHEN ALL DAYS ARE 100% DONE) */}
+          {calendarDays.length > 0 && calendarDays.every((day) => {
+            const meds = getDayMedications(day.index);
+            return meds.deduplicated.length > 0 && meds.deduplicated.every((r) => r.is_taken_this_day);
+          }) && (
+            <div className="bg-gradient-to-r from-teal-900 to-emerald-900 text-white rounded-3xl p-6 shadow-md space-y-4 animate-in fade-in">
+              <div className="flex items-center gap-3">
+                <div className="text-3xl">🏆</div>
+                <div>
+                  <h4 className="text-base sm:text-lg font-black tracking-tight text-white">
+                    Congratulations! Full {maxDuration}-Day Treatment Course Completed
+                  </h4>
+                  <p className="text-xs text-teal-100 font-medium">
+                    You have successfully completed 100% of your prescribed medication doses on time.
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4 space-y-2.5">
+                <span className="text-xs font-bold text-teal-200 uppercase tracking-wider block">
+                  Post-Course Health Check-in
+                </span>
+                <p className="text-xs text-white leading-relaxed font-medium">
+                  How are you feeling after completing your treatment course?
+                </p>
+                <div className="flex flex-wrap items-center gap-3 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => showToast?.('Wonderful news! Your recovery record has been updated in Health Records.', 'success')}
+                    className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs px-4 py-2 rounded-xl transition-colors cursor-pointer flex items-center gap-1.5 shadow-xs"
+                  >
+                    <span>😊 Feeling Recovered & Healthy</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => onIvrCall?.({ displayName: 'ASHA Care Worker & Doctor Follow-up' })}
+                    className="bg-white/20 hover:bg-white/30 text-white font-bold text-xs px-4 py-2 rounded-xl transition-colors cursor-pointer flex items-center gap-1.5"
+                  >
+                    <span>🩺 Still have symptoms (Consult Doctor / ASHA)</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* 3. TIME OF DAY SECTIONS (MORNING / AFTERNOON / NIGHT) */}
@@ -317,7 +452,7 @@ export const VisualPillBoxCalendar = ({ reminders = [], onToggleTaken, onDeleteR
                   onToggleAlarm={() => toggleAlarm(r.id)}
                   isPlaying={playingId === r.id}
                   onAudioToggle={() => handleAudioToggle(r)}
-                  onToggleTaken={() => onToggleTaken?.(r.id, r.is_taken)}
+                  onToggleTaken={() => handleToggleDayTaken(r.id, selectedDayIndex, r.is_taken_this_day)}
                   onDelete={() => onDeleteReminder?.(r.id)}
                   onIvrCall={() => onIvrCall?.(r)}
                 />
@@ -354,7 +489,7 @@ export const VisualPillBoxCalendar = ({ reminders = [], onToggleTaken, onDeleteR
                   onToggleAlarm={() => toggleAlarm(r.id)}
                   isPlaying={playingId === r.id}
                   onAudioToggle={() => handleAudioToggle(r)}
-                  onToggleTaken={() => onToggleTaken?.(r.id, r.is_taken)}
+                  onToggleTaken={() => handleToggleDayTaken(r.id, selectedDayIndex, r.is_taken_this_day)}
                   onDelete={() => onDeleteReminder?.(r.id)}
                   onIvrCall={() => onIvrCall?.(r)}
                 />
@@ -391,7 +526,7 @@ export const VisualPillBoxCalendar = ({ reminders = [], onToggleTaken, onDeleteR
                   onToggleAlarm={() => toggleAlarm(r.id)}
                   isPlaying={playingId === r.id}
                   onAudioToggle={() => handleAudioToggle(r)}
-                  onToggleTaken={() => onToggleTaken?.(r.id, r.is_taken)}
+                  onToggleTaken={() => handleToggleDayTaken(r.id, selectedDayIndex, r.is_taken_this_day)}
                   onDelete={() => onDeleteReminder?.(r.id)}
                   onIvrCall={() => onIvrCall?.(r)}
                 />
@@ -416,7 +551,7 @@ const MedicationCard = ({
   onDelete,
   onIvrCall,
 }) => {
-  const isTaken = reminder.is_taken;
+  const isTaken = reminder.is_taken_this_day !== undefined ? reminder.is_taken_this_day : reminder.is_taken;
   const title = reminder.displayName || reminder.medication_name || 'Prescribed Medicine';
   const instruction = reminder.instructions || reminder.dosage_note || 'Take 1 tablet as prescribed';
   const time = reminder.scheduled_time || '08:00 AM';

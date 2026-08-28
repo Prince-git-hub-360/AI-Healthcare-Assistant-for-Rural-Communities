@@ -26,6 +26,9 @@ export const AuthProvider = ({ children }) => {
   const [theme, setTheme] = useState(localStorage.getItem('swasthya_theme') || 'light');
   const [toast, setToast] = useState(null);
   const [backendHealthy, setBackendHealthy] = useState(false);
+  const [largeText, setLargeText] = useState(localStorage.getItem('swasthya_large_text') === 'true');
+  const [highContrast, setHighContrast] = useState(localStorage.getItem('swasthya_high_contrast') === 'true');
+  const [voiceReminders, setVoiceReminders] = useState(localStorage.getItem('swasthya_voice_reminders') !== 'false');
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -36,10 +39,50 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('swasthya_theme', theme);
   }, [theme]);
 
+  useEffect(() => {
+    if (largeText) {
+      document.documentElement.classList.add('large-text-mode');
+    } else {
+      document.documentElement.classList.remove('large-text-mode');
+    }
+    localStorage.setItem('swasthya_large_text', largeText);
+  }, [largeText]);
+
+  useEffect(() => {
+    if (highContrast) {
+      document.documentElement.classList.add('high-contrast-mode');
+    } else {
+      document.documentElement.classList.remove('high-contrast-mode');
+    }
+    localStorage.setItem('swasthya_high_contrast', highContrast);
+  }, [highContrast]);
+
+  useEffect(() => {
+    localStorage.setItem('swasthya_voice_reminders', voiceReminders);
+  }, [voiceReminders]);
+
   const toggleTheme = () => {
     const nextTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(nextTheme);
     showToast(`Theme changed to ${nextTheme === 'dark' ? 'Dark' : 'Light'} Mode`, 'info');
+  };
+
+  const toggleLargeText = () => {
+    const next = !largeText;
+    setLargeText(next);
+    showToast(next ? 'Large Text Mode Activated 🔍' : 'Standard Text Size Restored', 'info');
+  };
+
+  const toggleHighContrast = () => {
+    const next = !highContrast;
+    setHighContrast(next);
+    showToast(next ? 'High Contrast Mode Activated 👁️' : 'Standard Contrast Restored', 'info');
+  };
+
+  const toggleVoiceReminders = () => {
+    const next = !voiceReminders;
+    setVoiceReminders(next);
+    showToast(next ? 'Voice Reminders Enabled 🔊' : 'Voice Reminders Disabled 🔇', 'info');
   };
 
   const showToast = (message, type = 'info') => {
@@ -224,6 +267,12 @@ export const AuthProvider = ({ children }) => {
         currentLang,
         theme,
         toggleTheme,
+        largeText,
+        highContrast,
+        voiceReminders,
+        toggleLargeText,
+        toggleHighContrast,
+        toggleVoiceReminders,
         toast,
         backendHealthy,
         login,

@@ -57,8 +57,11 @@ INSTALLED_APPS = [
     'medications',
     'reminders',
     'translations',
-
+    'ai_assistant',
 ]
+
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',

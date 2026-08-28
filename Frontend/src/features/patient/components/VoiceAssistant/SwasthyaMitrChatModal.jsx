@@ -2,32 +2,72 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth, LANGUAGES } from '../../../../shared/context/AuthContext';
 import {
   MicIcon, CameraIcon, SendIcon, CloseIcon, SpeakerIcon,
-  SparklesIcon, HospitalIcon, CheckIcon, PillIcon
+  SparklesIcon, PillIcon
 } from '../../../../shared/icons/Icons';
-import { speakNativeAudio } from '../../../../shared/utils/speech';
+import { speakNativeAudio, stopNativeAudio } from '../../../../shared/utils/speech';
 import { api } from '../../../../services/api';
 
-export const SwasthyaMitrChatModal = ({ isOpen, onClose }) => {
+export const SwasthyaMitrChatModal = ({ isOpen, onClose, initialMedicine = null }) => {
   const { currentLang, showToast } = useAuth();
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      sender: 'ai',
-      text: 'Namaste! 🙏 I am Swasthya Mitr, your AI Health Assistant. Ask me anything about your medicines in your language, or upload a photo of your prescription!',
-      language: currentLang || 'hi',
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    },
-  ]);
-
-  const [inputQuery, setInputQuery] = useState('');
+  
+  const [selectedMedicine, setSelectedMedicine] = useState(initialMedicine);
   const [selectedLang, setSelectedLang] = useState(currentLang || 'hi');
+  const [inputQuery, setInputQuery] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [attachedImage, setAttachedImage] = useState(null);
   const [speakingMsgId, setSpeakingMsgId] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  const [messages, setMessages] = useState([]);
+
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  // Stop audio when modal closes or unmounts
+  useEffect(() => {
+    if (!isOpen) {
+      stopNativeAudio();
+      setSpeakingMsgId(null);
+    }
+    return () => {
+      stopNativeAudio();
+    };
+  }, [isOpen]);
+
+  const handleCloseModal = () => {
+    stopNativeAudio();
+    setSpeakingMsgId(null);
+    onClose();
+  };
+
+  // Sync initial medicine when passed as prop
+  useEffect(() => {
+    if (initialMedicine) {
+      setSelectedMedicine(initialMedicine);
+    }
+  }, [initialMedicine]);
+
+  // Initial welcome message setup based on selected medicine & language
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const langName = LANGUAGES.find(l => l.code === selectedLang)?.name || 'your language';
+    
+    let welcomeText = `Namaste! 🙏 I am Swasthya Mitr, your AI Medicine Assistant. Ask me anything about your medicines in ${langName}!`;
+    if (selectedMedicine && selectedMedicine.name) {
+      welcomeText = `Namaste! 🙏 I am ready to answer your questions about **${selectedMedicine.name}** (${selectedMedicine.dosage || 'Prescribed dose'} • ${selectedMedicine.frequency || 'As directed'}). What would you like to know?`;
+    }
+
+    setMessages([
+      {
+        id: 1,
+        sender: 'ai',
+        text: welcomeText,
+        language: selectedLang,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      },
+    ]);
+  }, [isOpen, selectedMedicine, selectedLang]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -55,6 +95,8 @@ export const SwasthyaMitrChatModal = ({ isOpen, onClose }) => {
       mr: 'mr-IN',
       bn: 'bn-IN',
       gu: 'gu-IN',
+      pa: 'pa-IN',
+      ml: 'ml-IN',
       en: 'en-IN',
     };
 
@@ -65,7 +107,8 @@ export const SwasthyaMitrChatModal = ({ isOpen, onClose }) => {
 
       recognition.onstart = () => {
         setIsListening(true);
-        showToast?.(`Listening in ${LANGUAGES.find(l => l.code === selectedLang)?.name}... Speak now!`, 'info');
+        const lObj = LANGUAGES.find(l => l.code === selectedLang);
+        showToast?.(`Listening in ${lObj ? lObj.name : selectedLang}... Speak now!`, 'info');
       };
 
       recognition.onresult = (event) => {
@@ -101,37 +144,14 @@ export const SwasthyaMitrChatModal = ({ isOpen, onClose }) => {
     }
   };
 
-  const generateAIResponse = (query, img) => {
-    const lower = (query || '').toLowerCase();
-    if (img) {
-      return {
-        hi: 'मैंने आपके नुस्खे की फोटो पढ़ ली है। इसमें पैरासिटामोल 500mg (सुबह-शाम) और एंटीबायोटिक (दोपहर) शामिल हैं। इसे 5 दिन तक पूरा लें।',
-        kn: 'ನಾನು ನಿಮ್ಮ ಪ್ರಿಸ್ಕ್ರಿಪ್ಷನ್ ಫೋಟೋ ಪರಿಶೀಲಿಸಿದ್ದೇನೆ. ಬೆಳಿಗ್ಗೆ-ರಾತ್ರಿ 1 ಪ್ಯಾರಸಿಟಮಾಲ್ ಮತ್ತು ಮಧ್ಯಾಹ್ನ ಆಂಟಿಬಯೋಟಿಕ್ ಸೇವಿಸಿ.',
-        en: 'I analyzed your prescription photo! It lists Paracetamol 500mg (Morning & Night after food) and Amoxicillin 250mg (After Lunch). Complete full 5 days.',
-      }[selectedLang] || 'Prescription analyzed successfully! Take medicines strictly after meals.';
-    }
-
-    if (lower.includes('paracetamol') || lower.includes('पैरासिटामोल') || lower.includes('ಮಾತ್ರೆ')) {
-      return {
-        hi: 'पैरासिटामोल 500mg बुखार और दर्द के लिए है। इसे सुबह नाश्ते के बाद और रात को खाने के बाद लें। 24 घंटे में 4 गोली से ज्यादा न लें।',
-        kn: 'ಪ್ಯಾರಸಿಟಮಾಲ್ ಜ್ವರ ಮತ್ತು ನೋವಿಗೆ ನೀಡಲಾಗುತ್ತದೆ. ಬೆಳಿಗ್ಗೆ ಮತ್ತು ರಾತ್ರಿ ಊಟದ ನಂತರ ತಗೊಳ್ಳಿ.',
-        en: 'Paracetamol 500mg is for fever relief. Take 1 tablet after breakfast and 1 after dinner with warm water.',
-      }[selectedLang] || 'Take 1 tablet after breakfast and 1 after dinner.';
-    }
-
-    return {
-      hi: 'यह दवा हमेशा हल्के भोजन के बाद ही लें। अगर कोई असुविधा महसूस हो, तो अपने पास के स्वास्थ्य केंद्र (PHC) से संपर्क करें।',
-      kn: 'ಈ ಔಷಧಿಯನ್ನು ಯಾವಾಗಲೂ ಊಟದ ನಂತರವೇ ತೆಗೆದುಕೊಳ್ಳಿ. ಬೆಚ್ಚಗಿನ ನೀರನ್ನು ಕುಡಿಯಿರಿ.',
-      en: 'Always take this medication after meals with clean drinking water. If symptoms persist, visit your nearest Primary Health Center (PHC).',
-    }[selectedLang] || 'Take this medicine after meals as directed by your doctor.';
-  };
-
-  const handleSendMessage = async (e) => {
-    e.preventDefault();
-    if (!inputQuery.trim() && !attachedImage) return;
+  const handleSendMessage = async (e, directQuery = null) => {
+    if (e) e.preventDefault();
+    
+    const queryToUse = directQuery || inputQuery;
+    if (!queryToUse.trim() && !attachedImage) return;
 
     const currentImg = attachedImage;
-    const currentText = inputQuery;
+    const currentText = queryToUse.trim();
 
     const userMsg = {
       id: Date.now(),
@@ -146,79 +166,146 @@ export const SwasthyaMitrChatModal = ({ isOpen, onClose }) => {
     setAttachedImage(null);
     setIsProcessing(true);
 
-    let aiText = '';
-    if (currentImg?.file) {
-      try {
-        showToast?.('Processing prescription with Groq AI Vision...', 'info');
+    let aiAnswerText = '';
+
+    try {
+      // 1. If photo attached, analyze prescription document first
+      if (currentImg?.file) {
+        showToast?.('Scanning prescription photo with AI OCR...', 'info');
         const formData = new FormData();
         formData.append('original_file', currentImg.file);
         formData.append('document_type', 'prescription');
         formData.append('title', currentImg.file.name);
 
-        const res = await api.uploadMedicalDocument(formData);
-        if (res?.simplified_text || res?.text_content) {
-          aiText = `⚡ Groq AI OCR Analysis for ${currentImg.file.name}:\n\n` + (res.simplified_text || res.text_content);
-        } else {
-          aiText = generateAIResponse(currentText, currentImg);
+        const ocrRes = await api.uploadMedicalDocument(formData);
+        if (ocrRes?.simplified_text || ocrRes?.text_content) {
+          aiAnswerText = `📷 **Prescription Photo Analysis:**\n\n` + (ocrRes.simplified_text || ocrRes.text_content);
         }
-      } catch (err) {
-        aiText = generateAIResponse(currentText, currentImg);
       }
-    } else {
-      aiText = generateAIResponse(currentText, currentImg);
+
+      // 2. Query Swasthya Mitr Gemini AI Assistant Backend
+      if (!aiAnswerText) {
+        const langObj = LANGUAGES.find(l => l.code === selectedLang);
+        const languageName = langObj ? langObj.name : 'English';
+
+        // Prepare conversation history
+        const convHistory = messages.map(m => ({
+          role: m.sender === 'user' ? 'user' : 'assistant',
+          text: m.text
+        }));
+
+        const payload = {
+          question: currentText || 'Please explain this prescription medicine.',
+          medicine: selectedMedicine ? {
+            name: selectedMedicine.name || selectedMedicine.medicine_name || '',
+            medicine_name: selectedMedicine.name || selectedMedicine.medicine_name || '',
+            dosage: selectedMedicine.dosage || selectedMedicine.strength || '',
+            frequency: selectedMedicine.frequency || selectedMedicine.timing || '',
+            duration: selectedMedicine.duration || '',
+            instructions: selectedMedicine.instructions || '',
+            prescription_context: selectedMedicine.prescription_context || ''
+          } : null,
+          language: languageName,
+          conversation_history: convHistory
+        };
+
+        const response = await api.queryMedicineAssistant(payload);
+        
+        if (response && response.answer) {
+          aiAnswerText = response.answer;
+        } else {
+          aiAnswerText = "I'm unable to retrieve information right now. Please check your prescription or consult your doctor.";
+        }
+      }
+    } catch (err) {
+      console.error("AI Assistant API error:", err);
+      aiAnswerText = "I'm unable to connect to the AI assistant right now. Please try again or consult your doctor/pharmacist.";
+    } finally {
+      setIsProcessing(false);
     }
 
-    setTimeout(() => {
-      const aiMsg = {
-        id: Date.now() + 1,
-        sender: 'ai',
-        text: aiText,
-        language: selectedLang,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      };
-      setMessages((prev) => [...prev, aiMsg]);
-      setIsProcessing(false);
-    }, 600);
+    const aiMsg = {
+      id: Date.now() + 1,
+      sender: 'ai',
+      text: aiAnswerText,
+      language: selectedLang,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+
+    setMessages((prev) => [...prev, aiMsg]);
   };
 
-  const handleSpeakResponse = async (msg) => {
+  const handleToggleSpeech = async (msg) => {
+    if (speakingMsgId === msg.id) {
+      stopNativeAudio();
+      setSpeakingMsgId(null);
+      return;
+    }
+
+    stopNativeAudio();
     setSpeakingMsgId(msg.id);
     await speakNativeAudio(msg.text, selectedLang);
     setSpeakingMsgId(null);
   };
 
-  const sampleQuestions = [
-    'पैरासिटामोल कैसे लें? (How to take Paracetamol?)',
-    'Scan my prescription image 📷',
-    'Does this medicine need to be taken after food?',
+  // Dynamic suggestion chips based on whether medicine is selected
+  const medicineQuestions = selectedMedicine ? [
+    `What is ${selectedMedicine.name} used for?`,
+    `When should I take ${selectedMedicine.name}?`,
+    `Should I take it before or after food?`,
+    `What are the common side effects?`,
+    `What should I do if I miss a dose?`,
+  ] : [
+    'What is Sizodon Plus used for?',
+    'When should I take my prescription medicine?',
+    'Should Paracetamol be taken after food?',
+    'What happens if I miss a dose?',
   ];
 
   return (
     <div className="fixed inset-0 z-[99999] flex items-center justify-center p-3 md:p-6">
-      <div className="fixed inset-0 bg-stone-950/70 backdrop-blur-md" onClick={onClose} />
+      <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-md" onClick={handleCloseModal} />
 
-      <div className="relative z-[100000] w-full max-w-2xl h-[88vh] bg-white rounded-3xl shadow-2xl border border-stone-200 flex flex-col overflow-hidden">
-        <div className="bg-teal-800 text-white p-4 md:p-5 flex items-center justify-between shadow-md">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-teal-600 rounded-2xl flex items-center justify-center shadow-inner">
+      <div className="relative z-[100000] w-full max-w-2xl h-[90vh] max-h-[750px] bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden font-sans transition-colors">
+        
+        {/* HEADER BAR */}
+        <div className="bg-[#0F766E] text-white p-4 md:p-4.5 flex items-center justify-between shadow-md shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 bg-teal-600/90 rounded-2xl flex items-center justify-center shadow-inner shrink-0">
               <SparklesIcon size={22} color="#ffffff" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-heading font-extrabold text-base tracking-tight">Swasthya Mitr AI</span>
-                <span className="bg-emerald-500 text-stone-900 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase">
-                  LIVE VOICE & CHAT
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="font-extrabold text-base tracking-tight truncate">Swasthya Mitr AI</h2>
+                <span className="bg-amber-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
+                  MEDICINE ASSISTANT
                 </span>
               </div>
-              <p className="text-[11px] text-teal-100">
-                Ask in your language • Upload Prescription Photo
+              <p className="text-[11px] text-teal-100 truncate">
+                Prescription-Aware • Multilingual Gemini AI
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
+            {/* GLOBAL STOP AUDIO BUTTON WHEN SPEAKING */}
+            {speakingMsgId && (
+              <button
+                type="button"
+                onClick={() => {
+                  stopNativeAudio();
+                  setSpeakingMsgId(null);
+                }}
+                className="bg-rose-600 hover:bg-rose-700 active:scale-95 text-white text-[11px] font-extrabold px-3 py-1.5 rounded-xl shadow-sm flex items-center gap-1.5 transition-all cursor-pointer animate-pulse"
+                title="Stop speech playback immediately"
+              >
+                <span>🛑 Stop Audio</span>
+              </button>
+            )}
+
+            {/* LANGUAGE SELECTOR */}
             <select
-              className="bg-teal-900 border border-teal-700 text-white text-xs font-semibold px-2.5 py-1.5 rounded-xl outline-none cursor-pointer"
+              className="bg-teal-900/90 border border-teal-700/80 text-white text-xs font-semibold px-2.5 py-1.5 rounded-xl outline-none cursor-pointer hover:bg-teal-900"
               value={selectedLang}
               onChange={(e) => setSelectedLang(e.target.value)}
             >
@@ -230,77 +317,137 @@ export const SwasthyaMitrChatModal = ({ isOpen, onClose }) => {
             </select>
 
             <button
-              onClick={onClose}
+              onClick={handleCloseModal}
               className="p-2 rounded-xl text-teal-100 hover:bg-teal-700/80 transition-colors cursor-pointer"
+              title="Close Assistant"
             >
               <CloseIcon size={20} />
             </button>
           </div>
         </div>
 
-        <div className="flex-1 p-4 md:p-6 overflow-y-auto space-y-4 bg-stone-50/60">
+        {/* ACTIVE SELECTED MEDICINE BADGE / CONTEXT BANNER */}
+        {selectedMedicine && selectedMedicine.name && (
+          <div className="bg-teal-50 dark:bg-teal-950/80 border-b border-teal-200 dark:border-teal-900/80 px-4 py-2.5 flex items-center justify-between gap-2 shrink-0">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-6 h-6 rounded-lg bg-teal-200 dark:bg-teal-800 text-teal-900 dark:text-teal-100 flex items-center justify-center text-xs shrink-0 font-bold">
+                💊
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-extrabold text-slate-900 dark:text-teal-200 truncate">
+                    {selectedMedicine.name}
+                  </span>
+                  {selectedMedicine.dosage && (
+                    <span className="bg-teal-100 dark:bg-teal-900 text-teal-800 dark:text-teal-300 text-[10px] font-bold px-2 py-0.5 rounded-md">
+                      {selectedMedicine.dosage}
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-teal-700 dark:text-teal-400 font-medium truncate">
+                  {[selectedMedicine.frequency, selectedMedicine.duration].filter(Boolean).join(' • ') || 'Prescription Context Active'}
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setSelectedMedicine(null)}
+              className="text-[11px] font-bold text-teal-700 dark:text-teal-300 hover:text-teal-900 dark:hover:text-white underline shrink-0 cursor-pointer"
+              title="Switch to general health assistant mode"
+            >
+              Clear Context
+            </button>
+          </div>
+        )}
+
+        {/* CHAT MESSAGES BODY */}
+        <div className="flex-1 p-4 md:p-6 overflow-y-auto space-y-4 bg-slate-50/70 dark:bg-slate-950/40">
           {messages.map((msg) => (
             <div
               key={msg.id}
               className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
             >
               <div
-                className={`max-w-[85%] rounded-3xl p-4 shadow-sm text-xs sm:text-sm leading-relaxed ${
+                className={`max-w-[88%] rounded-3xl p-4 shadow-xs text-xs sm:text-sm leading-relaxed ${
                   msg.sender === 'user'
-                    ? 'bg-teal-700 text-white rounded-tr-xs'
-                    : 'bg-white border border-stone-200 text-stone-900 rounded-tl-xs'
+                    ? 'bg-[#0F766E] text-white rounded-tr-xs'
+                    : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-tl-xs'
                 }`}
               >
                 {msg.image && (
                   <img
                     src={msg.image}
                     alt="Prescription"
-                    className="w-full max-h-48 object-cover rounded-2xl mb-2 border border-stone-200"
+                    className="w-full max-h-48 object-cover rounded-2xl mb-2.5 border border-slate-200 dark:border-slate-700"
                   />
                 )}
-                <p>{msg.text}</p>
+                
+                {/* Formatted Text with basic Markdown line breaks & bold text */}
+                <div className="space-y-1.5 whitespace-pre-wrap">
+                  {msg.text.split('\n').map((line, lIdx) => (
+                    <p key={lIdx}>{line}</p>
+                  ))}
+                </div>
 
                 {msg.sender === 'ai' && (
-                  <div className="mt-3 pt-3 border-t border-stone-100 flex items-center justify-between gap-2">
+                  <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700/80 flex items-center justify-between gap-2 flex-wrap">
                     <button
-                      onClick={() => handleSpeakResponse(msg)}
-                      disabled={speakingMsgId === msg.id}
-                      className="bg-teal-50 hover:bg-teal-100 text-teal-800 font-bold text-[11px] px-3 py-1.5 rounded-xl border border-teal-200 flex items-center gap-1.5 transition-colors cursor-pointer"
+                      type="button"
+                      onClick={() => handleToggleSpeech(msg)}
+                      className={`font-bold text-[11px] px-3 py-1.5 rounded-xl border flex items-center gap-1.5 transition-all cursor-pointer ${
+                        speakingMsgId === msg.id
+                          ? 'bg-rose-600 hover:bg-rose-700 text-white border-rose-600 animate-pulse shadow-xs'
+                          : 'bg-teal-50 dark:bg-teal-950 hover:bg-teal-100 dark:hover:bg-teal-900 text-teal-800 dark:text-teal-300 border-teal-200 dark:border-teal-800'
+                      }`}
                     >
-                      <SpeakerIcon size={14} color="#0f766e" />
-                      <span>{speakingMsgId === msg.id ? 'Speaking...' : '🔊 Listen Audio'}</span>
+                      {speakingMsgId === msg.id ? (
+                        <>
+                          <span className="w-2 h-2 rounded-xs bg-white inline-block animate-ping"></span>
+                          <span>🛑 Stop Audio</span>
+                        </>
+                      ) : (
+                        <>
+                          <SpeakerIcon size={14} color="#0F766E" />
+                          <span>🔊 Listen Voice</span>
+                        </>
+                      )}
                     </button>
-                    <span className="text-[10px] text-stone-400 font-medium">{msg.timestamp}</span>
+                    <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">{msg.timestamp}</span>
                   </div>
                 )}
               </div>
             </div>
           ))}
 
+          {/* THINKING INDICATOR */}
           {isProcessing && (
-            <div className="flex items-center gap-2 text-xs text-stone-500 font-semibold bg-white p-3 rounded-2xl border border-stone-200 w-fit animate-pulse">
-              <SparklesIcon size={16} color="#0f766e" />
-              Swasthya Mitr is analyzing in your native language...
+            <div className="flex items-center gap-2.5 text-xs text-teal-800 dark:text-teal-300 font-bold bg-teal-50 dark:bg-slate-800 p-3.5 rounded-2xl border border-teal-200 dark:border-slate-700 w-fit animate-pulse shadow-2xs">
+              <SparklesIcon size={18} className="animate-spin text-[#0F766E] dark:text-teal-400" />
+              <span>Swasthya Mitr is thinking...</span>
             </div>
           )}
 
           <div ref={messagesEndRef} />
         </div>
 
-        <div className="px-4 py-2 bg-stone-100 border-t border-stone-200 flex items-center gap-2 overflow-x-auto text-[11px]">
-          <span className="font-extrabold text-stone-400 uppercase tracking-wider shrink-0">TRY:</span>
-          {sampleQuestions.map((q, idx) => (
+        {/* QUICK CONTEXTUAL SUGGESTION CHIPS */}
+        <div className="px-4 py-2 bg-slate-100 dark:bg-slate-800/80 border-t border-slate-200 dark:border-slate-700 flex items-center gap-2 overflow-x-auto text-[11px] shrink-0 scrollbar-none">
+          <span className="font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider shrink-0">
+            SUGGESTED:
+          </span>
+          {medicineQuestions.map((q, idx) => (
             <button
               key={idx}
-              onClick={() => setInputQuery(q)}
-              className="bg-white hover:bg-teal-50 text-stone-700 hover:text-teal-800 border border-stone-200 px-3 py-1 rounded-full whitespace-nowrap cursor-pointer transition-colors"
+              onClick={() => handleSendMessage(null, q)}
+              className="bg-white dark:bg-slate-900 hover:bg-teal-50 dark:hover:bg-teal-950 text-slate-700 dark:text-slate-200 hover:text-teal-900 dark:hover:text-teal-300 border border-slate-200 dark:border-slate-700 px-3 py-1 rounded-full whitespace-nowrap cursor-pointer transition-colors shadow-2xs font-medium"
             >
               {q}
             </button>
           ))}
         </div>
 
-        <form onSubmit={handleSendMessage} className="p-3 md:p-4 bg-white border-t border-stone-200 flex items-center gap-2">
+        {/* INPUT FORM */}
+        <form onSubmit={(e) => handleSendMessage(e)} className="p-3 md:p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex items-center gap-2 shrink-0">
           <input
             type="file"
             ref={fileInputRef}
@@ -312,7 +459,9 @@ export const SwasthyaMitrChatModal = ({ isOpen, onClose }) => {
             type="button"
             onClick={() => fileInputRef.current?.click()}
             className={`p-2.5 rounded-2xl border transition-colors cursor-pointer ${
-              attachedImage ? 'bg-amber-100 border-amber-400 text-amber-900' : 'bg-stone-100 hover:bg-stone-200 border-stone-200 text-stone-700'
+              attachedImage 
+                ? 'bg-amber-100 dark:bg-amber-950 border-amber-400 text-amber-900 dark:text-amber-200' 
+                : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'
             }`}
             title="Attach Prescription or Medicine Photo"
           >
@@ -325,20 +474,27 @@ export const SwasthyaMitrChatModal = ({ isOpen, onClose }) => {
             className={`p-2.5 rounded-2xl border transition-all cursor-pointer ${
               isListening
                 ? 'bg-red-600 text-white border-red-600 animate-bounce'
-                : 'bg-teal-50 hover:bg-teal-100 border-teal-200 text-teal-800'
+                : 'bg-teal-50 dark:bg-teal-950 hover:bg-teal-100 dark:hover:bg-teal-900 border-teal-200 dark:border-teal-800 text-[#0F766E] dark:text-teal-300'
             }`}
             title="Speak in your Native Language"
           >
-            <MicIcon size={20} color={isListening ? '#ffffff' : '#0f766e'} />
+            <MicIcon size={20} color={isListening ? '#ffffff' : '#0F766E'} />
           </button>
 
           <div className="flex-1 relative">
             <input
               type="text"
-              placeholder={isListening ? "Listening... Speak now!" : "Ask medicine dosage or type query..."}
-              className="w-full bg-stone-50 border border-stone-300 rounded-2xl px-4 py-2.5 text-xs sm:text-sm text-stone-900 outline-none focus:border-teal-700 focus:bg-white"
+              placeholder={
+                isListening 
+                  ? "Listening... Speak now!" 
+                  : selectedMedicine 
+                    ? `Ask about ${selectedMedicine.name}...` 
+                    : "Ask medicine question or type query..."
+              }
+              className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-2xl px-4 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-white outline-none focus:border-[#0F766E] dark:focus:border-teal-400 focus:bg-white dark:focus:bg-slate-900"
               value={inputQuery}
               onChange={(e) => setInputQuery(e.target.value)}
+              disabled={isProcessing}
             />
             {attachedImage && (
               <span className="absolute right-2 top-2 bg-amber-500 text-white text-[9px] font-extrabold px-2 py-0.5 rounded-md">
@@ -349,7 +505,8 @@ export const SwasthyaMitrChatModal = ({ isOpen, onClose }) => {
 
           <button
             type="submit"
-            className="bg-orange-600 hover:bg-orange-700 text-white p-2.5 rounded-2xl shadow-md transition-all cursor-pointer"
+            disabled={isProcessing || (!inputQuery.trim() && !attachedImage)}
+            className="bg-[#0F766E] hover:bg-teal-700 disabled:opacity-50 text-white p-2.5 rounded-2xl shadow-md transition-all cursor-pointer active:scale-95"
           >
             <SendIcon size={20} color="#ffffff" />
           </button>

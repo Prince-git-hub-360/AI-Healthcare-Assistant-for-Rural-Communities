@@ -36,6 +36,8 @@ urlpatterns = [
     path('api/v1/', include('reminders.urls')),
     path('api/v1/', include('translations.urls')),
     path('api/v1/', include('healthcare_workers.urls')),
+    path('api/v1/ai-assistant/', include('ai_assistant.urls')),
+    path('api/ai-assistant/', include('ai_assistant.urls')),
 ]
 
 if settings.DEBUG:

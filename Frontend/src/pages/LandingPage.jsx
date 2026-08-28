@@ -8,6 +8,7 @@ import {
 import { ROUTES, navigateTo } from '../utils/routes';
 import { speakNativeAudio } from '../shared/utils/speech';
 import { PublicNavbar } from '../components/marketing/PublicNavbar';
+import SwasthyaLogo from '../components/branding/SwasthyaLogo';
 
 export const LandingPage = ({ onNavigate }) => {
   // Top Utility Bar State
@@ -738,11 +739,8 @@ export const LandingPage = ({ onNavigate }) => {
           
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-teal-500 flex items-center justify-center text-slate-950 font-bold text-xs">
-                  SS
-                </div>
-                <span className="font-bold text-white text-base">Swasthya Sanchar AI</span>
+              <div className="pb-1">
+                <SwasthyaLogo variant="dark" height={48} />
               </div>
               <p className="text-slate-400 text-xs leading-relaxed">
                 Healthcare communication made easier to understand for rural communities.

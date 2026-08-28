@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { HospitalIcon, MenuIcon, CloseIcon, UserIcon, ArrowRightIcon, ChevronDownIcon } from '../../shared/icons/Icons';
 import { ROUTES, navigateTo } from '../../utils/routes';
 import { useAuth } from '../../shared/context/AuthContext';
+import SwasthyaLogo from '../branding/SwasthyaLogo';
 
 export const PublicNavbar = ({ onNavigate }) => {
   const { theme, toggleTheme } = useAuth();
@@ -101,22 +102,12 @@ export const PublicNavbar = ({ onNavigate }) => {
     >
       <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
         
-        {/* LEFT: Brand Logo & Title */}
+        {/* LEFT: Brand Logo */}
         <div 
-          className="flex items-center gap-2.5 cursor-pointer group" 
+          className="flex items-center cursor-pointer group" 
           onClick={() => handleNav(ROUTES.PUBLIC.HOME, 'home')}
         >
-          <div className="w-8 h-8 rounded-xl bg-[#0B4F42] dark:bg-teal-600 flex items-center justify-center text-white shadow-xs flex-shrink-0 group-hover:scale-105 transition-transform">
-            <HospitalIcon size={18} color="#fff" />
-          </div>
-          <div>
-            <span className="font-display font-extrabold text-sm sm:text-base text-slate-900 dark:text-white tracking-tight block leading-none">
-              Swasthya Sanchar
-            </span>
-            <span className="text-[9px] sm:text-[10px] font-bold text-[#0F766E] dark:text-teal-400 tracking-wider uppercase block mt-0.5">
-              Rural Healthcare AI
-            </span>
-          </div>
+          <SwasthyaLogo variant={theme === 'dark' ? 'dark' : 'full'} height={44} />
         </div>
 
         {/* CENTER: Compact Startup Navigation Links */}

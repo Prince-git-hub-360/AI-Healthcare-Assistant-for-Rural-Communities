@@ -1,9 +1,17 @@
 import React from 'react';
 import { SparklesIcon } from '../../../shared/icons/Icons';
 
-export const MedicineList = ({ medications = [], confidence = null, isLoading = false }) => {
+export const MedicineList = ({ medications = [], confidence = null, isLoading = false, onAskAI = null }) => {
   const hasMedicines = Array.isArray(medications) && medications.length > 0;
   const countLabel = hasMedicines ? `${medications.length} medicine${medications.length > 1 ? 's' : ''} found` : null;
+
+  const handleAskAI = (medicineObj) => {
+    if (onAskAI) {
+      onAskAI(medicineObj);
+    } else if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('swasthya:open_ai_assistant', { detail: { medicine: medicineObj } }));
+    }
+  };
 
   return (
     <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-sm space-y-4 transition-colors font-sans">
@@ -77,13 +85,23 @@ export const MedicineList = ({ medications = [], confidence = null, isLoading = 
               ? (typeof itemConfidence === 'number' && itemConfidence <= 1 ? Math.round(itemConfidence * 100) : itemConfidence)
               : null;
 
+            const medObject = {
+              name,
+              medicine_name: name,
+              dosage: dosage || '',
+              frequency: frequency || '',
+              duration: duration || '',
+              instructions: isObject ? (item.instructions || item.notes || item.instruction || '') : '',
+              prescription_context: isObject ? (item.prescription_context || item.raw_text || '') : ''
+            };
+
             return (
               <div 
                 key={idx}
                 className="bg-[#F0FDF4]/80 dark:bg-[#07241E]/60 border border-emerald-200/90 dark:border-teal-900/70 rounded-xl p-3 sm:p-3.5 space-y-2 transition-all hover:border-[#0F766E] dark:hover:border-teal-400 shadow-2xs group"
               >
-                {/* CARD TOP ROW: MEDICINE NAME & CONFIDENCE */}
-                <div className="flex items-center justify-between gap-2.5">
+                {/* CARD TOP ROW: MEDICINE NAME & CONFIDENCE & ASK AI BUTTON */}
+                <div className="flex items-center justify-between gap-2.5 flex-wrap sm:flex-nowrap">
                   <div className="flex items-center gap-2 min-w-0 flex-1">
                     <span className="text-sm shrink-0">💊</span>
                     <h3 className="font-extrabold text-xs sm:text-sm text-slate-900 dark:text-white tracking-tight truncate group-hover:text-[#0F766E] dark:group-hover:text-teal-300 transition-colors">
@@ -91,11 +109,23 @@ export const MedicineList = ({ medications = [], confidence = null, isLoading = 
                     </h3>
                   </div>
 
-                  {confidenceValue && (
-                    <span className="shrink-0 bg-white/90 dark:bg-slate-800 border border-emerald-200 dark:border-teal-800/80 text-[#0F766E] dark:text-teal-300 text-[10px] font-extrabold px-2 py-0.5 rounded-full">
-                      {confidenceValue}% match
-                    </span>
-                  )}
+                  <div className="flex items-center gap-2 shrink-0">
+                    {confidenceValue && (
+                      <span className="bg-white/90 dark:bg-slate-800 border border-emerald-200 dark:border-teal-800/80 text-[#0F766E] dark:text-teal-300 text-[10px] font-extrabold px-2 py-0.5 rounded-full">
+                        {confidenceValue}% match
+                      </span>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => handleAskAI(medObject)}
+                      className="bg-[#0F766E] hover:bg-teal-700 active:scale-95 text-white text-[11px] font-extrabold px-3 py-1 rounded-lg shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
+                      title={`Ask AI about ${name}`}
+                    >
+                      <SparklesIcon size={12} color="#ffffff" />
+                      <span>Ask AI</span>
+                    </button>
+                  </div>
                 </div>
 
                 {/* COMPACT DETAILS GRID (DOSAGE / FREQUENCY / DURATION) */}

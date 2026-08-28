@@ -22,6 +22,7 @@ import { TranslatePrescription } from '../pages/application/patient/TranslatePre
 import { MedicalVault } from '../pages/application/patient/MedicalVault';
 import { MedicationReminders } from '../pages/application/patient/MedicationReminders';
 import { EmergencyHelp } from '../pages/application/patient/EmergencyHelp';
+import { EmergencyPatientCardPage } from '../features/patient/pages/Emergency/EmergencyPatientCardPage';
 
 import { AshaDashboard } from '../pages/application/asha/AshaDashboard';
 import { AshaProfile } from '../pages/application/asha/AshaProfile';
@@ -62,6 +63,12 @@ export const AppRoutes = () => {
 
   const role = user?.role || 'patient';
   const defaultAppRoute = getRoleDefaultRoute(role);
+
+  // PUBLIC EMERGENCY CARD ROUTE: (/emergency-card/*)
+  if (currentPath.startsWith('/emergency-card/')) {
+    return <EmergencyPatientCardPage />;
+  }
+
 
   // AUTH GUARD 1: Authenticated user visiting /login or /register -> Redirect to role dashboard
   if (user && (currentPath === ROUTES.AUTH.LOGIN || currentPath === ROUTES.AUTH.REGISTER)) {
@@ -112,10 +119,21 @@ export const AppRoutes = () => {
   return <HomePage onNavigate={navigate} />;
 };
 
-// COMPONENT: Authenticated Application Shell (With AppNavbar)
 const AuthenticatedApp = ({ currentPath, navigate, onOpenChat, chatModalOpen, setChatModalOpen }) => {
   const { user } = useAuth();
   const role = user?.role || 'patient';
+  const [selectedMedForAI, setSelectedMedForAI] = useState(null);
+
+  useEffect(() => {
+    const handleOpenAIWithMed = (e) => {
+      if (e.detail?.medicine) {
+        setSelectedMedForAI(e.detail.medicine);
+      }
+      setChatModalOpen(true);
+    };
+    window.addEventListener('swasthya:open_ai_assistant', handleOpenAIWithMed);
+    return () => window.removeEventListener('swasthya:open_ai_assistant', handleOpenAIWithMed);
+  }, [setChatModalOpen]);
 
   const renderContent = () => {
     // PATIENT ROUTES
@@ -161,28 +179,31 @@ const AuthenticatedApp = ({ currentPath, navigate, onOpenChat, chatModalOpen, se
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F4F7F6] dark:bg-[#0B0F17] text-stone-900 dark:text-slate-100 antialiased relative font-sans transition-colors duration-200">
-      <AppNavbar currentPath={currentPath} onNavigate={navigate} onOpenChat={onOpenChat} />
+    <div className="min-h-screen flex flex-col bg-[#FDFBF7] dark:bg-[#0B0F17] text-slate-900 dark:text-slate-100 antialiased relative font-sans transition-colors duration-200">
+      <AppNavbar currentPath={currentPath} onNavigate={navigate} onOpenChat={() => { setSelectedMedForAI(null); onOpenChat(); }} />
 
-      <main className="flex-1 lg:pl-64 transition-all duration-200">
-        {renderContent()}
+      <main className="flex-1 lg:pl-[248px] transition-all duration-200">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          {renderContent()}
+        </div>
       </main>
 
-      {/* Floating AI Health Assistant Companion Button (Compact & Elegant) */}
+      {/* Floating AI Health Assistant Companion Button (Compact & Elegant - REQ 3 & 4) */}
       <button
         type="button"
-        onClick={onOpenChat}
-        className="fixed bottom-5 right-5 z-40 bg-[#0B4F42] hover:bg-[#07362d] dark:bg-teal-600 dark:hover:bg-teal-500 text-white text-xs font-bold px-3.5 py-2 rounded-full shadow-lg transition-all transform hover:scale-105 flex items-center gap-2 cursor-pointer border border-teal-400/30"
-        title="Ask Swasthya Mitr AI Assistant"
+        onClick={() => { setSelectedMedForAI(null); onOpenChat(); }}
+        className="fixed bottom-5 right-5 z-40 bg-[#E2A233] hover:bg-[#c88d28] text-slate-950 text-xs font-extrabold px-4 py-2.5 rounded-full shadow-xl transition-all transform hover:scale-105 flex items-center gap-2 cursor-pointer border border-[#E2A233]/40"
+        title="Ask Swasthya AI Assistant"
       >
-        <SparklesIcon size={14} className="animate-pulse" />
-        <span className="hidden sm:inline">Ask AI</span>
+        <SparklesIcon size={16} className="animate-pulse text-slate-950" />
+        <span className="hidden sm:inline">✦ Ask Swasthya AI</span>
       </button>
 
       {/* AI Voice Assistant Modal */}
       <SwasthyaMitrChatModal
         isOpen={chatModalOpen}
         onClose={() => setChatModalOpen(false)}
+        initialMedicine={selectedMedForAI}
       />
     </div>
   );

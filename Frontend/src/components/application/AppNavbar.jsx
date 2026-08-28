@@ -1,14 +1,56 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useAuth, LANGUAGES } from '../../shared/context/AuthContext';
 import {
   HospitalIcon, MenuIcon, CloseIcon, TranslateIcon, DocumentIcon,
-  ClockIcon, PhoneIcon, UserIcon, SparklesIcon, MoonIcon, SunIcon
+  ClockIcon, PhoneIcon, UserIcon, SparklesIcon, MoonIcon, SunIcon, ShieldIcon
 } from '../../shared/icons/Icons';
 import { ROUTES, navigateTo, getRoleDefaultRoute } from '../../utils/routes';
+import SwasthyaLogo from '../branding/SwasthyaLogo';
+
+/* ─── small icon-only nav item used in sidebar ─── */
+const NavItem = ({ icon: Icon, label, active, danger, badge, onClick }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    title={label}
+    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-left transition-all duration-150 cursor-pointer group ${
+      danger
+        ? active
+          ? 'bg-rose-600 text-white shadow-sm'
+          : 'text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30'
+        : active
+          ? 'bg-[#0B4F42] text-white shadow-sm'
+          : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
+    }`}
+  >
+    <Icon
+      size={18}
+      color={danger ? (active ? '#ffffff' : '#dc2626') : (active ? '#ffffff' : '#64748b')}
+      className="shrink-0"
+    />
+    <span className="flex-1 truncate text-[13px]">{label}</span>
+    {badge && (
+      <span className={`text-[10px] font-black uppercase px-1.5 py-0.5 rounded-md shrink-0 ${
+        danger ? 'bg-white/20 text-white' : 'bg-[#E2A233]/20 text-[#8A5B00]'
+      }`}>
+        {badge}
+      </span>
+    )}
+  </button>
+);
+
+/* ─── nav section label ─── */
+const SectionLabel = ({ children }) => (
+  <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 px-3 pt-2 pb-1 select-none">
+    {children}
+  </p>
+);
 
 export const AppNavbar = ({ currentPath, onNavigate, onOpenChat }) => {
   const { user, logout, currentLang, updateLanguage, theme, toggleTheme } = useAuth();
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef(null);
 
   const role = user?.role || 'patient';
   const roleLabel = {
@@ -20,401 +62,256 @@ export const AppNavbar = ({ currentPath, onNavigate, onOpenChat }) => {
 
   const defaultDashboardRoute = getRoleDefaultRoute(role);
 
-  const mainNavItems = [
-    { id: defaultDashboardRoute, label: 'Care Hub', icon: HospitalIcon },
-    { id: ROUTES.APP.PATIENT.TRANSLATE, label: 'Translate Rx', icon: TranslateIcon },
-    { id: ROUTES.APP.PATIENT.HEALTH_VAULT, label: 'Health Vault', icon: DocumentIcon },
-    { id: ROUTES.APP.PATIENT.REMINDERS, label: 'Reminders', icon: ClockIcon },
-  ];
+  // Close popover on outside click
+  useEffect(() => {
+    const handler = (e) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target)) {
+        setProfileMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
-  const emergencyNavItems = [
-    { id: ROUTES.APP.PATIENT.EMERGENCY, label: '108 SOS', icon: PhoneIcon, isEmergency: true },
-  ];
-
-  const handleNav = (targetPath) => {
+  const handleNav = (path) => {
     setMobileDrawerOpen(false);
-    if (onNavigate) {
-      onNavigate(targetPath);
-    } else {
-      navigateTo(targetPath);
-    }
+    setProfileMenuOpen(false);
+    if (onNavigate) onNavigate(path);
+    else navigateTo(path);
   };
 
   const handleSignOut = () => {
     setMobileDrawerOpen(false);
+    setProfileMenuOpen(false);
     logout();
     navigateTo(ROUTES.PUBLIC.HOME);
   };
 
-  // Helper to determine if a route is currently active
-  const isRouteActive = (routeId) => {
-    if (currentPath === routeId) return true;
-    if (routeId === defaultDashboardRoute && (currentPath === '/app/patient/dashboard' || currentPath === '/app/patient/care')) return true;
+  const isActive = (id) => {
+    if (currentPath === id) return true;
+    if (id === defaultDashboardRoute && (currentPath === '/app/patient/dashboard' || currentPath === '/app/patient/care')) return true;
     return false;
   };
 
-  const userName = user?.first_name || user?.username || 'Prince';
+  const userName = user?.first_name
+    ? `${user.first_name} ${user.last_name || ''}`.trim()
+    : user?.username || 'Prince Kumar';
   const userInitial = userName.charAt(0).toUpperCase();
 
-  return (
-    <>
-      {/* ========================================================================= */}
-      {/* 1. FIXED DESKTOP LEFT SIDEBAR (VISIBLE ON DESKTOP: >=1024px)              */}
-      {/* ========================================================================= */}
-      <aside className="hidden lg:flex fixed top-0 left-0 bottom-0 w-64 bg-white dark:bg-[#111827] border-r border-stone-200/90 dark:border-slate-800 z-40 flex-col justify-between p-5 font-sans transition-colors duration-200 select-none shadow-xs">
-        <div className="space-y-5 overflow-y-auto scrollbar-none pr-1">
-          
-          {/* BRAND LOGO HEADER */}
-          <div
-            className="flex items-center gap-3 cursor-pointer pb-2 pt-1 border-b border-stone-100 dark:border-slate-800/80"
-            onClick={() => handleNav(defaultDashboardRoute)}
+  /* ─── nav structure ─── */
+  const navSections = [
+    {
+      label: 'Overview',
+      items: [
+        { id: defaultDashboardRoute, label: 'Home', icon: HospitalIcon },
+      ],
+    },
+    {
+      label: 'My Care',
+      items: [
+        { id: ROUTES.APP.PATIENT.REMINDERS, label: 'Medications & Reminders', icon: ClockIcon },
+        { id: ROUTES.APP.PATIENT.HEALTH_VAULT, label: 'Health Records', icon: DocumentIcon },
+      ],
+    },
+    {
+      label: 'AI Tools',
+      items: [
+        { id: ROUTES.APP.PATIENT.TRANSLATE, label: 'Translate Prescription', icon: TranslateIcon },
+      ],
+    },
+    {
+      label: 'Emergency',
+      items: [
+        { id: ROUTES.APP.PATIENT.EMERGENCY, label: 'Emergency Care', icon: PhoneIcon, danger: true, badge: 'SOS' },
+      ],
+    },
+  ];
+
+  /* ─── Sidebar JSX (shared between desktop & mobile) ─── */
+  const SidebarContent = ({ mobile = false }) => (
+    <div className="flex flex-col h-full">
+      {/* Brand */}
+      <div
+        className="px-4 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2 cursor-pointer shrink-0"
+        onClick={() => handleNav(defaultDashboardRoute)}
+      >
+        <SwasthyaLogo variant={theme === 'dark' ? 'dark' : 'light'} height={36} />
+        {mobile && (
+          <button
+            onClick={(e) => { e.stopPropagation(); setMobileDrawerOpen(false); }}
+            className="ml-auto p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
           >
-            <div className="w-10 h-10 bg-[#0B4F42] text-white rounded-xl flex items-center justify-center relative shadow-xs shrink-0">
-              <HospitalIcon size={20} color="#ffffff" />
-              <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white dark:border-[#111827]" />
-            </div>
-            <div className="min-w-0">
-              <span className="font-heading font-black text-base text-stone-900 dark:text-white tracking-tight block leading-tight truncate">
-                Swasthya Sanchar
-              </span>
-              <span className="text-[9px] font-extrabold text-[#0B4F42] dark:text-teal-400 tracking-wider uppercase block mt-0.5">
-                HEALTHCARE PORTAL
-              </span>
-            </div>
-          </div>
+            <CloseIcon size={18} />
+          </button>
+        )}
+      </div>
 
-          {/* PATIENT PROFILE CARD */}
-          <div
-            onClick={() => handleNav(ROUTES.APP.PATIENT.PROFILE)}
-            className="bg-teal-50/60 dark:bg-slate-800/80 hover:bg-teal-50 dark:hover:bg-slate-800 border border-teal-100 dark:border-slate-700/80 rounded-2xl p-3 flex items-center gap-3 cursor-pointer transition-all shadow-2xs group"
-          >
-            <div className="w-10 h-10 bg-[#0B4F42] text-white rounded-xl flex items-center justify-center font-black text-sm shrink-0 shadow-xs group-hover:scale-105 transition-transform">
-              {userInitial}
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="text-xs font-black text-stone-900 dark:text-white truncate">
-                {userName}
-              </div>
-              <div className="text-[11px] font-bold text-[#0B4F42] dark:text-teal-300">
-                {roleLabel}
-              </div>
-            </div>
-          </div>
-
-          {/* MAIN NAVIGATION SECTION */}
-          <div className="space-y-1">
-            <div className="text-[10px] font-black text-stone-400 dark:text-slate-500 uppercase tracking-widest px-2 mb-1">
-              MAIN
-            </div>
-
-            {mainNavItems.map((item) => {
-              const Icon = item.icon;
-              const active = isRouteActive(item.id);
-              return (
-                <button
+      {/* Nav items */}
+      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-5 min-h-0">
+        {navSections.map((section) => (
+          <div key={section.label}>
+            <SectionLabel>{section.label}</SectionLabel>
+            <div className="space-y-0.5">
+              {section.items.map((item) => (
+                <NavItem
                   key={item.id}
-                  type="button"
+                  icon={item.icon}
+                  label={item.label}
+                  active={isActive(item.id)}
+                  danger={item.danger}
+                  badge={item.badge}
                   onClick={() => handleNav(item.id)}
-                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-bold text-xs text-left transition-all cursor-pointer ${
-                    active
-                      ? 'bg-teal-50 dark:bg-teal-950/80 text-[#0B4F42] dark:text-teal-300 border-l-4 border-[#0B4F42] dark:border-teal-400 shadow-2xs'
-                      : 'text-stone-700 dark:text-slate-300 hover:bg-stone-100/80 dark:hover:bg-slate-800/80 hover:text-stone-900 dark:hover:text-white'
-                  }`}
-                >
-                  <Icon size={18} color={active ? '#0B4F42' : (theme === 'dark' ? '#94a3b8' : '#64748b')} />
-                  <span>{item.label}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* EMERGENCY SECTION */}
-          <div className="space-y-1 pt-1">
-            <div className="text-[10px] font-black text-stone-400 dark:text-slate-500 uppercase tracking-widest px-2 mb-1">
-              EMERGENCY
-            </div>
-
-            {emergencyNavItems.map((item) => {
-              const Icon = item.icon;
-              const active = isRouteActive(item.id);
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => handleNav(item.id)}
-                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-bold text-xs text-left transition-all cursor-pointer ${
-                    active
-                      ? 'bg-rose-100 dark:bg-rose-950/80 text-rose-800 dark:text-rose-200 border-l-4 border-rose-600 shadow-2xs'
-                      : 'bg-rose-50/60 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-950/60 border border-rose-200/60 dark:border-rose-900/40'
-                  }`}
-                >
-                  <Icon size={18} color={active ? '#991b1b' : '#dc2626'} />
-                  <span>{item.label}</span>
-                  <span className="ml-auto text-[9px] font-black uppercase bg-rose-600 text-white px-1.5 py-0.5 rounded-md">
-                    SOS
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* SUPPORT SECTION */}
-          <div className="space-y-1 pt-1">
-            <div className="text-[10px] font-black text-stone-400 dark:text-slate-500 uppercase tracking-widest px-2 mb-1">
-              SUPPORT
-            </div>
-
-            <button
-              type="button"
-              onClick={onOpenChat}
-              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-bold text-xs text-left transition-all cursor-pointer bg-teal-50/50 dark:bg-slate-800/60 text-[#0B4F42] dark:text-teal-300 hover:bg-teal-100/60 dark:hover:bg-slate-800 border border-teal-100 dark:border-slate-700/60"
-            >
-              <SparklesIcon size={18} className="text-[#0B4F42] dark:text-teal-400" />
-              <span>Ask AI</span>
-            </button>
-          </div>
-
-        </div>
-
-        {/* BOTTOM SIDEBAR UTILITIES */}
-        <div className="pt-3 border-t border-stone-200/90 dark:border-slate-800 space-y-2.5 shrink-0">
-          
-          {/* LANGUAGE SELECTOR */}
-          <div className="space-y-1">
-            <label className="text-[9px] font-black text-stone-400 dark:text-slate-500 uppercase tracking-widest px-1 block">
-              LANGUAGE
-            </label>
-            <select
-              value={currentLang}
-              onChange={(e) => updateLanguage(e.target.value)}
-              className="w-full bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-xl px-2.5 py-1.5 text-xs font-bold text-stone-800 dark:text-slate-200 cursor-pointer outline-none focus:border-[#0B4F42]"
-            >
-              {LANGUAGES.map((lang) => (
-                <option key={lang.code} value={lang.code}>
-                  {lang.flag} {lang.native} ({lang.name})
-                </option>
+                />
               ))}
-            </select>
+            </div>
           </div>
+        ))}
+      </nav>
 
-          {/* THEME TOGGLE */}
+      {/* Bottom profile block */}
+      <div className="shrink-0 border-t border-slate-100 dark:border-slate-800 p-3 relative" ref={mobile ? undefined : profileMenuRef}>
+
+        {/* Profile Popup — elegant SaaS style */}
+        {profileMenuOpen && (
+          <div className="absolute bottom-full mb-2 left-2 right-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl overflow-hidden z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
+            {/* User identity header */}
+            <div className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-100 dark:border-slate-800 px-4 py-3 flex items-center gap-3">
+              <div className="w-9 h-9 bg-[#0B4F42] text-white rounded-xl flex items-center justify-center font-black text-sm shrink-0">
+                {userInitial}
+              </div>
+              <div className="min-w-0">
+                <div className="text-sm font-extrabold text-slate-900 dark:text-white truncate">{userName}</div>
+                <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
+                  {roleLabel}
+                </div>
+              </div>
+            </div>
+
+            {/* Menu actions */}
+            <div className="p-2 space-y-0.5">
+              <button
+                type="button"
+                onClick={() => handleNav(ROUTES.APP.PATIENT.PROFILE)}
+                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer text-left"
+              >
+                <UserIcon size={16} color={theme === 'dark' ? '#cbd5e1' : '#64748b'} />
+                View Profile & Settings
+              </button>
+
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer text-left"
+              >
+                {theme === 'dark'
+                  ? <SunIcon size={16} color="#cbd5e1" />
+                  : <MoonIcon size={16} color="#64748b" />
+                }
+                {theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              </button>
+            </div>
+
+            <div className="border-t border-slate-100 dark:border-slate-800 p-2">
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer text-left"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                Sign Out
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Profile & Direct Sign Out Footer */}
+        <div className="flex items-center gap-1">
           <button
             type="button"
-            onClick={toggleTheme}
-            className="w-full flex items-center justify-between bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 px-3 py-2 rounded-xl text-xs font-bold text-stone-800 dark:text-slate-200 hover:bg-stone-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+            onClick={() => setProfileMenuOpen(!profileMenuOpen)}
+            className={`flex-1 min-w-0 flex items-center gap-2.5 px-2.5 py-2 rounded-xl border transition-all cursor-pointer ${
+              profileMenuOpen
+                ? 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700'
+                : 'bg-transparent border-transparent hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-200 dark:hover:border-slate-700'
+            }`}
           >
-            <span className="text-[11px] font-extrabold uppercase text-stone-500 dark:text-slate-400">THEME</span>
-            <span className="text-xs font-bold flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-700 px-2 py-0.5 rounded-lg shadow-2xs">
-              {theme === 'dark' ? '🌙 Dark' : '☀️ Light'}
-            </span>
+            <div className="w-8 h-8 bg-[#0B4F42] text-white rounded-xl flex items-center justify-center font-black text-sm shrink-0">
+              {userInitial}
+            </div>
+            <div className="min-w-0 text-left flex-1">
+              <div className="text-[13px] font-bold text-slate-900 dark:text-white truncate leading-tight">{userName}</div>
+              <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">{roleLabel}</div>
+            </div>
+            <svg
+              width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5"
+              strokeLinecap="round" strokeLinejoin="round"
+              style={{ transform: profileMenuOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}
+            >
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
           </button>
 
-          {/* SIGN OUT BUTTON */}
+          {/* Visible 1-Click Sign Out Button */}
           <button
             type="button"
             onClick={handleSignOut}
-            className="w-full bg-stone-100 hover:bg-rose-50 dark:bg-slate-800/80 dark:hover:bg-rose-950/40 text-stone-700 hover:text-rose-700 dark:text-slate-300 dark:hover:text-rose-300 font-bold text-xs py-2 rounded-xl border border-stone-200 dark:border-slate-700/80 transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5"
+            title="Sign Out"
+            className="p-2.5 rounded-xl text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-transparent hover:border-rose-200 dark:hover:border-rose-900 transition-colors cursor-pointer shrink-0"
           >
-            <span>🚪</span>
-            <span>Sign Out</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
           </button>
-
         </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      {/* ═══════════════════════════════════════════════════
+          DESKTOP SIDEBAR (≥1024px) — Clean White/Dark
+      ═══════════════════════════════════════════════════ */}
+      <aside className="hidden lg:flex fixed top-0 left-0 bottom-0 w-[248px] bg-white dark:bg-[#0B0F17] border-r border-slate-200 dark:border-slate-800 z-40 flex-col font-sans select-none shadow-sm overflow-x-hidden transition-colors duration-200">
+        <SidebarContent />
       </aside>
 
-      {/* ========================================================================= */}
-      {/* 2. MOBILE TOPBAR (VISIBLE ONLY ON MOBILE/TABLET: <1024px)                  */}
-      {/* ========================================================================= */}
-      <header className="flex lg:hidden sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-stone-200/90 dark:border-slate-800 py-2.5 px-4 items-center justify-between shadow-xs transition-colors">
-        
-        {/* Mobile Brand Logo */}
+      {/* ═══════════════════════════════════════════════════
+          MOBILE TOPBAR (<1024px)
+      ═══════════════════════════════════════════════════ */}
+      <header className="flex lg:hidden sticky top-0 z-40 bg-white dark:bg-[#0B0F17] border-b border-slate-200 dark:border-slate-800 py-3 px-4 items-center justify-between shadow-sm transition-colors duration-200">
         <div
-          className="flex items-center gap-2.5 cursor-pointer"
+          className="flex items-center gap-2 cursor-pointer"
           onClick={() => handleNav(defaultDashboardRoute)}
         >
-          <div className="w-8 h-8 bg-[#0B4F42] text-white rounded-lg flex items-center justify-center relative shadow-xs">
-            <HospitalIcon size={18} color="#ffffff" />
-          </div>
-          <div>
-            <span className="font-heading font-black text-sm text-stone-900 dark:text-white tracking-tight block leading-none">
-              Swasthya Sanchar
-            </span>
-          </div>
+          <SwasthyaLogo variant={theme === 'dark' ? 'dark' : 'light'} height={32} />
         </div>
-
-        {/* Mobile Action Buttons */}
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={toggleTheme}
-            className="bg-stone-100 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 p-2 rounded-lg text-xs font-semibold text-stone-700 dark:text-slate-200 cursor-pointer"
-            title="Toggle Theme"
-          >
-            {theme === 'dark' ? '🌙' : '☀️'}
-          </button>
-
-          <button
-            type="button"
-            onClick={onOpenChat}
-            className="bg-[#0B4F42] text-white text-xs font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1"
-          >
-            <SparklesIcon size={14} />
-            <span>AI</span>
-          </button>
-
-          {/* Mobile Drawer Trigger */}
-          <button
-            type="button"
             onClick={() => setMobileDrawerOpen(true)}
-            className="bg-stone-100 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 p-2 rounded-lg text-stone-700 dark:text-slate-300 cursor-pointer"
-            aria-label="Open Mobile Menu"
+            className="border border-slate-200 p-2 rounded-xl text-slate-600 hover:bg-slate-50 cursor-pointer"
+            aria-label="Open menu"
           >
-            <MenuIcon size={18} />
+            <MenuIcon size={20} />
           </button>
         </div>
       </header>
 
-      {/* ========================================================================= */}
-      {/* 3. MOBILE RESPONSIVE DRAWER (TRIGGERED ON MOBILE/TABLET ONLY)              */}
-      {/* ========================================================================= */}
+      {/* ═══════════════════════════════════════════════════
+          MOBILE DRAWER
+      ═══════════════════════════════════════════════════ */}
       {mobileDrawerOpen && (
         <div className="lg:hidden fixed inset-0 z-[99999] flex justify-start">
           <div
-            className="fixed inset-0 bg-stone-950/60 dark:bg-black/80 backdrop-blur-xs transition-opacity"
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm"
             onClick={() => setMobileDrawerOpen(false)}
           />
-
-          <div className="relative z-[100000] bg-white dark:bg-slate-900 w-72 h-screen p-5 shadow-2xl flex flex-col justify-between border-r border-stone-200 dark:border-slate-800 overflow-y-auto font-sans transition-colors">
-            
-            <div className="space-y-5">
-              {/* Drawer Header */}
-              <div className="flex justify-between items-center pb-3 border-b border-stone-200 dark:border-slate-800">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-[#0B4F42] text-white rounded-lg flex items-center justify-center font-bold text-xs">
-                    <HospitalIcon size={18} color="#ffffff" />
-                  </div>
-                  <span className="font-extrabold text-sm text-stone-900 dark:text-white">Swasthya Sanchar</span>
-                </div>
-
-                <button
-                  onClick={() => setMobileDrawerOpen(false)}
-                  className="p-1.5 rounded-lg text-stone-500 hover:bg-stone-100 dark:hover:bg-slate-800 cursor-pointer"
-                >
-                  <CloseIcon size={18} />
-                </button>
-              </div>
-
-              {/* Patient Profile Card */}
-              <div className="bg-teal-50/60 dark:bg-slate-800/80 border border-teal-100 dark:border-slate-700/80 rounded-xl p-3 flex items-center gap-3">
-                <div className="w-9 h-9 bg-[#0B4F42] text-white rounded-xl flex items-center justify-center font-black text-xs shrink-0">
-                  {userInitial}
-                </div>
-                <div className="min-w-0">
-                  <div className="text-xs font-bold text-stone-900 dark:text-white truncate">
-                    {userName}
-                  </div>
-                  <div className="text-[11px] text-[#0B4F42] dark:text-teal-300 font-semibold">
-                    {roleLabel}
-                  </div>
-                </div>
-              </div>
-
-              {/* Main Nav Links */}
-              <div className="space-y-1">
-                <div className="text-[10px] font-bold text-stone-400 dark:text-slate-500 uppercase tracking-widest px-2 mb-1">
-                  MAIN
-                </div>
-                {mainNavItems.map((item) => {
-                  const Icon = item.icon;
-                  const active = isRouteActive(item.id);
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => handleNav(item.id)}
-                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl font-bold text-xs text-left transition-all cursor-pointer ${
-                        active
-                          ? 'bg-[#0B4F42] dark:bg-teal-600 text-white shadow-xs'
-                          : 'text-stone-700 dark:text-slate-300 hover:bg-stone-100 dark:hover:bg-slate-800'
-                      }`}
-                    >
-                      <Icon size={18} color={active ? '#ffffff' : (theme === 'dark' ? '#2dd4bf' : '#0B4F42')} />
-                      <span>{item.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Emergency Section */}
-              <div className="space-y-1 pt-1">
-                <div className="text-[10px] font-bold text-stone-400 dark:text-slate-500 uppercase tracking-widest px-2 mb-1">
-                  EMERGENCY
-                </div>
-                {emergencyNavItems.map((item) => {
-                  const Icon = item.icon;
-                  const active = isRouteActive(item.id);
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => handleNav(item.id)}
-                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl font-bold text-xs text-left transition-all cursor-pointer ${
-                        active
-                          ? 'bg-rose-600 text-white shadow-xs'
-                          : 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200/60 dark:border-rose-900/40'
-                      }`}
-                    >
-                      <Icon size={18} color={active ? '#ffffff' : '#dc2626'} />
-                      <span>{item.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Support Section */}
-              <div className="space-y-1 pt-1">
-                <div className="text-[10px] font-bold text-stone-400 dark:text-slate-500 uppercase tracking-widest px-2 mb-1">
-                  SUPPORT
-                </div>
-                <button
-                  onClick={() => {
-                    setMobileDrawerOpen(false);
-                    onOpenChat();
-                  }}
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-xl font-bold text-xs text-left transition-all cursor-pointer bg-teal-50/60 dark:bg-slate-800 text-[#0B4F42] dark:text-teal-300"
-                >
-                  <SparklesIcon size={18} />
-                  <span>Ask AI</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Bottom Utilities */}
-            <div className="pt-4 border-t border-stone-200 dark:border-slate-800 space-y-2.5">
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-stone-400 dark:text-slate-500 uppercase tracking-widest px-1 block">
-                  Language
-                </label>
-                <select
-                  value={currentLang}
-                  onChange={(e) => updateLanguage(e.target.value)}
-                  className="w-full bg-stone-50 dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-stone-800 dark:text-slate-200 cursor-pointer outline-none"
-                >
-                  {LANGUAGES.map((lang) => (
-                    <option key={lang.code} value={lang.code}>
-                      {lang.flag} {lang.native} ({lang.name})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <button
-                type="button"
-                onClick={handleSignOut}
-                className="w-full bg-stone-100 hover:bg-red-50 text-stone-700 hover:text-red-600 dark:bg-slate-800 dark:hover:bg-red-950/40 dark:text-slate-300 dark:hover:text-red-400 font-bold text-xs py-2.5 rounded-xl border border-stone-200 dark:border-slate-700 transition-colors cursor-pointer text-center"
-              >
-                🚪 Sign Out
-              </button>
-            </div>
-
+          <div className="relative z-[100000] bg-white dark:bg-[#0B0F17] w-72 h-screen shadow-2xl border-r border-slate-200 dark:border-slate-800 overflow-hidden font-sans transition-colors duration-200">
+            <SidebarContent mobile />
           </div>
         </div>
       )}

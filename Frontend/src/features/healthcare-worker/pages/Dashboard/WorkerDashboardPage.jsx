@@ -113,6 +113,56 @@ export const WorkerDashboardPage = ({ setCurrentView }) => {
         </div>
       </div>
 
+      {/* Active Village Emergency Dispatch Alert (ASHA Community Handover) */}
+      <div className="bg-rose-900/90 text-white border border-rose-600 rounded-3xl p-6 shadow-lg space-y-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-rose-600 rounded-2xl flex items-center justify-center font-black text-xl animate-pulse">
+              🚨
+            </div>
+            <div>
+              <span className="bg-rose-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                LIVE VILLAGE EMERGENCY DISPATCH ALERT
+              </span>
+              <h3 className="text-base font-extrabold text-white mt-0.5">Active Emergency SOS: Mandya Sector 2</h3>
+            </div>
+          </div>
+          <span className="bg-rose-950 text-rose-300 text-[11px] font-bold px-3 py-1 rounded-xl border border-rose-700">
+            Received 4 mins ago
+          </span>
+        </div>
+
+        <div className="bg-rose-950/60 p-4 rounded-2xl border border-rose-800/80 text-xs space-y-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="font-extrabold text-rose-200">Patient: Sunita Devi (Age 48, Blood Group: O+)</span>
+            <span className="text-rose-300 font-mono">Location: Mandya Sector 2 (±15m accuracy)</span>
+          </div>
+          <p className="text-rose-200 font-medium">Emergency Type: Severe Respiratory Distress • 108 Ambulance Dispatch Alerted</p>
+        </div>
+
+        <div className="flex flex-wrap gap-2.5">
+          <button
+            type="button"
+            onClick={() => showToast?.('ASHA On-Scene Emergency Handover logged!', 'success')}
+            className="bg-white hover:bg-rose-50 text-rose-950 font-black text-xs px-4 py-2.5 rounded-xl cursor-pointer shadow-sm"
+          >
+            🚑 Mark ASHA On-Scene Response
+          </button>
+          <a
+            href="tel:+919876543210"
+            className="bg-rose-800 hover:bg-rose-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl cursor-pointer"
+          >
+            📞 Call Patient Family (+91 98765 43210)
+          </a>
+          <a
+            href="tel:108"
+            className="bg-rose-950 hover:bg-rose-900 text-rose-200 font-bold text-xs px-4 py-2.5 rounded-xl border border-rose-700 cursor-pointer"
+          >
+            📞 Contact 108 Dispatcher
+          </a>
+        </div>
+      </div>
+
       {/* Patient Roster */}
       <div className="bg-white dark:bg-[#161F30] border border-stone-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 shadow-sm space-y-4 transition-colors">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-2 border-b border-stone-100 dark:border-slate-800">
