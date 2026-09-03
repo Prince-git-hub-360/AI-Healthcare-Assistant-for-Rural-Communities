@@ -23,9 +23,16 @@ import { MedicalVault } from '../pages/application/patient/MedicalVault';
 import { MedicationReminders } from '../pages/application/patient/MedicationReminders';
 import { EmergencyHelp } from '../pages/application/patient/EmergencyHelp';
 import { EmergencyPatientCardPage } from '../features/patient/pages/Emergency/EmergencyPatientCardPage';
+import { MyHealthMapPage } from '../features/patient/pages/HealthMap/MyHealthMapPage';
 
 import { AshaDashboard } from '../pages/application/asha/AshaDashboard';
+import { VillageRegistry } from '../pages/application/asha/VillageRegistry';
+import { AshaFollowUps } from '../pages/application/asha/AshaFollowUps';
 import { AshaProfile } from '../pages/application/asha/AshaProfile';
+import { AshaVisitsPage } from '../features/healthcare-worker/pages/Visits/AshaVisitsPage';
+import { AshaReferralsPage } from '../features/healthcare-worker/pages/Referrals/AshaReferralsPage';
+import { AshaCoordinationPage } from '../features/healthcare-worker/pages/Coordination/AshaCoordinationPage';
+import { AshaPortalLayout } from '../features/healthcare-worker/layout/AshaPortalLayout';
 
 import { DoctorDashboard } from '../pages/application/doctor/DoctorDashboard';
 import { DoctorProfile } from '../pages/application/doctor/DoctorProfile';
@@ -146,24 +153,51 @@ const AuthenticatedApp = ({ currentPath, navigate, onOpenChat, chatModalOpen, se
     if (currentPath === ROUTES.APP.PATIENT.HEALTH_VAULT) {
       return <MedicalVault setCurrentView={(view) => handleLegacyView(view, navigate, role)} />;
     }
+    if (currentPath === ROUTES.APP.PATIENT.HEALTH_MAP) {
+      return <MyHealthMapPage setCurrentView={(view) => handleLegacyView(view, navigate, role)} onOpenChat={onOpenChat} />;
+    }
     if (currentPath === ROUTES.APP.PATIENT.REMINDERS) {
       return <MedicationReminders setCurrentView={(view) => handleLegacyView(view, navigate, role)} />;
     }
     if (currentPath === ROUTES.APP.PATIENT.EMERGENCY) {
       return <EmergencyHelp setCurrentView={(view) => handleLegacyView(view, navigate, role)} />;
     }
-    if (currentPath === ROUTES.APP.PATIENT.PROFILE || currentPath === ROUTES.APP.ASHA.PROFILE || currentPath === ROUTES.APP.DOCTOR.PROFILE || currentPath === ROUTES.APP.CAREGIVER.PROFILE) {
+    if (currentPath === ROUTES.APP.ASHA.PROFILE) {
+      return <AshaProfile setCurrentView={(view) => handleLegacyView(view, navigate, role)} />;
+    }
+    if (currentPath === ROUTES.APP.DOCTOR.PROFILE) {
+      return <DoctorProfile setCurrentView={(view) => handleLegacyView(view, navigate, role)} />;
+    }
+    if (currentPath === ROUTES.APP.PATIENT.PROFILE || currentPath === ROUTES.APP.CAREGIVER.PROFILE) {
       return <PatientProfile setCurrentView={(view) => handleLegacyView(view, navigate, role)} />;
     }
 
-    // ASHA WORKER ROUTES
-    if (currentPath === ROUTES.APP.ASHA.DASHBOARD || currentPath === ROUTES.APP.ASHA.PATIENTS || currentPath === ROUTES.APP.ASHA.FOLLOW_UPS) {
+    // ASHA WORKER ROUTES (Distinct Dedicated Government Pages)
+    if (currentPath === ROUTES.APP.ASHA.DASHBOARD) {
       return <AshaDashboard setCurrentView={(view) => handleLegacyView(view, navigate, role)} />;
+    }
+    if (currentPath === ROUTES.APP.ASHA.PATIENTS) {
+      return <VillageRegistry setCurrentView={(view) => handleLegacyView(view, navigate, role)} />;
+    }
+    if (currentPath === ROUTES.APP.ASHA.VISITS) {
+      return <AshaVisitsPage setCurrentView={(view) => handleLegacyView(view, navigate, role)} />;
+    }
+    if (currentPath === ROUTES.APP.ASHA.FOLLOW_UPS) {
+      return <AshaFollowUps currentPath={currentPath} setCurrentView={(view) => handleLegacyView(view, navigate, role)} />;
+    }
+    if (currentPath === ROUTES.APP.ASHA.REFERRALS) {
+      return <AshaReferralsPage setCurrentView={(view) => handleLegacyView(view, navigate, role)} />;
+    }
+    if (currentPath === ROUTES.APP.ASHA.COORDINATION) {
+      return <AshaCoordinationPage setCurrentView={(view) => handleLegacyView(view, navigate, role)} />;
     }
 
     // DOCTOR ROUTES
-    if (currentPath === ROUTES.APP.DOCTOR.DASHBOARD || currentPath === ROUTES.APP.DOCTOR.PATIENTS || currentPath === ROUTES.APP.DOCTOR.PRESCRIPTIONS) {
-      return <DoctorDashboard setCurrentView={(view) => handleLegacyView(view, navigate, role)} />;
+    if (currentPath === ROUTES.APP.DOCTOR.DASHBOARD || currentPath === ROUTES.APP.DOCTOR.PATIENTS) {
+      return <DoctorDashboard initialTab="queue" currentPath={currentPath} setCurrentView={(view) => handleLegacyView(view, navigate, role)} />;
+    }
+    if (currentPath === ROUTES.APP.DOCTOR.PRESCRIPTIONS) {
+      return <DoctorDashboard initialTab="asha" currentPath={currentPath} setCurrentView={(view) => handleLegacyView(view, navigate, role)} />;
     }
 
     // CAREGIVER ROUTES
@@ -171,12 +205,19 @@ const AuthenticatedApp = ({ currentPath, navigate, onOpenChat, chatModalOpen, se
       return <CaregiverDashboard setCurrentView={(view) => handleLegacyView(view, navigate, role)} />;
     }
 
-    // Default to Patient / Role Dashboard
     if (role === 'healthcare_worker') return <AshaDashboard setCurrentView={(view) => handleLegacyView(view, navigate, role)} />;
     if (role === 'doctor') return <DoctorDashboard setCurrentView={(view) => handleLegacyView(view, navigate, role)} />;
     if (role === 'caregiver') return <CaregiverDashboard setCurrentView={(view) => handleLegacyView(view, navigate, role)} />;
     return <PatientDashboard setCurrentView={(view) => handleLegacyView(view, navigate, role)} onOpenChat={onOpenChat} />;
   };
+
+  if (role === 'healthcare_worker' || currentPath.startsWith('/app/asha')) {
+    return (
+      <AshaPortalLayout currentPath={currentPath} onNavigate={navigate}>
+        {renderContent()}
+      </AshaPortalLayout>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FDFBF7] dark:bg-[#0B0F17] text-slate-900 dark:text-slate-100 antialiased relative font-sans transition-colors duration-200">
@@ -222,6 +263,10 @@ const handleLegacyView = (view, navigate, role) => {
     case 'medical_vault':
     case 'medical_documents':
       navigate(ROUTES.APP.PATIENT.HEALTH_VAULT);
+      break;
+    case 'health_map':
+    case 'health-map':
+      navigate(ROUTES.APP.PATIENT.HEALTH_MAP);
       break;
     case 'reminders':
       navigate(ROUTES.APP.PATIENT.REMINDERS);

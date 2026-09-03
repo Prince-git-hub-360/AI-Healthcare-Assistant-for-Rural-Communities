@@ -48,6 +48,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'healthcare_followup_reminders',
             'important_healthcare_updates',
             'is_phone_verified',
+            'abha_id',
+            'abha_number',
         ]
 
 
@@ -69,7 +71,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     phone_number = serializers.CharField(max_length=20, required=False, allow_blank=True, write_only=True)
     address = serializers.CharField(required=False, allow_blank=True, write_only=True)
     gender = serializers.CharField(max_length=20, required=False, allow_blank=True, write_only=True)
-    date_of_birth = serializers.DateField(required=False, allow_null=True, write_only=True)
+    date_of_birth = serializers.CharField(max_length=50, required=False, allow_blank=True, allow_null=True, write_only=True)
     age = serializers.IntegerField(required=False, allow_null=True, write_only=True)
     village_or_town = serializers.CharField(max_length=100, required=False, allow_blank=True, write_only=True)
     district = serializers.CharField(max_length=100, required=False, allow_blank=True, write_only=True)
@@ -112,7 +114,17 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         phone_number = validated_data.pop('phone_number', '')
         address = validated_data.pop('address', '')
         gender = validated_data.pop('gender', 'PREFER_NOT_TO_SAY')
-        date_of_birth = validated_data.pop('date_of_birth', None)
+        raw_dob = validated_data.pop('date_of_birth', None)
+        date_of_birth = None
+        if raw_dob:
+            from datetime import datetime
+            for fmt in ('%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y', '%Y/%m/%d'):
+                try:
+                    date_of_birth = datetime.strptime(str(raw_dob).strip(), fmt).date()
+                    break
+                except ValueError:
+                    pass
+
         age = validated_data.pop('age', None)
         village_or_town = validated_data.pop('village_or_town', '')
         district = validated_data.pop('district', '')
@@ -122,13 +134,22 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         emergency_contact_phone = validated_data.pop('emergency_contact_phone', '')
         password = validated_data.pop('password')
 
+        # Ensure email has default if not provided
+        if not validated_data.get('email'):
+            validated_data['email'] = f"{validated_data.get('username', 'user')}@swasthya.ai"
+
         # Create base User account
         user = User(**validated_data)
         user.set_password(password)
         user.save()
 
+        # Auto-generate 14-digit ABDM compliant ABHA ID for patient (e.g. 91-4820-9921-7740)
+        import random
+        abha_id = f"91-{random.randint(1000, 9999)}-{random.randint(1000, 9999)}-{random.randint(1000, 9999)}"
+        abha_number = f"ABHA-RURAL-IND-{random.randint(1000, 9999)}"
+
         # Create associated UserProfile
-        UserProfile.objects.create(
+        profile = UserProfile.objects.create(
             user=user,
             role=role,
             preferred_language=preferred_language,
@@ -143,6 +164,8 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             pincode=pincode,
             emergency_contact_name=emergency_contact_name,
             emergency_contact_phone=emergency_contact_phone,
+            abha_id=abha_id if role == RoleChoices.PATIENT else '',
+            abha_number=abha_number if role == RoleChoices.PATIENT else '',
         )
 
         # Auto-create domain Patient model if role is patient
@@ -154,6 +177,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
                     'phone': phone_number,
                     'address': address,
                     'preferred_language': preferred_language,
+                    'abha_id': abha_id,
                 }
             )
         elif role in (RoleChoices.HEALTHCARE_WORKER, 'doctor'):
@@ -229,6 +253,8 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
             'caregiver_notifications',
             'healthcare_followup_reminders',
             'important_healthcare_updates',
+            'abha_id',
+            'abha_number',
         ]
 
 

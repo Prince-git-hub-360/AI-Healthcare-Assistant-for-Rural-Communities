@@ -11,6 +11,7 @@ import {
   CloseIcon,
   QrCodeIcon,
 } from '../../../../shared/icons/Icons';
+import { AbhaCardView } from '../../../../components/health/AbhaCardView';
 
 export const PatientProfilePage = () => {
   const { user, currentLang, refreshProfile, updateLanguage, showToast } = useAuth();
@@ -258,7 +259,11 @@ export const PatientProfilePage = () => {
                   {fullNameDisplay}
                 </h1>
                 <span className="text-[11px] font-extrabold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/80 px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Active Patient
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> {
+                    user?.role === 'doctor' ? 'Verified Doctor (PHC)' :
+                    user?.role === 'healthcare_worker' ? 'Frontline ASHA Worker' :
+                    user?.role === 'caregiver' ? 'Active Caregiver' : 'Active Patient'
+                  }
                 </span>
               </div>
 
@@ -705,93 +710,40 @@ export const PatientProfilePage = () => {
 
       {/* ── 3. DIGITAL EMERGENCY MEDICAL ID CARD MODAL ── */}
       {showMedicalIdModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full shadow-2xl overflow-hidden space-y-0">
-            
-            {/* Card Header Strip */}
-            <div className="bg-[#0B4F42] p-5 text-white flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center font-bold text-sm">
-                  🏥
-                </div>
-                <div>
-                  <div className="text-xs font-black tracking-wide uppercase">Swasthya Sanchar AI</div>
-                  <div className="text-[10px] text-teal-200 font-medium">Official Digital Emergency Medical Card</div>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowMedicalIdModal(false)}
-                className="text-white/80 hover:text-white p-1 rounded-lg cursor-pointer"
-              >
-                <CloseIcon size={18} />
-              </button>
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden p-6 relative">
+            <button
+              type="button"
+              onClick={() => setShowMedicalIdModal(false)}
+              className="absolute top-4 right-4 text-slate-500 hover:text-slate-800 dark:hover:text-white p-1 rounded-lg cursor-pointer z-10"
+            >
+              <CloseIcon size={20} />
+            </button>
+
+            <div className="mb-4">
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+                Official ABDM Digital Health Card
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Present this card at any Primary Health Center or hospital for instant record retrieval.
+              </p>
             </div>
 
-            {/* Card Body */}
-            <div className="p-6 space-y-5 text-xs">
-              
-              {/* Photo & Basic Details */}
-              <div className="flex items-center gap-4">
-                {formData.profile_photo ? (
-                  <img src={formData.profile_photo} alt={fullNameDisplay} className="w-16 h-16 rounded-2xl object-cover border-2 border-teal-700" />
-                ) : (
-                  <div className="w-16 h-16 rounded-2xl bg-[#0B4F42] text-white flex items-center justify-center text-xl font-black">
-                    {fullNameDisplay.charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <div>
-                  <h3 className="text-base font-black text-slate-900 dark:text-white">{fullNameDisplay}</h3>
-                  <div className="text-[11px] font-mono text-[#0B4F42] dark:text-teal-300 font-bold">
-                    {swasthyaHealthId}
-                  </div>
-                  <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                    {formData.village_or_town || 'Electronic City'}, {formData.district || 'Bengaluru Urban'}
-                  </div>
-                </div>
-              </div>
-
-              {/* Critical ICE Grid */}
-              <div className="grid grid-cols-2 gap-3 p-3.5 bg-slate-50 dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700">
-                <div>
-                  <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Blood Group</div>
-                  <div className="text-sm font-black text-rose-700 dark:text-rose-400">{formData.blood_group}</div>
-                </div>
-                <div>
-                  <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Emergency Phone</div>
-                  <div className="text-xs font-mono font-bold text-slate-800 dark:text-slate-200">{formData.emergency_contact_phone || 'N/A'}</div>
-                </div>
-                <div className="col-span-2 pt-1 border-t border-slate-200 dark:border-slate-700">
-                  <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Assigned ASHA Guide</div>
-                  <div className="text-xs font-bold text-[#0B4F42] dark:text-teal-300">{formData.asha_worker_name} ({formData.asha_worker_phone})</div>
-                </div>
-              </div>
-
-              {/* QR Code Scannable Section */}
-              <div className="p-4 bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 rounded-2xl flex items-center gap-3">
-                <div className="w-12 h-12 bg-white p-1 rounded-xl shadow-xs shrink-0 flex items-center justify-center text-slate-900 font-bold">
-                  <QrCodeIcon size={32} />
-                </div>
-                <div className="text-[11px] leading-relaxed">
-                  <div className="font-extrabold text-[#0B4F42] dark:text-teal-300">Scannable Emergency ID</div>
-                  <p className="text-slate-600 dark:text-slate-400 font-medium">
-                    Show this card to your doctor, PHC clinic, or ASHA worker for instant clinical history tracking.
-                  </p>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  window.print();
-                }}
-                className="w-full bg-[#0B4F42] hover:bg-[#093f35] text-white font-bold py-3 rounded-2xl transition-colors cursor-pointer text-center text-xs shadow-xs"
-              >
-                🖨️ Print / Save Emergency Card
-              </button>
-
-            </div>
-
+            <AbhaCardView
+              card={{
+                full_name: fullNameDisplay,
+                abha_id: user?.profile?.abha_id || user?.abha_id || '91-4820-9921-7740',
+                date_of_birth: formData.date_of_birth || '05/10/2007',
+                gender: formData.gender === 'F' ? 'Female / महिला' : 'Male / पुरुष',
+                blood_group: formData.blood_group || 'B +ve',
+                phone_number: formData.emergency_contact_phone || user?.phone_number || '+91 9008802105',
+                village_or_town: formData.village_or_town || 'Electronic City',
+                district: formData.district || 'Bengaluru',
+                state: formData.state || 'Karnataka',
+                pincode: user?.profile?.pincode || '560100',
+              }}
+              showActions={true}
+            />
           </div>
         </div>
       )}

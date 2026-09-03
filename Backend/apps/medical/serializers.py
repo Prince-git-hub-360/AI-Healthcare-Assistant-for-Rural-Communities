@@ -27,6 +27,12 @@ class MedicalDocumentSerializer(serializers.ModelSerializer):
             'text_content',
             'language',
             'translated_text',
+            'hospital_name',
+            'doctor_name',
+            'record_date',
+            'diagnosis',
+            'abnormal_flags',
+            'is_abnormal',
             'created_at',
             'updated_at',
         ]

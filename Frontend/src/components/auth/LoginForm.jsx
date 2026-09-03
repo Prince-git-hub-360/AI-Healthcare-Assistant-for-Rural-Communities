@@ -61,12 +61,12 @@ export const LoginForm = ({ onNavigateRegister, onSuccess }) => {
         <p className="text-xs text-stone-600 dark:text-slate-300">Access your rural healthcare communication portal</p>
       </div>
 
-      {/* ROLE SELECTOR TABS */}
-      <div className="grid grid-cols-3 gap-2 bg-stone-100 dark:bg-slate-900 p-1.5 rounded-2xl mb-6 border border-stone-200 dark:border-slate-800">
+      {/* 4 DISTINCT ROLE SELECTOR TABS */}
+      <div className="grid grid-cols-4 gap-1.5 bg-stone-100 dark:bg-slate-900 p-1.5 rounded-2xl mb-6 border border-stone-200 dark:border-slate-800">
         <button
           type="button"
           onClick={() => handleRoleSelect('patient')}
-          className={`py-2 px-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+          className={`py-2 px-1 rounded-xl text-[11px] font-black transition-all cursor-pointer text-center ${
             selectedRole === 'patient'
               ? 'bg-[#0B4F42] dark:bg-teal-600 text-white shadow-sm'
               : 'text-stone-600 dark:text-slate-400 hover:text-stone-900 dark:hover:text-white hover:bg-stone-200/60 dark:hover:bg-slate-800'
@@ -78,19 +78,31 @@ export const LoginForm = ({ onNavigateRegister, onSuccess }) => {
         <button
           type="button"
           onClick={() => handleRoleSelect('healthcare_worker')}
-          className={`py-2 px-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+          className={`py-2 px-1 rounded-xl text-[11px] font-black transition-all cursor-pointer text-center ${
             selectedRole === 'healthcare_worker'
               ? 'bg-[#0B4F42] dark:bg-teal-600 text-white shadow-sm'
               : 'text-stone-600 dark:text-slate-400 hover:text-stone-900 dark:hover:text-white hover:bg-stone-200/60 dark:hover:bg-slate-800'
           }`}
         >
-          👩‍⚕️ Doctor / ASHA
+          👩‍⚕️ ASHA
+        </button>
+
+        <button
+          type="button"
+          onClick={() => handleRoleSelect('doctor')}
+          className={`py-2 px-1 rounded-xl text-[11px] font-black transition-all cursor-pointer text-center ${
+            selectedRole === 'doctor'
+              ? 'bg-[#0B4F42] dark:bg-teal-600 text-white shadow-sm'
+              : 'text-stone-600 dark:text-slate-400 hover:text-stone-900 dark:hover:text-white hover:bg-stone-200/60 dark:hover:bg-slate-800'
+          }`}
+        >
+          👨‍⚕️ Doctor
         </button>
 
         <button
           type="button"
           onClick={() => handleRoleSelect('caregiver')}
-          className={`py-2 px-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+          className={`py-2 px-1 rounded-xl text-[11px] font-black transition-all cursor-pointer text-center ${
             selectedRole === 'caregiver'
               ? 'bg-[#0B4F42] dark:bg-teal-600 text-white shadow-sm'
               : 'text-stone-600 dark:text-slate-400 hover:text-stone-900 dark:hover:text-white hover:bg-stone-200/60 dark:hover:bg-slate-800'
@@ -140,7 +152,15 @@ export const LoginForm = ({ onNavigateRegister, onSuccess }) => {
                 ? 'border-amber-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20'
                 : 'border-stone-300 dark:border-slate-700 focus:border-[#0F766E] dark:focus:border-teal-400 focus:ring-2 focus:ring-[#0F766E]/20'
             }`}
-            placeholder={selectedRole === 'healthcare_worker' ? 'e.g. dr_anita_verma' : 'e.g. rural_patient_test'}
+            placeholder={
+              selectedRole === 'doctor'
+                ? 'e.g. dr_vikram_sharma'
+                : selectedRole === 'healthcare_worker'
+                ? 'e.g. asha_sunita_bai'
+                : selectedRole === 'caregiver'
+                ? 'e.g. caregiver_rajesh'
+                : 'e.g. rural_patient_test'
+            }
             value={username}
             onChange={(e) => handleUsernameChange(e.target.value)}
             required
@@ -204,9 +224,51 @@ export const LoginForm = ({ onNavigateRegister, onSuccess }) => {
           disabled={loading}
           className="w-full bg-[#0B4F42] hover:bg-[#07362d] dark:bg-teal-600 dark:hover:bg-teal-500 text-white font-bold text-sm py-3.5 rounded-xl shadow-md transition-all cursor-pointer disabled:opacity-50 mt-2"
         >
-          {loading ? 'Authenticating...' : 'Sign In →'}
+          {loading ? 'Authenticating...' : `Sign In as ${selectedRole === 'doctor' ? 'Doctor' : selectedRole === 'healthcare_worker' ? 'ASHA Worker' : selectedRole === 'caregiver' ? 'Caregiver' : 'Patient'} →`}
         </button>
       </form>
+
+      {/* QUICK DEMO CREDENTIALS SHORTCUTS */}
+      <div className="mt-5 pt-4 border-t border-stone-200 dark:border-slate-800 text-center space-y-2">
+        <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 block">
+          Fast Demo Account Login:
+        </span>
+        <div className="flex flex-wrap items-center justify-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedRole('doctor');
+              setUsername('dr_vikram');
+              setPassword('Doctor@123');
+            }}
+            className="text-[11px] font-black bg-teal-50 dark:bg-teal-950/60 text-[#0B4F42] dark:text-teal-300 border border-teal-200 dark:border-teal-800 px-2.5 py-1 rounded-lg hover:bg-teal-100 cursor-pointer"
+          >
+            👨‍⚕️ Demo Doctor
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedRole('healthcare_worker');
+              setUsername('asha_sunita');
+              setPassword('Asha@123');
+            }}
+            className="text-[11px] font-black bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800 px-2.5 py-1 rounded-lg hover:bg-amber-100 cursor-pointer"
+          >
+            👩‍⚕️ Demo ASHA
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedRole('patient');
+              setUsername('prince_kumar');
+              setPassword('Patient@123');
+            }}
+            className="text-[11px] font-black bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 px-2.5 py-1 rounded-lg hover:bg-slate-200 cursor-pointer"
+          >
+            👵 Demo Patient
+          </button>
+        </div>
+      </div>
 
       <div className="text-center mt-6 text-xs text-stone-600 dark:text-slate-400">
         Don't have an account?{' '}

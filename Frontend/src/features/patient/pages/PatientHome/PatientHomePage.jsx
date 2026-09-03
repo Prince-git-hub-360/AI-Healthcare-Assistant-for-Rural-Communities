@@ -6,6 +6,7 @@ import {
   UserIcon, SparklesIcon, ActivityIcon, ChevronDownIcon, CheckIcon, ShieldIcon
 } from '../../../../shared/icons/Icons';
 import { speakNativeAudio } from '../../../../shared/utils/speech';
+import { EmergencySOS } from '../../components/EmergencySOS';
 
 /* ─── tiny SVG ring/progress component ─── */
 const ProgressRing = ({ pct = 0, size = 88, stroke = 8 }) => {
@@ -108,6 +109,7 @@ export const PatientHomePage = ({ setCurrentView, onOpenChat }) => {
   } = useAuth();
 
   const [reminders, setReminders] = useState([]);
+  const [medicalDocuments, setMedicalDocuments] = useState([]);
   const [loadingReminders, setLoadingReminders] = useState(true);
   const [playingGreeting, setPlayingGreeting] = useState(false);
 
@@ -123,33 +125,45 @@ export const PatientHomePage = ({ setCurrentView, onOpenChat }) => {
   const loadData = async () => {
     setLoadingReminders(true);
     try {
-      const remData = await api.getReminders();
-      let rawList = Array.isArray(remData) ? remData : remData?.results || [];
-      if (rawList.length > 0) {
-        const mapped = rawList.map((r) => {
-          let timeVal = r.scheduled_time || r.time || '';
-          if (timeVal.includes(':') && !timeVal.includes(' AM') && !timeVal.includes(' PM')) {
-            const parts = timeVal.split(':');
-            const h = parseInt(parts[0], 10);
-            const m = parts[1] || '00';
-            const ampm = h >= 12 ? 'PM' : 'AM';
-            const h12 = h % 12 || 12;
-            timeVal = `${h12.toString().padStart(2, '0')}:${m} ${ampm}`;
-          }
-          return {
-            id: r.id,
-            medication_name: r.medication_name || r.title || 'Prescribed Medicine',
-            scheduled_time: timeVal || '08:00 AM',
-            instructions: r.instructions || r.notes || r.dosage_note || 'Take 1 tablet with water after food',
-            is_taken: r.is_taken || r.dose_status === 'taken',
-          };
-        });
-        setReminders(mapped);
-      } else {
-        setReminders([]);
+      const [remData, docsData] = await Promise.allSettled([
+        api.getReminders(),
+        api.getMedicalDocuments(),
+      ]);
+
+      if (remData.status === 'fulfilled') {
+        const rawList = Array.isArray(remData.value) ? remData.value : remData.value?.results || [];
+        if (rawList.length > 0) {
+          const mapped = rawList.map((r) => {
+            let timeVal = r.scheduled_time || r.time || '';
+            if (timeVal.includes(':') && !timeVal.includes(' AM') && !timeVal.includes(' PM')) {
+              const parts = timeVal.split(':');
+              const h = parseInt(parts[0], 10);
+              const m = parts[1] || '00';
+              const ampm = h >= 12 ? 'PM' : 'AM';
+              const h12 = h % 12 || 12;
+              timeVal = `${h12.toString().padStart(2, '0')}:${m} ${ampm}`;
+            }
+            return {
+              id: r.id,
+              medication_name: r.medication_name || r.title || 'Prescribed Medicine',
+              scheduled_time: timeVal || '08:00 AM',
+              instructions: r.instructions || r.notes || r.dosage_note || 'Take 1 tablet with water after food',
+              is_taken: r.is_taken || r.dose_status === 'taken',
+            };
+          });
+          setReminders(mapped);
+        } else {
+          setReminders([]);
+        }
+      }
+
+      if (docsData.status === 'fulfilled') {
+        const docList = Array.isArray(docsData.value) ? docsData.value : docsData.value?.results || [];
+        setMedicalDocuments(docList);
       }
     } catch {
       setReminders([]);
+      setMedicalDocuments([]);
     }
     setLoadingReminders(false);
   };
@@ -214,7 +228,8 @@ export const PatientHomePage = ({ setCurrentView, onOpenChat }) => {
   const todayStr = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' });
 
   return (
-    <div className="bg-[#FDFBF7] dark:bg-[#0B0F17] min-h-screen font-sans text-slate-900 dark:text-slate-100 pb-28 transition-colors duration-200">
+    <>
+      <div className="bg-[#F8FAFC] dark:bg-[#0B0F17] min-h-screen font-sans text-slate-900 dark:text-slate-100 pb-28 transition-colors duration-200">
       <div className="max-w-[1200px] mx-auto space-y-5 px-0.5">
 
         {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -267,6 +282,73 @@ export const PatientHomePage = ({ setCurrentView, onOpenChat }) => {
         </div>
 
         {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            SECTION 1.5 — 4-COLOR QUICK ACTION SHORTCUTS
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          
+          {/* Prescription AI (Indigo) */}
+          <button
+            type="button"
+            onClick={() => setCurrentView?.('translate')}
+            className="group bg-indigo-50/70 hover:bg-indigo-100/80 dark:bg-indigo-950/40 dark:hover:bg-indigo-900/60 border border-indigo-200 dark:border-indigo-800/60 p-3.5 rounded-2xl flex items-center gap-3 transition-all text-left shadow-2xs hover:shadow-xs cursor-pointer"
+          >
+            <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-lg font-black shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+              📷
+            </div>
+            <div className="min-w-0">
+              <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-wider block">AI VISION</span>
+              <span className="text-xs font-black text-slate-900 dark:text-white truncate block">Prescription AI</span>
+            </div>
+          </button>
+
+          {/* Daily Pillbox (Amber) */}
+          <button
+            type="button"
+            onClick={() => setCurrentView?.('reminders')}
+            className="group bg-amber-50/70 hover:bg-amber-100/80 dark:bg-amber-950/40 dark:hover:bg-amber-900/60 border border-amber-200 dark:border-amber-800/60 p-3.5 rounded-2xl flex items-center gap-3 transition-all text-left shadow-2xs hover:shadow-xs cursor-pointer"
+          >
+            <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center text-lg font-black shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+              💊
+            </div>
+            <div className="min-w-0">
+              <span className="text-[10px] font-black text-amber-700 dark:text-amber-400 uppercase tracking-wider block">DAILY DOSE</span>
+              <span className="text-xs font-black text-slate-900 dark:text-white truncate block">Pillbox Reminders</span>
+            </div>
+          </button>
+
+          {/* Health Vault (Teal) */}
+          <button
+            type="button"
+            onClick={() => setCurrentView?.('medical_vault')}
+            className="group bg-teal-50/70 hover:bg-teal-100/80 dark:bg-teal-950/40 dark:hover:bg-teal-900/60 border border-teal-200 dark:border-teal-800/60 p-3.5 rounded-2xl flex items-center gap-3 transition-all text-left shadow-2xs hover:shadow-xs cursor-pointer"
+          >
+            <div className="w-10 h-10 rounded-xl bg-[#0B4F42] text-white flex items-center justify-center text-lg font-black shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+              📂
+            </div>
+            <div className="min-w-0">
+              <span className="text-[10px] font-black text-teal-700 dark:text-teal-400 uppercase tracking-wider block">ABDM VAULT</span>
+              <span className="text-xs font-black text-slate-900 dark:text-white truncate block">Health Records</span>
+            </div>
+          </button>
+
+          {/* Emergency 108 / 112 (Rose) */}
+          <button
+            type="button"
+            onClick={() => setCurrentView?.('emergency')}
+            className="group bg-rose-50/70 hover:bg-rose-100/80 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-800/60 p-3.5 rounded-2xl flex items-center gap-3 transition-all text-left shadow-2xs hover:shadow-xs cursor-pointer"
+          >
+            <div className="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center text-lg font-black shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+              🚨
+            </div>
+            <div className="min-w-0">
+              <span className="text-[10px] font-black text-rose-600 dark:text-rose-400 uppercase tracking-wider block">24x7 SOS</span>
+              <span className="text-xs font-black text-slate-900 dark:text-white truncate block">Emergency Care</span>
+            </div>
+          </button>
+
+        </div>
+
+        {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             SECTION 2 — HERO DOSE + PROGRESS RING
         ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
@@ -295,7 +377,7 @@ export const PatientHomePage = ({ setCurrentView, onOpenChat }) => {
 
             {/* Dose body */}
             <div className="p-5">
-              {nextDose ? (
+              {reminders.length > 0 && nextDose ? (
                 <div className="space-y-4">
                   {/* Time + Status */}
                   <div className="flex items-center justify-between">
@@ -348,10 +430,34 @@ export const PatientHomePage = ({ setCurrentView, onOpenChat }) => {
                   </div>
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center py-8 text-center gap-2">
-                  <div className="text-3xl">🎉</div>
-                  <div className="text-base font-extrabold text-emerald-700 dark:text-emerald-400">All doses completed for today!</div>
-                  <div className="text-xs text-slate-500 dark:text-slate-400">Great job staying on track with your care plan.</div>
+                <div className="flex flex-col items-center justify-center py-6 text-center space-y-3">
+                  <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center text-2xl shadow-xs">
+                    💊
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black text-slate-900 dark:text-white">
+                      No Active Prescriptions Added Yet
+                    </h3>
+                    <p className="text-xs text-slate-500 max-w-sm mx-auto mt-0.5">
+                      Scan your doctor's slip to automatically extract medicines and set vernacular audio pillbox alarms.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setCurrentView?.('translate')}
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black px-4 py-2 rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <span>📷 Scan Prescription Slip</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCurrentView?.('reminders')}
+                      className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 text-xs font-bold px-4 py-2 rounded-xl transition-all cursor-pointer"
+                    >
+                      <span>+ Add Medicine</span>
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -397,7 +503,43 @@ export const PatientHomePage = ({ setCurrentView, onOpenChat }) => {
           </div>
         </div>
 
-        {/* Section 3 removed: Full medicine timeline belongs in Reminders page, not the home dashboard */}
+        {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            SECTION 3 — SWASTHYA GYAN KENDRA LAUNCH BANNER
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+        <div className="bg-gradient-to-r from-[#0B4F42] via-[#0D5C4D] to-[#0A3D32] border border-teal-800/60 rounded-3xl p-5 sm:p-6 text-white shadow-md flex flex-col md:flex-row md:items-center justify-between gap-5 relative overflow-hidden">
+          
+          {/* Subtle Ambient Glow */}
+          <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-teal-400/10 rounded-full blur-2xl pointer-events-none" />
+
+          <div className="space-y-2 max-w-2xl relative z-10">
+            <div className="flex items-center gap-2">
+              <span className="bg-teal-400/20 text-teal-300 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full border border-teal-400/30">
+                📚 Swasthya Gyan Kendra
+              </span>
+              <span className="text-[10px] font-bold text-teal-200/80">
+                14 Organs • Multi-Lingual Audio
+              </span>
+            </div>
+            <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight">
+              Learn How Your Body Works &amp; Prevent Illness
+            </h2>
+            <p className="text-xs sm:text-sm text-teal-100/80 leading-relaxed font-medium">
+              Explore your heart, lungs, liver, diabetes care, and maternal health in your own mother tongue with spoken voice guidance and healthy rural nutrition.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0 relative z-10">
+            <button
+              type="button"
+              onClick={() => setCurrentView?.('health_map')}
+              className="bg-[#E2A233] hover:bg-[#c88d28] text-slate-950 text-xs sm:text-sm font-black py-3 px-6 rounded-2xl transition-all transform hover:scale-105 cursor-pointer flex items-center justify-center gap-2 shadow-lg"
+            >
+              <span>📚 Open Health Knowledge Hub</span>
+              <span>→</span>
+            </button>
+          </div>
+
+        </div>
 
         {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             SECTION 4 — AI ASSISTANT + VITALS (50/50)
@@ -476,102 +618,80 @@ export const PatientHomePage = ({ setCurrentView, onOpenChat }) => {
         </div>
 
         {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            SECTION 5 — UNIFIED SUPPORT STRIP
+            SECTION 5 — RURAL CARE LIFELINE & EMERGENCY
         ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-          {/* Services Grid */}
-          <div className="lg:col-span-2 bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-2xl shadow-sm p-5 space-y-4 transition-colors">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-bold text-slate-900 dark:text-white">Healthcare Services</span>
-              <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide">Quick Access</span>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              <ServiceTile
-                icon="📋"
-                label="Translate Rx"
-                sub="Prescriptions"
-                onClick={() => setCurrentView?.('translate')}
-              />
-              <ServiceTile
-                icon="🗂️"
-                label="Health Vault"
-                sub="Medical files"
-                onClick={() => setCurrentView?.('medical_vault')}
-              />
-              <ServiceTile
-                icon="⏰"
-                label="Reminders"
-                sub="Medications"
-                onClick={() => setCurrentView?.('reminders')}
-              />
-              <ServiceTile
-                icon="🚨"
-                label="Emergency"
-                sub="108 SOS"
-                onClick={() => setCurrentView?.('emergency')}
-                danger
-              />
-            </div>
-
-            {/* IVR / 2G Support strip */}
-            <div className="flex items-center justify-between gap-3 bg-stone-50 dark:bg-slate-800/60 border border-stone-200 dark:border-slate-700 rounded-xl px-4 py-3">
-              <div>
-                <div className="text-xs font-extrabold text-slate-800 dark:text-white flex items-center gap-2">
-                  🌾 2G IVR Voice Support
-                  <span className="text-[10px] bg-amber-100 dark:bg-amber-950 text-amber-900 dark:text-amber-200 px-2 py-0.5 rounded-md font-bold border border-amber-200 dark:border-amber-800">Active</span>
-                </div>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Voice IVR & offline SMS alerts for rural patients</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => showToast?.('Simulating 2G IVR Voice Call…', 'info')}
-                className="border border-stone-300 dark:border-slate-600 hover:bg-stone-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[11px] font-bold px-3 py-2 rounded-xl transition-colors cursor-pointer whitespace-nowrap"
-              >
-                Test 2G Call 📞
-              </button>
-            </div>
-          </div>
-
-          {/* Right: ASHA + SOS */}
-          <div className="flex flex-col gap-3">
-            {/* ASHA Care Card */}
-            <div className="bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-2xl shadow-sm p-4 space-y-3 flex-1 transition-colors">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/60 rounded-xl flex items-center justify-center text-xl flex-shrink-0">
-                  👩‍⚕️
-                </div>
-                <div className="min-w-0">
-                  <div className="text-xs font-extrabold text-slate-900 dark:text-white truncate">Sunita Sister</div>
-                  <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate">ASHA Worker • Mandya PHC</div>
-                  <div className="text-[10px] text-[#D97706] dark:text-[#E2A233] font-bold mt-0.5">Visit: Tomorrow</div>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => showToast?.('Calling ASHA Sister Sunita…', 'info')}
-                className="w-full bg-[#E2A233] hover:bg-[#c88d28] text-slate-950 text-xs font-extrabold py-2 px-3 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 shadow-2xs"
-              >
-                <PhoneIcon size={14} color="#0f172a" /> Call ASHA Worker
-              </button>
-            </div>
-
-            {/* Emergency SOS */}
-            <div className="bg-rose-600 rounded-2xl p-4 shadow-sm space-y-2 text-white">
+          {/* 1. 2G IVR Voice Support */}
+          <div className="bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-2xl shadow-xs p-4 flex flex-col justify-between space-y-3 transition-colors">
+            <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-extrabold uppercase tracking-wide">🚨 Emergency SOS</span>
-                <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-md font-extrabold">108</span>
+                <span className="text-xs font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5">
+                  <span>🌾</span>
+                  <span>2G IVR Offline Voice</span>
+                </span>
+                <span className="text-[10px] bg-amber-100 dark:bg-amber-950 text-amber-900 dark:text-amber-200 px-2 py-0.5 rounded-md font-extrabold border border-amber-200 dark:border-amber-800">
+                  Active
+                </span>
               </div>
-              <p className="text-[11px] text-rose-100 leading-relaxed">Urgent care, live location sharing, or ambulance dispatch.</p>
-              <button
-                type="button"
-                onClick={() => setCurrentView?.('emergency')}
-                className="w-full bg-white hover:bg-rose-50 text-rose-700 text-xs font-extrabold py-2 px-3 rounded-xl transition-all cursor-pointer text-center shadow-sm"
-              >
-                Open Emergency Care →
-              </button>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
+                Automated phone calls &amp; SMS alerts in your village dialect for feature phones without internet.
+              </p>
             </div>
+            <button
+              type="button"
+              onClick={() => showToast?.('Simulating 2G IVR Voice Call to your phone…', 'info')}
+              className="w-full bg-stone-100 hover:bg-stone-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold py-2 rounded-xl transition-colors cursor-pointer text-center"
+            >
+              Test 2G IVR Call 📞
+            </button>
           </div>
+
+          {/* 2. ASHA Worker Sister Contact */}
+          <div className="bg-white dark:bg-slate-900 border border-stone-200 dark:border-slate-800 rounded-2xl shadow-xs p-4 flex flex-col justify-between space-y-3 transition-colors">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/60 rounded-xl flex items-center justify-center text-xl shrink-0 shadow-2xs">
+                👩‍⚕️
+              </div>
+              <div className="min-w-0">
+                <div className="text-xs font-extrabold text-slate-900 dark:text-white truncate">Sunita Sister</div>
+                <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate">ASHA Worker • Mandya PHC</div>
+                <div className="text-[10px] text-[#D97706] dark:text-[#E2A233] font-bold mt-0.5">Village Visit: Tomorrow</div>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => showToast?.('Calling ASHA Sister Sunita at Mandya PHC…', 'info')}
+              className="w-full bg-[#E2A233] hover:bg-[#c88d28] text-slate-950 text-xs font-extrabold py-2 px-3 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs"
+            >
+              <PhoneIcon size={14} color="#0f172a" />
+              <span>Call ASHA Worker</span>
+            </button>
+          </div>
+
+          {/* 3. Emergency SOS 108 / 112 */}
+          <div className="bg-gradient-to-br from-rose-600 to-rose-700 rounded-2xl p-4 shadow-sm flex flex-col justify-between space-y-3 text-white">
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-extrabold uppercase tracking-wide flex items-center gap-1">
+                  <span>🚨</span>
+                  <span>Emergency SOS</span>
+                </span>
+                <span className="text-[10px] bg-white/25 px-2 py-0.5 rounded-md font-black">108 / 112</span>
+              </div>
+              <p className="text-[11px] text-rose-100 leading-relaxed mt-1 font-medium">
+                Instant ambulance dispatch, live GPS hospital locator &amp; snakebite protocols.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setCurrentView?.('emergency')}
+              className="w-full bg-white hover:bg-rose-50 text-rose-700 text-xs font-black py-2 rounded-xl transition-all cursor-pointer text-center shadow-xs"
+            >
+              Open Emergency Care →
+            </button>
+          </div>
+
         </div>
 
         {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -631,7 +751,11 @@ export const PatientHomePage = ({ setCurrentView, onOpenChat }) => {
 
       </div>
     </div>
-  );
+    <EmergencySOS showToast={showToast} onSosSent={(sosData) => {
+      console.log('SOS triggered:', sosData);
+    }} />
+  </>
+);
 };
 
 export default PatientHomePage;

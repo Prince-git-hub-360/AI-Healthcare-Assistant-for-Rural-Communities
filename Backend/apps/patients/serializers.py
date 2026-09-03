@@ -31,6 +31,7 @@ class PatientSerializer(serializers.ModelSerializer):
             'address',
             'preferred_language',
             'blood_group',
+            'abha_id',
             'emergency_contact_name',
             'emergency_contact_phone',
             'medical_history',
@@ -51,6 +52,42 @@ class PatientSerializer(serializers.ModelSerializer):
             }
             for assignment in obj.caregiver_assignments.select_related('caregiver').all()
         ]
+
+
+class PatientClinicalNoteSerializer(serializers.ModelSerializer):
+    author_name = serializers.SerializerMethodField()
+
+    class Meta:
+        from .models import PatientClinicalNote
+        model = PatientClinicalNote
+        fields = [
+            'id',
+            'patient',
+            'author',
+            'author_name',
+            'author_role',
+            'note_type',
+            'title',
+            'content',
+            'audio_url',
+            'language',
+            'blood_pressure',
+            'blood_sugar',
+            'pulse',
+            'temperature',
+            'weight',
+            'symptoms',
+            'action_taken',
+            'is_high_risk',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def get_author_name(self, obj):
+        if obj.author:
+            return obj.author.get_full_name() or obj.author.username
+        return 'Healthcare Worker'
 
 
 class CaregiverAssignmentSerializer(serializers.ModelSerializer):

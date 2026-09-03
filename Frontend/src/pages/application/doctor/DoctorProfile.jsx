@@ -1,4 +1,4 @@
-import { PatientProfilePage as DoctorProfile } from '../../../features/patient/pages/Profile/PatientProfilePage';
+import { DoctorProfilePage as DoctorProfile } from '../../../features/healthcare-worker/pages/Profile/DoctorProfilePage';
 
 export { DoctorProfile };
 export default DoctorProfile;

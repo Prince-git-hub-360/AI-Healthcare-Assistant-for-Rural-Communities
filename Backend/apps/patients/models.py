@@ -72,6 +72,7 @@ class Patient(models.Model):
 
     emergency_contact_name = models.CharField(max_length=255, blank=True)
     emergency_contact_phone = models.CharField(max_length=30, blank=True)
+    abha_id = models.CharField(max_length=24, blank=True, default='', db_index=True)
 
     medical_history = models.TextField(blank=True)
     allergies = models.TextField(blank=True)
@@ -101,3 +102,34 @@ class PatientCaregiver(models.Model):
 
     def __str__(self):
         return f"Caregiver {self.caregiver.username} for Patient {self.patient.user.username}"
+
+
+class PatientClinicalNote(models.Model):
+    """Stores ASHA field worker notes, doctor consultation remarks, and vitals updates."""
+    patient = models.ForeignKey('patients.Patient', on_delete=models.CASCADE, related_name='clinical_notes')
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='authored_clinical_notes')
+    author_role = models.CharField(max_length=32, default='healthcare_worker')
+    note_type = models.CharField(max_length=32, default='field_visit') # field_visit, doctor_consultation, vital_check, voice_log
+    title = models.CharField(max_length=255, blank=True)
+    content = models.TextField()
+    audio_url = models.TextField(blank=True)
+    language = models.CharField(max_length=16, default='hi')
+    
+    # Structured vitals snapshot
+    blood_pressure = models.CharField(max_length=32, blank=True)
+    blood_sugar = models.CharField(max_length=32, blank=True)
+    pulse = models.CharField(max_length=32, blank=True)
+    temperature = models.CharField(max_length=32, blank=True)
+    weight = models.CharField(max_length=32, blank=True)
+    symptoms = models.TextField(blank=True)
+    action_taken = models.TextField(blank=True)
+    is_high_risk = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Clinical Note for {self.patient.user.username} by {self.author.username if self.author else 'System'} on {self.created_at.strftime('%Y-%m-%d')}"

@@ -4,18 +4,37 @@ export const SwasthyaLogo = ({ variant = 'full', className = '', height = 40, on
   const isDark = variant === 'dark';
   const isMarkOnly = variant === 'mark' || variant === 'icon';
 
-  // Use bright white emblem mark on dark backgrounds, color emblem mark on light backgrounds
+  const [imgError, setImgError] = React.useState(false);
   const emblemSrc = isDark ? '/assets/branding/swasthya-sanchar-mark-white.png' : '/assets/branding/swasthya-sanchar-mark.png';
+
+  const renderIcon = (h) => {
+    if (imgError) {
+      return (
+        <div 
+          style={{ height: `${h}px`, width: `${h}px` }} 
+          className={`rounded-xl flex items-center justify-center font-black text-white shrink-0 shadow-xs ${
+            isDark ? 'bg-teal-600' : 'bg-[#0B4F42]'
+          }`}
+        >
+          <span style={{ fontSize: `${h * 0.55}px` }}>🩺</span>
+        </div>
+      );
+    }
+    return (
+      <img
+        src={emblemSrc}
+        alt="Swasthya Sanchar AI"
+        style={{ height: `${h}px`, width: 'auto', objectFit: 'contain' }}
+        className="transition-transform duration-200 hover:scale-105 shrink-0"
+        onError={() => setImgError(true)}
+      />
+    );
+  };
 
   if (isMarkOnly) {
     return (
       <div className={`inline-flex items-center select-none ${onClick ? 'cursor-pointer' : ''} ${className}`} onClick={onClick}>
-        <img
-          src={emblemSrc}
-          alt="Swasthya Sanchar AI"
-          style={{ height: `${height}px`, width: 'auto', objectFit: 'contain' }}
-          className="transition-transform duration-200 hover:scale-105"
-        />
+        {renderIcon(height)}
       </div>
     );
   }
@@ -30,13 +49,8 @@ export const SwasthyaLogo = ({ variant = 'full', className = '', height = 40, on
       className={`inline-flex items-center gap-2 select-none ${onClick ? 'cursor-pointer' : ''} ${className}`}
       onClick={onClick}
     >
-      {/* High-res transparent emblem mark */}
-      <img
-        src={emblemSrc}
-        alt="Swasthya Sanchar AI Logo"
-        style={{ height: `${iconHeight}px`, width: 'auto', objectFit: 'contain' }}
-        className="shrink-0 transition-transform duration-200"
-      />
+      {/* High-res transparent emblem mark with fallback */}
+      {renderIcon(iconHeight)}
 
       {/* Brand Typography Lockup */}
       <div className="flex flex-col justify-center leading-none min-w-0">

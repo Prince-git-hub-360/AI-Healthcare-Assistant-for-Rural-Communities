@@ -150,9 +150,65 @@
   .card-pop-effect:hover {
     transform: none !important;
   }
+  .animate-laser-scan, .animate-scan-grid {
+    animation: none !important;
+  }
+}
+
+/* AI Laser Scanning Beam & HUD Animations */
+@keyframes laser-sweep-vertical {
+  0% {
+    top: 0%;
+    opacity: 0.9;
+  }
+  50% {
+    top: 96%;
+    opacity: 1;
+  }
+  100% {
+    top: 0%;
+    opacity: 0.9;
+  }
+}
+
+.animate-laser-scan {
+  animation: laser-sweep-vertical 2.4s ease-in-out infinite;
+}
+
+@keyframes scan-grid-movement {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 30px 30px;
+  }
+}
+
+.animate-scan-grid {
+  background-image: 
+    linear-gradient(to right, rgba(16, 185, 129, 0.12) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(16, 185, 129, 0.12) 1px, transparent 1px);
+  background-size: 24px 24px;
+  animation: scan-grid-movement 4s linear infinite;
+}
+
+@keyframes box-pulse-detect {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(0.98);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.02);
+  }
+}
+
+.animate-detect-box {
+  animation: box-pulse-detect 1.5s ease-in-out infinite;
 }
 
 :focus-visible {
   outline: 2px solid #0f766e;
   outline-offset: 2px;
 }
+

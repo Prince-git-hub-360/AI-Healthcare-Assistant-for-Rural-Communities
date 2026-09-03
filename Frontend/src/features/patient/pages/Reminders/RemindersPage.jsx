@@ -214,6 +214,83 @@ export const RemindersPage = () => {
         </button>
       </div>
 
+      {/* 📊 TODAY'S ADHERENCE SUMMARY CARD (NEW) */}
+      {reminders.length > 0 && (
+        <div className="bg-gradient-to-r from-teal-50 to-emerald-50 dark:from-teal-950/30 dark:to-emerald-950/30 border border-teal-200 dark:border-teal-900/60 rounded-2xl p-6 shadow-sm">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-extrabold uppercase tracking-wider text-teal-900 dark:text-teal-300">
+                📊 TODAY'S MEDICATION ADHERENCE
+              </span>
+              <span className="text-xs font-bold text-teal-800 dark:text-teal-300">
+                {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+              </span>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-extrabold text-slate-900 dark:text-white">
+                  {completedReminders.length} of {reminders.length} doses taken
+                </span>
+                <span className="text-sm font-bold text-emerald-700 dark:text-emerald-300">
+                  {reminders.length > 0 ? Math.round((completedReminders.length / reminders.length) * 100) : 0}%
+                </span>
+              </div>
+              <div className="w-full bg-slate-200 dark:bg-slate-700 h-3 rounded-full overflow-hidden">
+                <div
+                  className="bg-gradient-to-r from-emerald-500 to-teal-500 h-full rounded-full transition-all duration-500"
+                  style={{ width: `${reminders.length > 0 ? (completedReminders.length / reminders.length) * 100 : 0}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Status Breakdown */}
+            <div className="grid grid-cols-3 gap-2">
+              <div className="bg-white/60 dark:bg-slate-800/60 rounded-lg p-2.5 text-center space-y-1">
+                <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">✓</div>
+                <div className="text-[10px] font-bold text-slate-700 dark:text-slate-300">Completed</div>
+                <div className="text-sm font-extrabold text-slate-900 dark:text-white">{completedReminders.length}</div>
+              </div>
+              <div className="bg-white/60 dark:bg-slate-800/60 rounded-lg p-2.5 text-center space-y-1">
+                <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">⏳</div>
+                <div className="text-[10px] font-bold text-slate-700 dark:text-slate-300">Pending</div>
+                <div className="text-sm font-extrabold text-slate-900 dark:text-white">{pendingReminders.length}</div>
+              </div>
+              <div className="bg-white/60 dark:bg-slate-800/60 rounded-lg p-2.5 text-center space-y-1">
+                <div className="text-2xl font-bold text-sky-600 dark:text-sky-400">📅</div>
+                <div className="text-[10px] font-bold text-slate-700 dark:text-slate-300">Total</div>
+                <div className="text-sm font-extrabold text-slate-900 dark:text-white">{reminders.length}</div>
+              </div>
+            </div>
+
+            {/* Quick Status Message */}
+            <div className="bg-white/80 dark:bg-slate-800/80 rounded-lg p-3 text-center">
+              {completedReminders.length === 0 && pendingReminders.length > 0 && (
+                <p className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                  👋 You have <span className="font-bold text-amber-700 dark:text-amber-300">{pendingReminders.length} dose{pendingReminders.length > 1 ? 's' : ''}</span> pending today. Don't forget to take your medication!
+                </p>
+              )}
+              {completedReminders.length > 0 && pendingReminders.length > 0 && (
+                <p className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                  👏 Great start! <span className="font-bold text-emerald-700 dark:text-emerald-300">{pendingReminders.length} dose{pendingReminders.length > 1 ? 's' : ''}</span> still pending.
+                </p>
+              )}
+              {completedReminders.length === reminders.length && reminders.length > 0 && (
+                <p className="text-xs font-medium text-emerald-700 dark:text-emerald-300">
+                  🎉 <span className="font-bold">Perfect!</span> All doses completed for today. Excellent adherence!
+                </p>
+              )}
+              {reminders.length === 0 && (
+                <p className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                  📝 No reminders scheduled yet. Add your first medication to get started!
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {showAddForm && (
         <form onSubmit={handleCreate} className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4 transition-colors">
           <h3 className="text-base font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3">Schedule New Medication</h3>

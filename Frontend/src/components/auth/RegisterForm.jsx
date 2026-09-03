@@ -393,6 +393,27 @@ export const RegisterForm = ({ onNavigateLogin, onSuccess }) => {
                 </div>
               </div>
 
+              {/* Ayushman Bharat ABHA Card Auto-generation Banner */}
+              <div className="bg-sky-50 dark:bg-sky-950/50 border border-sky-200 dark:border-sky-800/80 rounded-2xl p-3.5 flex items-center justify-between gap-3 shadow-xs">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-white dark:bg-slate-800 border border-sky-200 dark:border-slate-700 flex items-center justify-center shrink-0 text-base shadow-xs">
+                    🇮🇳
+                  </div>
+                  <div>
+                    <div className="text-xs font-black text-slate-900 dark:text-white flex items-center gap-1.5">
+                      <span>Ayushman Bharat ABHA Card</span>
+                      <span className="bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 text-[9px] font-extrabold px-1.5 py-0.2 rounded-md">FREE</span>
+                    </div>
+                    <p className="text-[10px] text-slate-600 dark:text-slate-300">
+                      Auto-generate 14-digit Digital Health Card with QR for PHC access.
+                    </p>
+                  </div>
+                </div>
+                <div className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs font-bold shrink-0">
+                  ✓
+                </div>
+              </div>
+
               <div className="flex gap-3 pt-2">
                 <button
                   type="button"
@@ -404,9 +425,9 @@ export const RegisterForm = ({ onNavigateLogin, onSuccess }) => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-2/3 bg-[#0B4F42] hover:bg-[#07362d] dark:bg-teal-600 dark:hover:bg-teal-500 text-white font-bold text-xs py-3 rounded-xl shadow-md transition-all cursor-pointer disabled:opacity-50"
+                  className="w-2/3 bg-[#0B4F42] hover:bg-[#07362d] dark:bg-teal-600 dark:hover:bg-teal-500 text-white font-bold text-xs py-3 rounded-xl shadow-md transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  {loading ? 'Registering...' : 'Complete Registration →'}
+                  {loading ? 'Generating ABHA & Registering...' : 'Complete & Generate ABHA ID →'}
                 </button>
               </div>
             </div>

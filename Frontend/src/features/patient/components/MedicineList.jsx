@@ -38,28 +38,38 @@ export const MedicineList = ({ medications = [], confidence = null, isLoading = 
         )}
       </div>
 
-      {/* LOADING STATE */}
+      {/* LOADING STATE WITH MULTISTEP SCANNER ANIMATION */}
       {isLoading && (
-        <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 rounded-xl p-4 text-center space-y-2">
-          <SparklesIcon size={20} className="animate-spin text-[#0F766E] dark:text-teal-400 mx-auto" />
-          <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
-            Identifying medicines...
+        <div className="bg-gradient-to-r from-teal-50 to-emerald-50 dark:from-slate-800/80 dark:to-teal-950/40 border border-teal-200 dark:border-teal-800/60 rounded-xl p-5 text-center space-y-3">
+          <div className="flex items-center justify-center gap-2 text-[#0F766E] dark:text-teal-300 font-extrabold text-xs">
+            <SparklesIcon size={18} className="animate-spin" />
+            <span>AI Vision Reading Rx Lines & Drug Names...</span>
+          </div>
+          <div className="w-48 mx-auto bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+            <div className="bg-teal-600 h-full w-full animate-pulse" />
+          </div>
+          <p className="text-[11px] text-slate-500 dark:text-slate-400">
+            Detecting strength (mg/ml), frequencies (1-0-1), and meal instructions.
           </p>
         </div>
       )}
 
-      {/* EMPTY STATE */}
+      {/* EMPTY STATE / HANDWRITING TIP */}
       {!isLoading && !hasMedicines && (
-        <div className="bg-slate-50/80 dark:bg-slate-800/40 border border-dashed border-slate-200 dark:border-slate-700/80 rounded-xl p-4 text-center space-y-1">
-          <p className="text-xs font-bold text-slate-600 dark:text-slate-400">
-            No medicines were identified from this prescription.
+        <div className="bg-slate-50/90 dark:bg-slate-800/40 border border-dashed border-slate-300 dark:border-slate-700/80 rounded-xl p-5 text-center space-y-2">
+          <div className="text-xl">📋</div>
+          <p className="text-xs font-extrabold text-slate-700 dark:text-slate-300">
+            No specific medicines detected automatically yet.
+          </p>
+          <p className="text-[11px] text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+            Doctor handwriting can sometimes be faint or cursive. You can click <strong>"✍️ Edit OCR"</strong> on the left to type medicines or check the translated instructions above.
           </p>
         </div>
       )}
 
-      {/* COMPACT MEDICINE CARDS LIST */}
+      {/* COMPACT 2-COLUMN MEDICINE CARDS GRID */}
       {!isLoading && hasMedicines && (
-        <div className="space-y-2.5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {medications.map((item, idx) => {
             const isObject = typeof item === 'object' && item !== null;
             

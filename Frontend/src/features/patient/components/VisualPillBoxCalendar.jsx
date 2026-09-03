@@ -21,7 +21,39 @@ const normalizeMedicationName = (rawName = '') => {
 
   // Clean common prefixes/suffixes
   str = str.replace(/^(tab|cap|inj|syrup|t\.|c\.)\s*/i, '');
-  return str.length > 35 ? str.substring(0, 35) + '...' : str;
+  
+  // IMPROVED: Return full name without truncation - let component handle display
+  return str || 'Prescribed Medication';
+};
+
+// Helper to get dose time status (for color coding)
+const getDoseStatus = (scheduledTime, isTaken, dayIndex = 0) => {
+  if (isTaken) return { status: 'taken', color: 'emerald', label: '✓ Taken', icon: '✓' };
+  
+  if (dayIndex > 0) return { status: 'pending', color: 'slate', label: '⏳ Pending', icon: '○' };
+  
+  // For today (dayIndex === 0), check if overdue
+  if (scheduledTime) {
+    const [hours, mins] = scheduledTime.split(':').map(Number);
+    if (isNaN(hours)) return { status: 'pending', color: 'slate', label: '⏳ Pending', icon: '○' };
+    
+    const scheduledDate = new Date();
+    scheduledDate.setHours(hours, mins || 0, 0, 0);
+    const now = new Date();
+    const diffMins = Math.round((now - scheduledDate) / 60000);
+    
+    if (diffMins <= 30 && diffMins >= -30) {
+      return { status: 'ready', color: 'emerald', label: '🟢 Ready Now', icon: '◉' };
+    } else if (diffMins > 30 && diffMins <= 240) {
+      return { status: 'overdue', color: 'amber', label: `⚠️ ${diffMins} mins overdue`, icon: '⚡' };
+    } else if (diffMins > 240) {
+      return { status: 'critical', color: 'red', label: `🔴 CRITICAL ${Math.floor(diffMins/60)}h overdue`, icon: '❌' };
+    } else {
+      return { status: 'upcoming', color: 'slate', label: `${Math.abs(diffMins)} mins until dose`, icon: '⏰' };
+    }
+  }
+  
+  return { status: 'pending', color: 'slate', label: '⏳ Pending', icon: '○' };
 };
 
 export const VisualPillBoxCalendar = ({ reminders = [], onToggleTaken, onDeleteReminder, onIvrCall, currentLang, showToast }) => {
@@ -448,6 +480,7 @@ export const VisualPillBoxCalendar = ({ reminders = [], onToggleTaken, onDeleteR
                 <MedicationCard
                   key={r.uniqueKey || r.id}
                   reminder={r}
+                  dayIndex={selectedDayIndex}
                   alarmOn={alarmStates[r.id] !== false}
                   onToggleAlarm={() => toggleAlarm(r.id)}
                   isPlaying={playingId === r.id}
@@ -485,6 +518,7 @@ export const VisualPillBoxCalendar = ({ reminders = [], onToggleTaken, onDeleteR
                 <MedicationCard
                   key={r.uniqueKey || r.id}
                   reminder={r}
+                  dayIndex={selectedDayIndex}
                   alarmOn={alarmStates[r.id] !== false}
                   onToggleAlarm={() => toggleAlarm(r.id)}
                   isPlaying={playingId === r.id}
@@ -521,6 +555,7 @@ export const VisualPillBoxCalendar = ({ reminders = [], onToggleTaken, onDeleteR
               {night.map((r) => (
                 <MedicationCard
                   key={r.uniqueKey || r.id}
+                  dayIndex={selectedDayIndex}
                   reminder={r}
                   alarmOn={alarmStates[r.id] !== false}
                   onToggleAlarm={() => toggleAlarm(r.id)}
@@ -550,67 +585,94 @@ const MedicationCard = ({
   onToggleTaken,
   onDelete,
   onIvrCall,
+  dayIndex = 0,
 }) => {
   const isTaken = reminder.is_taken_this_day !== undefined ? reminder.is_taken_this_day : reminder.is_taken;
   const title = reminder.displayName || reminder.medication_name || 'Prescribed Medicine';
   const instruction = reminder.instructions || reminder.dosage_note || 'Take 1 tablet as prescribed';
   const time = reminder.scheduled_time || '08:00 AM';
+  const strength = reminder.strength || reminder.dosage_amount || '1 tablet';
+  const mealTiming = reminder.before_food ? 'Before meals' : reminder.after_food ? 'After meals' : 'Anytime';
+  
+  // Get dose status with color coding
+  const doseStatus = getDoseStatus(reminder.scheduled_time, isTaken, dayIndex);
+  
+  // Color map for different dose statuses
+  const colorMap = {
+    emerald: 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-900/60',
+    amber: 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900/60',
+    red: 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-900/60',
+    slate: 'bg-white dark:bg-slate-800 border-stone-200 dark:border-slate-700',
+  };
 
   return (
     <div
-      className={`rounded-2xl border p-4 transition-all flex flex-col justify-between space-y-3 ${
-        isTaken
-          ? 'bg-emerald-50/70 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/60 opacity-90'
-          : 'bg-white dark:bg-slate-800 border-stone-200 dark:border-slate-700 shadow-2xs hover:shadow-xs'
-      }`}
+      className={`rounded-2xl border p-4 transition-all flex flex-col justify-between space-y-3 ${colorMap[doseStatus.color] || colorMap.slate} ${isTaken ? 'opacity-85' : 'shadow-2xs hover:shadow-xs'}`}
     >
-      {/* HEADER: TIME, ALARM & STATUS */}
-      <div className="flex items-center justify-between border-b border-stone-100 dark:border-slate-700/60 pb-2 text-xs">
+      {/* TOP: DOSE STATUS BADGE & TIME */}
+      <div className="flex items-center justify-between border-b border-stone-100 dark:border-slate-700/60 pb-2">
         <div className="flex items-center gap-2">
-          <span className="font-extrabold text-stone-900 dark:text-white flex items-center gap-1">
-            <ClockIcon size={14} className="text-[#0B4F42] dark:text-teal-400" />
-            <span>{time}</span>
-          </span>
-
-          {/* ALARM TOGGLE CONTROL */}
-          <button
-            type="button"
-            onClick={onToggleAlarm}
-            className={`text-[10px] font-bold px-2 py-0.5 rounded-full cursor-pointer transition-colors border ${
-              alarmOn
-                ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 border-amber-200 dark:border-amber-800'
-                : 'bg-stone-100 dark:bg-slate-700 text-stone-500 dark:text-slate-400 border-stone-200 dark:border-slate-600'
-            }`}
-          >
-            {alarmOn ? '🔔 Alarm On' : '🔕 Alarm Off'}
-          </button>
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[10px] font-black uppercase tracking-wider text-stone-500 dark:text-slate-400">
+              {time}
+            </span>
+            <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 w-fit ${
+              doseStatus.color === 'emerald' ? 'bg-emerald-100 dark:bg-emerald-900/80 text-emerald-800 dark:text-emerald-200' :
+              doseStatus.color === 'amber' ? 'bg-amber-100 dark:bg-amber-900/80 text-amber-800 dark:text-amber-200' :
+              doseStatus.color === 'red' ? 'bg-red-100 dark:bg-red-900/80 text-red-800 dark:text-red-200' :
+              'bg-stone-100 dark:bg-slate-700 text-stone-600 dark:text-slate-300'
+            }`}>
+              {doseStatus.icon} {doseStatus.label}
+            </span>
+          </div>
         </div>
 
-        {/* STATUS BADGE */}
-        <span
-          className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
-            isTaken
-              ? 'bg-emerald-100 dark:bg-emerald-900/80 text-emerald-800 dark:text-emerald-200'
-              : 'bg-stone-100 dark:bg-slate-700 text-stone-600 dark:text-slate-300'
+        {/* ALARM TOGGLE */}
+        <button
+          type="button"
+          onClick={onToggleAlarm}
+          className={`text-[10px] font-bold px-2 py-0.5 rounded-full cursor-pointer transition-colors border ${
+            alarmOn
+              ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 border-amber-200 dark:border-amber-800'
+              : 'bg-stone-100 dark:bg-slate-700 text-stone-500 dark:text-slate-400 border-stone-200 dark:border-slate-600'
           }`}
+          title={alarmOn ? 'Alarm enabled' : 'Alarm disabled'}
         >
-          {isTaken ? '✓ Taken' : '○ Pending'}
-        </span>
+          {alarmOn ? '🔔' : '🔕'}
+        </button>
       </div>
 
-      {/* BODY: NORMALIZED MEDICINE NAME & INSTRUCTION */}
-      <div className="space-y-1">
-        <h4 className={`text-sm font-extrabold ${isTaken ? 'line-through text-stone-600 dark:text-slate-400' : 'text-stone-900 dark:text-white'}`}>
+      {/* MEDICATION INFO: 3-TIER DISPLAY */}
+      <div className="space-y-2">
+        {/* TIER 1: Generic/Brand Name (Main) */}
+        <h4 className={`text-sm font-extrabold leading-tight ${
+          isTaken 
+            ? 'line-through text-stone-500 dark:text-slate-400' 
+            : 'text-stone-900 dark:text-white'
+        }`}>
           {title}
         </h4>
-        <p className="text-xs text-stone-600 dark:text-slate-300 leading-relaxed font-medium">
-          {instruction}
+
+        {/* TIER 2: Strength & Form */}
+        <div className="text-xs text-stone-600 dark:text-slate-300 font-semibold">
+          <span className="inline-block">💊 {strength}</span>
+          <span className="mx-1.5 opacity-40">•</span>
+          <span className="inline-block">{mealTiming}</span>
+        </div>
+
+        {/* TIER 3: Doctor's Instructions (Clear & Actionable) */}
+        <p className={`text-xs leading-relaxed font-medium ${
+          isTaken
+            ? 'text-stone-500 dark:text-slate-400'
+            : 'text-stone-700 dark:text-slate-200'
+        }`}>
+          📋 {instruction}
         </p>
       </div>
 
-      {/* FOOTER ACTIONS: LISTEN (NO AUTOPLAY), MARK TAKEN, DELETE */}
+      {/* ACTIONS: LISTEN, PHONE, MARK TAKEN, DELETE */}
       <div className="flex items-center justify-between pt-1 border-t border-stone-100 dark:border-slate-700/60 gap-2">
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
           <button
             type="button"
             onClick={onAudioToggle}
@@ -619,42 +681,49 @@ const MedicationCard = ({
                 ? 'bg-rose-600 border-rose-600 text-white animate-pulse'
                 : 'border-stone-300 dark:border-slate-700 text-stone-700 dark:text-slate-300 hover:bg-stone-50 dark:hover:bg-slate-700'
             }`}
+            title={isPlaying ? 'Stop audio' : 'Play audio instructions'}
           >
-            <span>{isPlaying ? '⏸ Stop' : '🔊 Listen'}</span>
+            <span>{isPlaying ? '⏸' : '🔊'}</span>
+            <span className="hidden sm:inline">{isPlaying ? 'Stop' : 'Audio'}</span>
           </button>
 
           {onIvrCall && (
             <button
               type="button"
               onClick={onIvrCall}
-              className="border border-stone-300 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-700 text-stone-700 dark:text-slate-300 text-xs font-medium px-2 py-1 rounded-lg cursor-pointer flex items-center gap-1"
+              className="border border-stone-300 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-700 text-stone-700 dark:text-slate-300 text-xs font-bold px-2.5 py-1 rounded-lg cursor-pointer flex items-center gap-1"
+              title="Call for phone guidance"
             >
-              <PhoneIcon size={12} /> <span className="hidden sm:inline">2G</span>
+              <PhoneIcon size={12} />
+              <span className="hidden sm:inline">Call</span>
             </button>
           )}
         </div>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
+          {/* MARK TAKEN BUTTON - Prominent */}
           <button
             type="button"
             onClick={onToggleTaken}
             className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer shadow-2xs ${
               isTaken
-                ? 'bg-stone-200 dark:bg-slate-700 text-stone-700 dark:text-slate-200 hover:bg-stone-300'
-                : 'bg-[#0B4F42] dark:bg-teal-600 hover:bg-[#07362d] text-white'
+                ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                : doseStatus.status === 'ready' || doseStatus.status === 'overdue' || doseStatus.status === 'critical'
+                ? 'bg-[#0B4F42] dark:bg-teal-600 hover:bg-[#07362d] dark:hover:bg-teal-700 text-white animate-pulse'
+                : 'bg-stone-200 dark:bg-slate-700 text-stone-700 dark:text-slate-200 hover:bg-stone-300'
             }`}
           >
-            {isTaken ? 'Undo' : '✓ Mark Taken'}
+            {isTaken ? '✓ Done' : '✓ Take Now'}
           </button>
 
           {onDelete && (
             <button
               type="button"
               onClick={onDelete}
-              title="Delete Reminder"
-              className="text-stone-400 hover:text-rose-600 dark:hover:text-rose-400 text-xs p-1 cursor-pointer transition-colors"
+              title="Delete"
+              className="text-stone-300 hover:text-rose-600 dark:hover:text-rose-400 text-lg p-0.5 cursor-pointer transition-colors"
             >
-              🗑️
+              ✕
             </button>
           )}
         </div>

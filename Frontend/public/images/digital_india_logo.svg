@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 90" width="320" height="90" fill="none">
+  <!-- Saffron, White, Green Tri-color Arc Symbol -->
+  <g transform="translate(10, 8)">
+    <!-- Digital India stylized 'D' & 'i' swoosh in Tiranga colors -->
+    <path d="M42 6 C22 6 6 22 6 42 C6 62 22 78 42 78 C54 78 64 72 70 63 L58 55 C54 60 48 64 42 64 C30 64 20 54 20 42 C20 30 30 20 42 20 C48 20 54 24 58 29 L70 21 C64 12 54 6 42 6 Z" fill="#FF9933" />
+    <path d="M42 16 C28 16 16 28 16 42 C16 56 28 68 42 68 C49 68 56 64 60 58 L50 51 C48 54 45 56 42 56 C34 56 28 50 28 42 C28 34 34 28 42 28 C45 28 48 30 50 33 L60 26 C56 20 49 16 42 16 Z" fill="#000080" opacity="0.15" />
+    
+    <!-- Central Ashoka Chakra stylized disc -->
+    <circle cx="42" cy="42" r="14" fill="#000080" />
+    <circle cx="42" cy="42" r="10" fill="#FFFFFF" />
+    <circle cx="42" cy="42" r="4" fill="#000080" />
+    <path d="M42 32 L42 52 M32 42 L52 42 M35 35 L49 49 M35 49 L49 35" stroke="#000080" stroke-width="1.5" />
+
+    <!-- Green Swoosh bottom tail -->
+    <path d="M42 66 C52 66 62 60 68 50 L78 57 C70 70 56 78 42 78 Z" fill="#138808" />
+  </g>
+
+  <!-- Typography: Digital India & Power to Empower -->
+  <!-- "Digital" in Navy Blue -->
+  <text x="95" y="44" font-family="'Inter', 'Arial', sans-serif" font-weight="900" font-size="28" fill="#003366" letter-spacing="-0.5">Digital India</text>
+  
+  <!-- "Power To Empower" Tagline -->
+  <text x="96" y="64" font-family="'Inter', 'Arial', sans-serif" font-weight="700" font-size="12" fill="#FF9933" letter-spacing="1">Power To Empower</text>
+</svg>

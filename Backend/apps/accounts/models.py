@@ -74,6 +74,8 @@ class UserProfile(models.Model):
     healthcare_followup_reminders = models.BooleanField(default=True)
     important_healthcare_updates = models.BooleanField(default=True)
     is_phone_verified = models.BooleanField(default=True)
+    abha_id = models.CharField(max_length=24, blank=True, default='', db_index=True)
+    abha_number = models.CharField(max_length=64, blank=True, default='')
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 

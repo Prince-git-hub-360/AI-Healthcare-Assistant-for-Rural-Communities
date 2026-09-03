@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useAuth, LANGUAGES } from '../../shared/context/AuthContext';
 import {
   HospitalIcon, MenuIcon, CloseIcon, TranslateIcon, DocumentIcon,
-  ClockIcon, PhoneIcon, UserIcon, SparklesIcon, MoonIcon, SunIcon, ShieldIcon
+  ClockIcon, PhoneIcon, UserIcon, SparklesIcon, MoonIcon, SunIcon, ShieldIcon, ActivityIcon
 } from '../../shared/icons/Icons';
 import { ROUTES, navigateTo, getRoleDefaultRoute } from '../../utils/routes';
 import SwasthyaLogo from '../branding/SwasthyaLogo';
@@ -98,34 +98,83 @@ export const AppNavbar = ({ currentPath, onNavigate, onOpenChat }) => {
     : user?.username || 'Prince Kumar';
   const userInitial = userName.charAt(0).toUpperCase();
 
-  /* ─── nav structure ─── */
-  const navSections = [
-    {
-      label: 'Overview',
-      items: [
-        { id: defaultDashboardRoute, label: 'Home', icon: HospitalIcon },
-      ],
-    },
-    {
-      label: 'My Care',
-      items: [
-        { id: ROUTES.APP.PATIENT.REMINDERS, label: 'Medications & Reminders', icon: ClockIcon },
-        { id: ROUTES.APP.PATIENT.HEALTH_VAULT, label: 'Health Records', icon: DocumentIcon },
-      ],
-    },
-    {
-      label: 'AI Tools',
-      items: [
-        { id: ROUTES.APP.PATIENT.TRANSLATE, label: 'Translate Prescription', icon: TranslateIcon },
-      ],
-    },
-    {
-      label: 'Emergency',
-      items: [
-        { id: ROUTES.APP.PATIENT.EMERGENCY, label: 'Emergency Care', icon: PhoneIcon, danger: true, badge: 'SOS' },
-      ],
-    },
-  ];
+  const isDoctor = role === 'doctor';
+  const isAsha = role === 'healthcare_worker';
+
+  /* ─── Clean Unified Navigation Structure (Role-Aware) ─── */
+  const navSections = isDoctor
+    ? [
+        {
+          label: 'Clinical Command',
+          items: [
+            { id: ROUTES.APP.DOCTOR.DASHBOARD, label: 'Live OPD Queue', icon: HospitalIcon, badge: 'OPD' },
+            { id: ROUTES.APP.DOCTOR.PRESCRIPTIONS, label: 'ASHA Verifications', icon: DocumentIcon, badge: '2 PENDING' },
+            { id: ROUTES.APP.PATIENT.HEALTH_VAULT, label: 'ABDM Patient Dossiers', icon: ShieldIcon, badge: 'ABDM' },
+            { id: ROUTES.APP.PATIENT.HEALTH_MAP, label: 'Gyan Kendra (3D)', icon: ActivityIcon, badge: 'REF' },
+          ],
+        },
+        {
+          label: 'Critical Care',
+          items: [
+            { id: ROUTES.APP.PATIENT.EMERGENCY, label: 'Emergency Triage', icon: PhoneIcon, danger: true, badge: '108 / 112' },
+          ],
+        },
+      ]
+    : isAsha
+    ? [
+        {
+          label: 'MAIN',
+          items: [
+            { id: ROUTES.APP.ASHA.DASHBOARD, label: 'Dashboard', icon: HospitalIcon },
+          ],
+        },
+        {
+          label: 'FIELD WORK',
+          items: [
+            { id: ROUTES.APP.ASHA.PATIENTS, label: 'My Patients', icon: UserIcon },
+            { id: ROUTES.APP.ASHA.FOLLOW_UPS, label: "Today's Visits", icon: ClockIcon, badge: '12 DUE' },
+            { id: ROUTES.APP.ASHA.FOLLOW_UPS, label: 'Follow-ups', icon: ActivityIcon },
+          ],
+        },
+        {
+          label: 'PATIENT CARE',
+          items: [
+            { id: ROUTES.APP.PATIENT.HEALTH_VAULT, label: 'Health Records', icon: DocumentIcon },
+            { id: ROUTES.APP.PATIENT.HEALTH_VAULT, label: 'Prescriptions', icon: DocumentIcon },
+            { id: ROUTES.APP.ASHA.FOLLOW_UPS, label: 'Referrals', icon: HospitalIcon },
+          ],
+        },
+        {
+          label: 'COORDINATION',
+          items: [
+            { id: ROUTES.APP.ASHA.FOLLOW_UPS, label: 'PHC Coordination', icon: HospitalIcon, badge: 'PHC #2' },
+          ],
+        },
+        {
+          label: 'EMERGENCY',
+          items: [
+            { id: ROUTES.APP.PATIENT.EMERGENCY, label: 'Emergency Support', icon: PhoneIcon, danger: true, badge: '108' },
+          ],
+        },
+      ]
+    : [
+        {
+          label: 'Main Menu',
+          items: [
+            { id: defaultDashboardRoute, label: 'Home Dashboard', icon: HospitalIcon },
+            { id: ROUTES.APP.PATIENT.TRANSLATE, label: 'Prescription AI', icon: TranslateIcon, badge: 'AI' },
+            { id: ROUTES.APP.PATIENT.REMINDERS, label: 'Medications & Pillbox', icon: ClockIcon },
+            { id: ROUTES.APP.PATIENT.HEALTH_VAULT, label: 'Digital Health Vault', icon: DocumentIcon, badge: 'ABDM' },
+            { id: ROUTES.APP.PATIENT.HEALTH_MAP, label: 'Gyan Kendra', icon: ActivityIcon, badge: 'LEARN' },
+          ],
+        },
+        {
+          label: 'Emergency Response',
+          items: [
+            { id: ROUTES.APP.PATIENT.EMERGENCY, label: 'Emergency Care', icon: PhoneIcon, danger: true, badge: '108 / 112' },
+          ],
+        },
+      ];
 
   /* ─── Sidebar JSX (shared between desktop & mobile) ─── */
   const SidebarContent = ({ mobile = false }) => (
@@ -168,6 +217,17 @@ export const AppNavbar = ({ currentPath, onNavigate, onOpenChat }) => {
         ))}
       </nav>
 
+      {/* ABDM Aligned Ecosystem Badge */}
+      {isAsha && (
+        <div className="mx-3 mb-2 p-2.5 bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-900/60 rounded-xl space-y-0.5 text-left">
+          <div className="text-[9px] font-bold text-slate-500 dark:text-slate-400 leading-tight">National Digital Health Mission (ABDM) Aligned</div>
+          <div className="flex items-center gap-1.5 font-bold text-[11px] text-[#0B3B74] dark:text-sky-300">
+            <div className="w-4 h-4 rounded bg-[#0B3B74] text-white flex items-center justify-center text-[8px] font-black shrink-0">ABHA</div>
+            <span className="truncate">Building Digital Health Ecosystem</span>
+          </div>
+        </div>
+      )}
+
       {/* Bottom profile block */}
       <div className="shrink-0 border-t border-slate-100 dark:border-slate-800 p-3 relative" ref={mobile ? undefined : profileMenuRef}>
 
@@ -192,7 +252,9 @@ export const AppNavbar = ({ currentPath, onNavigate, onOpenChat }) => {
             <div className="p-2 space-y-0.5">
               <button
                 type="button"
-                onClick={() => handleNav(ROUTES.APP.PATIENT.PROFILE)}
+                onClick={() => handleNav(
+                  isAsha ? ROUTES.APP.ASHA.PROFILE : isDoctor ? ROUTES.APP.DOCTOR.PROFILE : role === 'caregiver' ? ROUTES.APP.CAREGIVER.PROFILE : ROUTES.APP.PATIENT.PROFILE
+                )}
                 className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer text-left"
               >
                 <UserIcon size={16} color={theme === 'dark' ? '#cbd5e1' : '#64748b'} />

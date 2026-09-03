@@ -5,9 +5,12 @@ from accounts.models import LanguageChoices
 
 
 class DocumentTypeChoices(models.TextChoices):
-    PRESCRIPTION = 'prescription', 'Prescription'
-    DISCHARGE_SUMMARY = 'discharge_summary', 'Discharge Summary'
-    MEDICAL_REPORT = 'medical_report', 'Medical Report'
+    PRESCRIPTION = 'prescription', 'Prescription (OPD Rx)'
+    DISCHARGE_SUMMARY = 'discharge_summary', 'Hospital Discharge Summary'
+    DIAGNOSTIC_REPORT = 'diagnostic_report', 'Diagnostic & Lab Report'
+    RADIOLOGY_SCAN = 'radiology_scan', 'Radiology & Scans (X-Ray/USG)'
+    IMMUNIZATION = 'immunization', 'Vaccine & Immunization'
+    MEDICAL_REPORT = 'medical_report', 'Other Medical Report'
     HEALTH_CONTENT = 'health_content', 'Health Content'
 
 
@@ -44,6 +47,15 @@ class MedicalDocument(models.Model):
         default=LanguageChoices.ENGLISH,
     )
     translated_text = models.TextField(blank=True)
+    
+    # ABDM Categorization & Diagnostic Triage Metadata
+    hospital_name = models.CharField(max_length=255, blank=True)
+    doctor_name = models.CharField(max_length=255, blank=True)
+    record_date = models.DateField(null=True, blank=True)
+    diagnosis = models.TextField(blank=True)
+    abnormal_flags = models.JSONField(default=list, blank=True)
+    is_abnormal = models.BooleanField(default=False)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

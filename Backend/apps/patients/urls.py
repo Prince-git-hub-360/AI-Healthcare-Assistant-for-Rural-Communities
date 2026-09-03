@@ -12,6 +12,11 @@ from .recommendations_views import (
     HealthAwarenessTipsAPIView,
     FollowUpSuggestionsAPIView,
 )
+from .abha_views import (
+    AbhaPatientLookupView,
+    AbhaClinicalNotesView,
+    AbhaDirectoryView,
+)
 
 router = DefaultRouter()
 router.register(r'patients', PatientViewSet, basename='patient')
@@ -19,6 +24,11 @@ router.register(r'caregiver-assignments', CaregiverAssignmentViewSet, basename='
 
 urlpatterns = [
     path('', include(router.urls)),
+
+    # ABDM ABHA Digital Health Card & Clinical Dossier API
+    path('abha/directory/', AbhaDirectoryView.as_view(), name='abha-directory'),
+    path('abha/<str:abha_id>/', AbhaPatientLookupView.as_view(), name='abha-lookup'),
+    path('abha/<str:abha_id>/notes/', AbhaClinicalNotesView.as_view(), name='abha-notes'),
 
     # AI Recommendation Engine (patient-scoped endpoints)
     path('ai/personalized-recommendations/', PersonalizedRecommendationsAPIView.as_view(), name='ai-personalized'),

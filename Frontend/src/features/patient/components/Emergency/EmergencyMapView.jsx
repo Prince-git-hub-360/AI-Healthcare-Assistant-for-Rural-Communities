@@ -80,37 +80,47 @@ const getFacilityMarkerIcon = (facilityType) => {
   return defaultIcon;
 };
 
-// Component to dynamically re-center map view on user location update
-const MapRecenter = ({ center }) => {
+// Component to dynamically re-center or fly-to selected facility / user location
+const MapRecenter = ({ center, selectedFacility }) => {
   const map = useMap();
   useEffect(() => {
-    if (center && center[0] && center[1]) {
+    if (selectedFacility && selectedFacility.latitude && selectedFacility.longitude) {
+      map.flyTo([selectedFacility.latitude, selectedFacility.longitude], 15, {
+        duration: 1.2,
+      });
+    } else if (center && center[0] && center[1]) {
       map.setView(center, 13, { animate: true });
     }
-  }, [center, map]);
+  }, [center, selectedFacility, map]);
   return null;
 };
 
-export const EmergencyMapView = ({ userLocation, facilities = [], selectedFacility, onSelectFacility }) => {
-  const defaultCenter = [12.5244, 76.8958]; // Default Karnataka rural sector
+export const EmergencyMapView = ({
+  userLocation,
+  facilities = [],
+  selectedFacility,
+  onSelectFacility,
+  className = "w-full h-[420px] lg:h-full min-h-[440px]",
+}) => {
+  const defaultCenter = [12.8315, 77.7013]; // Default to user's current GPS sector
   const mapCenter = userLocation?.latitude && userLocation?.longitude
     ? [userLocation.latitude, userLocation.longitude]
     : defaultCenter;
 
   return (
-    <div className="relative w-full h-[380px] md:h-[450px] rounded-3xl overflow-hidden shadow-xl border border-slate-200 dark:border-slate-800 z-10">
+    <div className={`relative rounded-3xl overflow-hidden shadow-xl border border-slate-200 dark:border-slate-800 z-10 ${className}`}>
       <MapContainer
         center={mapCenter}
         zoom={13}
         scrollWheelZoom={true}
-        className="w-full h-full"
+        className="w-full h-full min-h-[380px]"
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        <MapRecenter center={mapCenter} />
+        <MapRecenter center={mapCenter} selectedFacility={selectedFacility} />
 
         {/* CURRENT USER GPS MARKER */}
         {userLocation?.latitude && userLocation?.longitude && (
@@ -126,10 +136,11 @@ export const EmergencyMapView = ({ userLocation, facilities = [], selectedFacili
           </Marker>
         )}
 
-        {/* HEALTHCARE FACILITY MARKERS */}
+        {/* HEALTHCARE FACILITY MARKERS (TOP FACILITIES WITH RANK HIGHLIGHTS) */}
         {facilities.map((fac, idx) => {
           if (!fac.latitude || !fac.longitude) return null;
-          const icon = getFacilityMarkerIcon(fac.facility_type);
+          const isSelected = selectedFacility?.id === fac.id || selectedFacility?.name === fac.name;
+          const icon = getFacilityMarkerIcon(fac.facility_type || fac.type);
 
           return (
             <Marker
@@ -141,40 +152,49 @@ export const EmergencyMapView = ({ userLocation, facilities = [], selectedFacili
               }}
             >
               <Popup>
-                <div className="font-sans text-xs space-y-2 p-1 min-w-[200px]">
+                <div className="font-sans text-xs space-y-2 p-1 min-w-[220px]">
                   <div>
-                    <span className="bg-teal-100 text-teal-800 font-extrabold text-[9px] px-2 py-0.5 rounded-full uppercase">
-                      {fac.type || fac.facility_type}
-                    </span>
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="bg-teal-100 dark:bg-teal-900 text-teal-800 dark:text-teal-200 font-extrabold text-[9px] px-2 py-0.5 rounded-full uppercase">
+                        #{idx + 1} {fac.type || fac.facility_type || 'HEALTH CENTRE'}
+                      </span>
+                      <span className="text-[10px] font-black text-slate-500">
+                        {fac.straight_line_km || fac.distance_km} km away
+                      </span>
+                    </div>
                     <h4 className="font-black text-slate-900 text-sm mt-1">{fac.name}</h4>
-                    <p className="text-[11px] text-slate-600 mt-0.5">{fac.address}</p>
+                    <p className="text-[11px] text-slate-600 mt-0.5 leading-snug">{fac.address || 'Address registered on OpenStreetMap'}</p>
                   </div>
 
                   <div className="bg-slate-100 p-2 rounded-xl text-[11px] space-y-0.5">
-                    <div className="font-bold text-slate-800">
-                      📏 Straight-line: {fac.straight_line_km || fac.distance_km} km
-                    </div>
-                    {fac.driving_km && (
-                      <div className="font-extrabold text-teal-700">
-                        🚗 Driving: {fac.driving_km} km (~{fac.driving_time_mins} mins)
+                    {fac.driving_km ? (
+                      <div className="font-extrabold text-teal-700 flex items-center gap-1">
+                        <span>🚗 Road Route:</span>
+                        <span>{fac.driving_km} km (~{fac.driving_time_mins} mins)</span>
+                      </div>
+                    ) : (
+                      <div className="font-bold text-slate-700">
+                        📏 Direct Distance: {fac.straight_line_km || fac.distance_km} km
                       </div>
                     )}
                   </div>
 
                   <div className="flex gap-1.5 pt-1">
                     <a
-                      href={`tel:${fac.phone || '108'}`}
-                      className="flex-1 bg-teal-700 text-white font-bold text-[11px] py-1.5 rounded-lg text-center no-underline"
+                      href={fac.phone && fac.phone !== 'Phone not available' ? `tel:${fac.phone}` : 'tel:108'}
+                      className="flex-1 bg-teal-700 hover:bg-teal-800 text-white font-bold text-[11px] py-2 rounded-xl text-center no-underline shadow-xs flex items-center justify-center gap-1"
                     >
-                      📞 Call Facility
+                      <span>📞</span>
+                      <span>{fac.phone && fac.phone !== 'Phone not available' ? 'Call' : 'Call 108'}</span>
                     </a>
                     <a
                       href={`https://www.google.com/maps/dir/?api=1&destination=${fac.latitude},${fac.longitude}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex-1 bg-slate-900 text-white font-bold text-[11px] py-1.5 rounded-lg text-center no-underline"
+                      className="flex-1 bg-slate-900 hover:bg-slate-800 text-white font-bold text-[11px] py-2 rounded-xl text-center no-underline shadow-xs flex items-center justify-center gap-1"
                     >
-                      🧭 Directions
+                      <span>🗺️</span>
+                      <span>Navigate</span>
                     </a>
                   </div>
                 </div>

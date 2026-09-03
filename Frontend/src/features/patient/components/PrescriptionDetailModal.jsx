@@ -3,20 +3,21 @@ import { DocumentIcon, SpeakerIcon } from '../../../shared/icons/Icons';
 import { LANGUAGES } from '../../../shared/context/AuthContext';
 import { speakNativeAudio } from '../../../shared/utils/speech';
 
-export const PrescriptionDetailModal = ({ item, onClose, onDelete, showToast }) => {
+export const PrescriptionDetailModal = ({ item, prescription, onClose, onDelete, showToast }) => {
+  const activeItem = item || prescription;
   const [speaking, setSpeaking] = useState(false);
   const [showFullImage, setShowFullImage] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  if (!item) return null;
+  if (!activeItem) return null;
 
-  const title = item.title || item.original_filename || 'Prescription Document';
-  const languageCode = item.languageCode || item.language || 'hi';
+  const title = activeItem.title || activeItem.original_filename || 'Prescription Document';
+  const languageCode = activeItem.languageCode || activeItem.language || 'hi';
   const langObj = LANGUAGES.find((l) => l.code === languageCode) || { name: 'Hindi', native: 'हिंदी' };
-  const originalText = item.extractedText || item.text_content || item.extracted_text || item.original_text || '';
-  const translatedText = item.translatedText || item.translated_text || item.simplified_text || item.simplified_summary || originalText;
-  const imagePreview = item.imagePreview || item.original_file || item.file || item.file_url || null;
-  const createdAt = item.timestamp ? new Date(item.timestamp).toLocaleDateString() : (item.created_at ? new Date(item.created_at).toLocaleDateString() : 'Today');
+  const originalText = activeItem.extractedText || activeItem.text_content || activeItem.extracted_text || activeItem.original_text || '';
+  const translatedText = activeItem.translatedText || activeItem.translated_text || activeItem.simplified_text || activeItem.simplified_summary || originalText;
+  const imagePreview = activeItem.imagePreview || activeItem.original_file || activeItem.file || activeItem.file_url || null;
+  const createdAt = activeItem.timestamp ? new Date(activeItem.timestamp).toLocaleDateString() : (activeItem.created_at ? new Date(activeItem.created_at).toLocaleDateString() : 'Today');
 
   const handleAudioPlayback = async () => {
     if (speaking) {

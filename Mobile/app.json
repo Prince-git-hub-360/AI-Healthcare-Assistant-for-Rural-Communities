@@ -1,0 +1,43 @@
+{
+  "expo": {
+    "name": "Swasthya AI",
+    "slug": "swasthya-ai-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#ECFDF5",
+      "resizeMode": "contain"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "org.swasthya.healthcare",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Swasthya AI needs camera access to scan doctor prescriptions and medication labels.",
+        "NSMicrophoneUsageDescription": "Swasthya AI needs microphone access to record spoken symptoms in regional Indian languages.",
+        "NSLocationWhenInUseUsageDescription": "Swasthya AI needs your location to send emergency GPS distress alerts to your caregiver and ASHA worker."
+      }
+    },
+    "android": {
+      "package": "org.swasthya.healthcare",
+      "adaptiveIcon": {
+        "backgroundColor": "#ECFDF5",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "permissions": [
+        "CAMERA",
+        "RECORD_AUDIO",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}

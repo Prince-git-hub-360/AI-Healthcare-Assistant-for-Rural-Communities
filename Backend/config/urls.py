@@ -19,6 +19,8 @@ urlpatterns = [
 
     # Authentication Endpoints
     path('api/v1/auth/', include('accounts.urls')),
+    path('api/v1/accounts/', include('accounts.urls')),
+    path('api/auth/', include('accounts.urls')),
 
     # Offline Data Synchronization & Health Check
     path('api/v1/sync/offline-batch/', OfflineBatchSyncView.as_view(), name='offline-batch-sync'),

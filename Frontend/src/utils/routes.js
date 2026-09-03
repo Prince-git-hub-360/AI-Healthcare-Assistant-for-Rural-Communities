@@ -18,13 +18,17 @@ export const ROUTES = {
       PROFILE: '/app/patient/profile',
       TRANSLATE: '/app/patient/translate',
       HEALTH_VAULT: '/app/patient/health-vault',
+      HEALTH_MAP: '/app/patient/health-map',
       REMINDERS: '/app/patient/reminders',
       EMERGENCY: '/app/patient/emergency',
     },
     ASHA: {
       DASHBOARD: '/app/asha',
       PATIENTS: '/app/asha/patients',
+      VISITS: '/app/asha/visits',
       FOLLOW_UPS: '/app/asha/follow-ups',
+      REFERRALS: '/app/asha/referrals',
+      COORDINATION: '/app/asha/coordination',
       PROFILE: '/app/asha/profile',
     },
     DOCTOR: {

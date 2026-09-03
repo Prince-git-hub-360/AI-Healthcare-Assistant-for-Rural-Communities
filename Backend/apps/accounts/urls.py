@@ -10,6 +10,9 @@ from .views import (
     UserProfileView,
     PasswordResetRequestView,
     PasswordResetConfirmView,
+    PhonePasswordResetView,
+    SendOtpView,
+    VerifyOtpView,
 )
 
 DecoratedTokenRefreshView = extend_schema(tags=['01. Authentication & User Profile'])(TokenRefreshView)
@@ -21,10 +24,15 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(), name='logout'),
     path('profile/', UserProfileView.as_view(), name='user-profile'),
 
+    # 4-Digit OTP Endpoints
+    path('otp/send/', SendOtpView.as_view(), name='send-otp'),
+    path('otp/verify/', VerifyOtpView.as_view(), name='verify-otp'),
+
     # JWT refresh (refresh token endpoint)
     path('token/refresh/', DecoratedTokenRefreshView.as_view(), name='token_refresh'),
 
     # Password reset
     path('password-reset/', PasswordResetRequestView.as_view(), name='password_reset'),
     path('password-reset-confirm/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    path('password/phone-reset/', PhonePasswordResetView.as_view(), name='phone_password_reset'),
 ]

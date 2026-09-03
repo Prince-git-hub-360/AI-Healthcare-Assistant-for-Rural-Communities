@@ -1,4 +1,4 @@
-import { PatientProfilePage as AshaProfile } from '../../../features/patient/pages/Profile/PatientProfilePage';
+import { AshaProfilePage as AshaProfile } from '../../../features/healthcare-worker/pages/Profile/AshaProfilePage';
 
 export { AshaProfile };
 export default AshaProfile;
